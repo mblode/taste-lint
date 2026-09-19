@@ -1,0 +1,66 @@
+# Sourced from mblode/taste-training sweep-runner.tsx (sweep 3, So What) and the lesson
+# edit-one-lens-at-a-time.mdx (filler, qualifiers, repetition).
+id: copywriting-dead-weight-hedges
+title: Hedge or throat-clearing phrase the sentence does not need
+categoryId: machine-prose
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/sweep-runner.tsx,
+    line: 131,
+  }
+related: [copywriting-filler-words]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, jsx-text]
+tier: both
+mechanical:
+  phrases:
+    [
+      we believe that,
+      it is important to note that,
+      it's worth noting that,
+      it goes without saying,
+      whether you're a,
+      our mission is to,
+      we are committed to,
+      designed to be,
+      powerful yet simple,
+      at its core,
+      in order to,
+      please note that,
+      needless to say,
+      as you may know,
+    ]
+question:
+  type: noul
+  context: []
+  instructions: >-
+    Read the TEXT. Return true when it contains a hedge or throat-clearing phrase (for example we believe that, it is important to note that, in order to, designed to be, our mission is to) that could be deleted with the rest of the sentence meaning exactly the same thing. Return false when the phrase carries a real qualification the reader needs, or when the TEXT quotes or teaches about such phrases rather than using them.
+  criteria:
+    true:
+      what: The phrase adds nothing; deleting it leaves the meaning intact.
+      examples:
+        - "It is important to note that tokens expire after 24 hours."
+        - "We believe that our platform is designed to be powerful yet simple."
+        - "In order to start, open the dashboard."
+    false:
+      what: The wording carries a needed qualification, or is being discussed.
+      examples:
+        - "Tokens expire after 24 hours."
+        - "Filler intensifies nothing: very, just, in order to."
+        - "We recommend the default unless your team spans time zones."
+severity: minor
+fix:
+  mode: llm
+  hint: Delete the phrase and reread. If the meaning survives, it was padding.
+preconditions:
+  {
+    notInCode: true,
+    docType:
+      [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown],
+  }
+status: active
+handWritten: [mechanical, question, fix]

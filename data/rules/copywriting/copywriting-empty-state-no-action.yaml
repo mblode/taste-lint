@@ -1,0 +1,58 @@
+# Ported from mblode/agent-skills product-design rule/empty-state-action and taste-training
+# full-stack-audit.tsx (generic-empty).
+id: copywriting-empty-state-no-action
+title: Empty state that names the void but not the first move
+categoryId: actionable-microcopy
+domain: copywriting
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/product-design/references/rules.md,
+    line: 66,
+    ruleId: rule/empty-state-action,
+  }
+scope:
+  include: ["**/*.tsx", "**/*.jsx", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [jsx-text, attr-string]
+tier: both
+mechanical:
+  phrases:
+    [
+      no results,
+      no results found,
+      no items,
+      nothing here,
+      nothing to show,
+      no data,
+      nothing found,
+      no matches,
+      empty,
+      nothing yet,
+    ]
+question:
+  type: noul
+  context: [element]
+  instructions: >-
+    The TEXT is shown when a list, search or page has nothing in it. Return true when it only states that nothing is there ("No results found", "Nothing here yet") and does not name the object or offer a first action the user can take. Return false when it names what would appear here and how to create or find it, or when the TEXT is not an empty state.
+  criteria:
+    true:
+      what: The void named, no next step.
+      examples:
+        - "No results found."
+        - "Nothing to show"
+        - "No data"
+    false:
+      what: The object and the first action are named.
+      examples:
+        - "No deployments yet. Push to your Git repository to create one."
+        - "No projects yet. Create your first project to get started."
+        - "No invoices match this filter. Clear the filter or change the date range."
+severity: minor
+fix:
+  mode: llm
+  hint: >-
+    Name the object and the first move: "No deployments yet. Push to your repository to create one."
+preconditions: { notInCode: true, docType: [ui, unknown, lesson] }
+status: active
+handWritten: [mechanical, question, fix, preconditions]

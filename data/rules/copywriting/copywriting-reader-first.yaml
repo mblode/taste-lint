@@ -1,0 +1,67 @@
+# Sourced from mblode/taste-training headline-analyzer.tsx (WHAT signals) and the lesson
+# lead-with-the-readers-world.mdx (Why, How, What).
+id: copywriting-reader-first
+title: Headline that leads with what the product is
+categoryId: reader-first-framing
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/headline-analyzer.tsx,
+    line: 58,
+  }
+related: [copywriting-flat-description]
+scope:
+  include: ["**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [heading, jsx-text]
+tier: both
+mechanical:
+  phrases:
+    [
+      platform,
+      software,
+      solution,
+      suite,
+      all-in-one,
+      introducing,
+      meet,
+      is a,
+      is the,
+      is an,
+      we built,
+      we made,
+      the tool,
+      a tool,
+    ]
+question:
+  type: noul
+  context: [docType, headingAbove]
+  instructions: >-
+    The TEXT is a headline or hero line on a page selling or introducing a product. Return true when it opens by naming what the product is (a platform, a tool, a solution, "Introducing X") before saying why that matters to the reader. Return false when it leads with the reader's problem or outcome, when the DOC TYPE is documentation, reference or a lesson where naming the thing first is correct, or when it is not a headline.
+  criteria:
+    true:
+      what: What-first headline.
+      examples:
+        - "Introducing Northwind, the all-in-one platform for modern teams"
+        - "A collaboration tool for growing companies"
+    false:
+      what: Why-first, or a context where What belongs first.
+      examples:
+        - "Roll any file back to how it was an hour ago"
+        - "Stop losing Friday afternoons to merge cleanup"
+        - "The systemOne endpoint accepts state and questions"
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: llm
+  hint: >-
+    Climb the ladder: why this matters to the reader, then how, then what. Let What lead only where the reader already holds the motivation.
+preconditions:
+  {
+    notInCode: true,
+    role: [heading],
+    docType: [marketing, ui, unknown, lesson],
+  }
+status: active
+handWritten: [mechanical, question, fix, thresholds, preconditions]

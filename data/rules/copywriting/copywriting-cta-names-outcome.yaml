@@ -1,0 +1,62 @@
+# Sourced from mblode/taste-training cta-grader.tsx (weak verbs) and full-stack-audit.tsx (generic-cta);
+# agent-skills product-design rule/destructive-names-action.
+id: copywriting-cta-names-outcome
+title: Button that names an action, not what the reader gets
+categoryId: actionable-cta
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/cta-grader.tsx,
+    line: 37,
+  }
+related: [copywriting-bare-confirm-label, copywriting-friction-cta]
+scope:
+  include: ["**/*.tsx", "**/*.jsx", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [jsx-text, attr-string]
+tier: both
+mechanical:
+  phrases:
+    [
+      submit,
+      click here,
+      click,
+      proceed,
+      go,
+      next,
+      learn more,
+      read more,
+      ok,
+      okay,
+      done,
+      finish,
+      more info,
+      see more,
+    ]
+question:
+  type: noul
+  context: [element]
+  instructions: >-
+    The TEXT is the label of a button or link. Return true when it would fit on any website unchanged because it names only a generic action (Submit, Click here, Learn more, Proceed, Go) and not the outcome the reader gets. Return false when the label names the object or result (Start free trial, Save changes, Download the report, Delete member), or when it is a conventional flow control such as Continue, Back, Cancel or Close.
+  criteria:
+    true:
+      what: A generic action label with no object or outcome.
+      examples:
+        - "Submit"
+        - "Learn more"
+        - "Click here"
+    false:
+      what: The outcome or object is named, or it is a standard flow control.
+      examples:
+        - "Start free trial"
+        - "Download the guide"
+        - "Cancel"
+severity: minor
+fix:
+  mode: llm
+  hint: >-
+    Verb plus the thing the reader gets: Start free trial, Create account, Save changes. Cover the page and read the button alone; if it fits any site, rewrite it.
+preconditions: { notInCode: true, role: [button, link, aria, label] }
+status: active
+handWritten: [mechanical, question, fix, preconditions]

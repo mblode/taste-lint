@@ -1,0 +1,34 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/punct-smart-quotes.md.
+# Hand-written keys are listed in handWritten; scripts/port-rules.ts never overwrites them.
+id: typography-straight-quotes
+title: Straight quotes in rendered copy
+categoryId: typographic-detail
+domain: typography
+source:
+  repo: mblode/agent-skills
+  path: skills/typography-audit/rules/punct-smart-quotes.md
+  line: 7
+  tier: CRITICAL
+related: [typography-dashes]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*", "**/CHANGELOG.md"]
+unit: [paragraph, heading, jsx-text, attr-string]
+tier: mechanical
+mechanical:
+  # A straight double quote anywhere, or a straight apostrophe between letters
+  # (it's, don't) or before a decade (the '90s). Code spans are masked first.
+  regex: "\"|(?<=\\p{L})'(?=\\p{L})|(?<=\\s)'(?=\\d)"
+  flags: gu
+severity: minor
+fix:
+  mode: deterministic
+  function: smartQuotes
+  hint: Replace with the matching curly mark. Opening after whitespace or at the start, closing otherwise; an apostrophe is always the right single quote.
+preconditions:
+  notInCode: true
+  docType:
+    [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown]
+  smartQuotesAtBuild: false
+status: active
+handWritten: [mechanical, fix, preconditions]

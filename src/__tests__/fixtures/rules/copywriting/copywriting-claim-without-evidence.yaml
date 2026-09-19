@@ -1,0 +1,70 @@
+# Sourced from mblode/taste-training apps/web/components/demos/copywriting/sweep-runner.tsx
+# (sweep 4, Prove It) and the lesson replace-claims-with-evidence.mdx.
+id: copywriting-claim-without-evidence
+title: Quality claimed, nothing the reader could check
+categoryId: evidence-over-claims
+domain: copywriting
+source:
+  repo: mblode/taste-training
+  path: apps/web/components/demos/copywriting/sweep-runner.tsx
+  line: 188
+related: [copywriting-generic-audience]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, heading, jsx-text]
+tier: both
+mechanical:
+  # Candidate generator only. Jev decides.
+  phrases:
+    - powerful
+    - easy to use
+    - seamless
+    - intuitive
+    - robust
+    - best-in-class
+    - industry-leading
+    - world-class
+    - innovative
+    - cutting-edge
+    - beautiful
+    - simple
+    - fast
+    - flexible
+    - modern
+    - smart
+    - next-generation
+    - enterprise-grade
+    - blazing
+question:
+  type: noul
+  context: [headingAbove, docType]
+  instructions: >-
+    Read the TEXT. Return true when the TEXT describes a product, feature, service or company with an evaluative adjective or adverb (for example powerful, seamless, fast, intuitive, robust, best-in-class, simple) and the same TEXT gives the reader nothing they could check: no number with a unit or scope, no named mechanism that explains how, no named standard, customer or third party. Return false when the TEXT contains such a checkable fact, when the adjective names a category a reader can verify (open source, end-to-end encrypted, GDPR compliant), or when the TEXT is not describing a product at all (instructions, narrative, a lesson explaining the rule). Ignore code, URLs and the HEADING line; judge only the TEXT.
+  criteria:
+    true:
+      what: A quality is asserted about a product and nothing in the text lets the reader check it.
+      examples:
+        - "A powerful, intuitive, modern platform for data-driven teams."
+        - "Enterprise-grade security, built for teams that take compliance seriously."
+        - "Our blazing-fast platform simply supports parallel execution."
+        - "Seamless sync across all your devices."
+    false:
+      what: The text names what happens, how much, or by which standard, or is not selling anything.
+      examples:
+        - "Every teammate's edits, merged in order, on one shared folder."
+        - "End-to-end encrypted, so Northwind cannot read your files and nor can the company hosting them."
+        - "The API responds in under 50ms and handles 10,000 concurrent requests."
+        - "Replace each adjective with a number, a name or a scenario, or cut it."
+thresholds: { review: 0.35, act: 0.7 }
+severity: minor
+severityOverrides:
+  - { scope: "**/landing/**", severity: major }
+  - { scope: "**/(marketing)/**", severity: major }
+fix:
+  mode: llm
+  hint: Replace the adjective with the mechanism, the number or the standard it stands for. If none exists, cut the sentence.
+preconditions:
+  notInCode: true
+status: active
+handWritten: [question, fix, severityOverrides, mechanical]

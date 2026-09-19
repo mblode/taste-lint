@@ -1,0 +1,63 @@
+# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-defaults.md (cut filler) and the lesson
+# edit-one-lens-at-a-time.mdx.
+id: copywriting-filler-words
+title: Intensifiers and filler that add nothing
+categoryId: machine-prose
+domain: copywriting
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/docs-writing/rules/clarity-defaults.md,
+    line: 12,
+  }
+related: [copywriting-dead-weight-hedges]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, jsx-text]
+tier: both
+mechanical:
+  phrases:
+    [
+      very,
+      really,
+      just,
+      basically,
+      actually,
+      simply,
+      quite,
+      rather,
+      somewhat,
+      extremely,
+      incredibly,
+      truly,
+    ]
+  minMatches: 2
+question:
+  type: noul
+  context: []
+  instructions: >-
+    Read the TEXT. Return true when it uses two or more intensifiers or filler words (very, really, just, basically, actually, simply, quite, extremely) that could be deleted without changing what the sentence says. Return false when each such word carries a real distinction ("just one file" meaning only one), or when the TEXT lists or teaches about filler words.
+  criteria:
+    true:
+      what: Removable intensifiers.
+      examples:
+        - "It is really very simple: you basically just click the button."
+        - "This is actually an extremely powerful and incredibly flexible tool."
+    false:
+      what: Words that carry a distinction, or a discussion of them.
+      examples:
+        - "Delete just the last commit, not the branch."
+        - "Cut filler: very, really, just, basically, actually."
+severity: minor
+fix:
+  mode: llm
+  hint: Delete the intensifier and reread. Read it aloud and cut what makes you stumble.
+preconditions:
+  {
+    notInCode: true,
+    docType:
+      [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown],
+  }
+status: active
+handWritten: [mechanical, question, fix]

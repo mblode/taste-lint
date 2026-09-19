@@ -1,0 +1,25 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/hierarchy-weight-contrast.md.
+id: typography-stacked-emphasis
+title: Bold, caps, colour and size stacked on one element
+categoryId: type-hierarchy
+domain: typography
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/typography-audit/rules/hierarchy-weight-contrast.md,
+    line: 7,
+    tier: MEDIUM,
+  }
+related: [typography-hierarchy-size-only]
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list, element]
+tier: mechanical
+mechanical: { function: stackedEmphasis }
+severity: minor
+fix:
+  mode: none
+  hint: Change one axis at a time. Emphasis is relative, so quieten the competition before making the winner louder.
+status: active
+handWritten: [mechanical, fix]

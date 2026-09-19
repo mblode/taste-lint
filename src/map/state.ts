@@ -1,0 +1,57 @@
+// Build the Jev state string for a unit from only the context keys the
+// batched questions asked for. Numbers never enter the state.
+
+import { estimateTokens } from "../lib/tokens.js";
+import type { ContextKey, Rule, Unit } from "../types.js";
+
+export const STATE_TOKEN_CAP = 1500;
+
+export const buildState = (
+  unit: Unit,
+  rules: Rule[]
+): { state: string; truncated: boolean } => {
+  const keys = new Set<ContextKey>();
+  for (const rule of rules) {
+    for (const key of rule.question?.context ?? []) {
+      keys.add(key);
+    }
+  }
+  const lines: string[] = [];
+  let truncated = false;
+  const budgetFor = (label: string): number =>
+    Math.max(
+      0,
+      STATE_TOKEN_CAP - estimateTokens(lines.join("\n")) - estimateTokens(label)
+    );
+  const clip = (label: string, value: string): string => {
+    const budget = budgetFor(label);
+    if (estimateTokens(value) <= budget) {
+      return value;
+    }
+    truncated = true;
+    return `${value.slice(0, Math.max(0, budget * 3))} [truncated]`;
+  };
+  if (keys.has("neighbours") && unit.neighbours?.next) {
+    lines.push(
+      `FIRST: ${clip("FIRST: ", unit.text)}`,
+      `SECOND: ${clip("SECOND: ", unit.neighbours.next.text)}`
+    );
+  } else {
+    lines.push(`TEXT: ${clip("TEXT: ", unit.text)}`);
+  }
+  if (keys.has("headingAbove") && unit.context.headingAbove) {
+    lines.push(`HEADING: ${clip("HEADING: ", unit.context.headingAbove)}`);
+  }
+  if (keys.has("docType")) {
+    lines.push(`DOC TYPE: ${unit.context.docType}`);
+  }
+  if (keys.has("element") && unit.context.element) {
+    lines.push(
+      `ELEMENT: ${unit.context.element}${unit.context.attr ? ` (${unit.context.attr})` : ""}`
+    );
+  }
+  if (keys.has("role")) {
+    lines.push(`ROLE: ${unit.context.role}`);
+  }
+  return { state: lines.join("\n"), truncated };
+};

@@ -1,0 +1,66 @@
+# Ported from mblode/agent-skills skills/docs-writing/rules/voice-defaults.md (professional, not promotional).
+id: copywriting-promotional-docs-voice
+title: Marketing voice inside documentation
+categoryId: evidence-over-claims
+domain: copywriting
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/docs-writing/rules/voice-defaults.md,
+    line: 14,
+  }
+related: [copywriting-claim-without-evidence]
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, heading]
+tier: both
+mechanical:
+  phrases:
+    [
+      simply,
+      easy,
+      easily,
+      blazing,
+      blazing-fast,
+      powerful,
+      seamless,
+      seamlessly,
+      effortless,
+      effortlessly,
+      robust,
+      best-in-class,
+      world-class,
+      cutting-edge,
+      state-of-the-art,
+      supercharge,
+      unlock,
+    ]
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    The TEXT is from documentation or instructions. Return true when it promotes rather than instructs: superlatives, "simply", "easy", "powerful", "seamless", or claims of speed and quality with no measure. Return false when the TEXT states a fact, a step or a measured number, or when it quotes or warns against promotional words.
+  criteria:
+    true:
+      what: Promotion where instruction belongs.
+      examples:
+        - "Our blazing-fast platform simply supports parallel execution."
+        - "Easily connect any data source with our powerful, seamless integrations."
+    false:
+      what: Fact, step or measured claim, or discussion of the words.
+      examples:
+        - "Run up to 16 tasks in parallel."
+        - "Replace superlatives with measurable facts. No marketing hype, no simply or easy."
+severity: minor
+fix:
+  mode: llm
+  hint: >-
+    Replace the superlative with the fact: the number, the step or the mechanism.
+preconditions:
+  {
+    notInCode: true,
+    docType: [tutorial, howto, reference, explanation, agent-instructions],
+  }
+status: active
+handWritten: [mechanical, question, fix, preconditions]

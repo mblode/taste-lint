@@ -1,0 +1,34 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/punct-fractions.md.
+id: typography-multiplication-sign
+title: The letter x used as a multiplication sign
+categoryId: typographic-detail
+domain: typography
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/typography-audit/rules/punct-fractions.md,
+    line: 7,
+    tier: MEDIUM,
+  }
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, heading, jsx-text, attr-string]
+tier: mechanical
+mechanical:
+  # Dimensions like 1920x1080 or 3 x 4. Multipliers such as 10x are left alone.
+  regex: "(?<![\\w.])[1-9]\\d*\\s?x\\s?\\d+(?![\\w.%])"
+  flags: gu
+severity: minor
+fix:
+  mode: deterministic
+  function: multiplicationSign
+  hint: Use the multiplication sign (U+00D7), for example 1920×1080.
+preconditions:
+  {
+    notInCode: true,
+    docType:
+      [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown],
+  }
+status: active
+handWritten: [mechanical, fix]

@@ -1,0 +1,64 @@
+# Sourced from mblode/taste-training sweep-runner.tsx (sweep 7, Zero Risk) and the lesson
+# write-a-clear-call-to-action.mdx (verb, result, qualifier).
+id: copywriting-friction-cta
+title: Call to action that names a commitment without reducing the risk
+categoryId: actionable-cta
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/sweep-runner.tsx,
+    line: 318,
+  }
+related: [copywriting-cta-names-outcome]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [jsx-text, heading, paragraph]
+tier: both
+mechanical:
+  phrases:
+    [
+      contact us,
+      talk to sales,
+      request a demo,
+      sign up,
+      create an account,
+      get started,
+      subscribe,
+      buy now,
+      purchase,
+      book a call,
+      schedule a call,
+    ]
+question:
+  type: noul
+  context: [role, docType]
+  instructions: >-
+    The TEXT is a call to action or the line beside one. Return true when it asks the reader to commit (sign up, buy, subscribe, talk to sales, request a demo, get started) and neither the TEXT nor its immediate wording says what they get or what makes it safe (free, no card, cancel anytime, how long it takes, what the demo shows). Return false when a result or a risk-reducing promise is present, when the action is a low-stakes step inside a flow, or when the TEXT is not a call to action.
+  criteria:
+    true:
+      what: A bare commitment with no result and no qualifier.
+      examples:
+        - "Get started"
+        - "Talk to sales"
+        - "Sign up today"
+    false:
+      what: The result or the safety net is named, or it is not a CTA.
+      examples:
+        - "Start syncing free, no card required"
+        - "Book a 15-minute call, no commitment"
+        - "Add a qualifier that removes the risk: free, no install, cancel anytime."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+severityOverrides:
+  - { scope: "**/landing/**", severity: major }
+  - { scope: "**/(marketing)/**", severity: major }
+fix:
+  mode: llm
+  hint: >-
+    Verb, result, qualifier. Name what the reader gets and add one promise you can back: free, no card, cancel anytime.
+preconditions: { notInCode: true, role: [button, link, heading, body, unknown] }
+status: active
+handWritten:
+  [mechanical, question, fix, thresholds, preconditions, severityOverrides]

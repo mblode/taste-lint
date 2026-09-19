@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "metadata": { "url": "https://example.com/pricing" },
+  "rootElementId": "e0",
+  "rootOuterHtml": "<main></main>",
+  "order": ["e0", "e1", "e2", "e3", "e4"],
+  "elements": {
+    "e0": {
+      "id": "e0",
+      "parentId": null,
+      "tagName": "MAIN",
+      "selector": "main",
+      "classList": [],
+      "attributes": {},
+      "children": ["e1", "e2", "e3", "e4"],
+      "boundingBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 800,
+        "top": 0,
+        "left": 0,
+        "right": 1200,
+        "bottom": 800
+      },
+      "styles": { "font-size": "16px" }
+    },
+    "e1": {
+      "id": "e1",
+      "parentId": "e0",
+      "tagName": "H2",
+      "selector": "main > h2",
+      "classList": [],
+      "attributes": {},
+      "children": [],
+      "text": "Notification rules",
+      "boundingBox": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 24,
+        "top": 0,
+        "left": 0,
+        "right": 600,
+        "bottom": 24
+      },
+      "styles": {
+        "font-size": "17px",
+        "font-weight": "600",
+        "line-height": "24px",
+        "letter-spacing": "normal",
+        "color": "rgb(20, 20, 20)",
+        "font-family": "Inter"
+      }
+    },
+    "e2": {
+      "id": "e2",
+      "parentId": "e0",
+      "tagName": "P",
+      "selector": "main > p:nth-child(2)",
+      "classList": [],
+      "attributes": {},
+      "children": [],
+      "text": "Choose which sync events reach your inbox and which stay in the feed.",
+      "boundingBox": {
+        "x": 0,
+        "y": 24,
+        "width": 600,
+        "height": 22,
+        "top": 24,
+        "left": 0,
+        "right": 600,
+        "bottom": 46
+      },
+      "styles": {
+        "font-size": "15px",
+        "font-weight": "600",
+        "line-height": "22px",
+        "letter-spacing": "normal",
+        "color": "rgb(20, 20, 20)",
+        "font-family": "Inter"
+      }
+    },
+    "e3": {
+      "id": "e3",
+      "parentId": "e0",
+      "tagName": "P",
+      "selector": "main > p:nth-child(3)",
+      "classList": [],
+      "attributes": {},
+      "children": [],
+      "text": "Body copy that is set small and spaced out for no reason at all here.",
+      "boundingBox": {
+        "x": 0,
+        "y": 50,
+        "width": 600,
+        "height": 20,
+        "top": 50,
+        "left": 0,
+        "right": 600,
+        "bottom": 70
+      },
+      "styles": {
+        "font-size": "13px",
+        "font-weight": "400",
+        "line-height": "18px",
+        "letter-spacing": "0.65px",
+        "color": "rgb(20, 20, 20)",
+        "font-family": "Inter"
+      }
+    },
+    "e4": {
+      "id": "e4",
+      "parentId": "e0",
+      "tagName": "BUTTON",
+      "selector": "main > button",
+      "classList": ["btn"],
+      "attributes": {},
+      "children": [],
+      "text": "Submit",
+      "boundingBox": {
+        "x": 0,
+        "y": 80,
+        "width": 80,
+        "height": 32,
+        "top": 80,
+        "left": 0,
+        "right": 80,
+        "bottom": 112
+      },
+      "styles": {
+        "font-size": "14px",
+        "font-weight": "500",
+        "line-height": "20px",
+        "letter-spacing": "normal"
+      }
+    }
+  }
+}

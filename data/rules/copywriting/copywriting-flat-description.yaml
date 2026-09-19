@@ -1,0 +1,44 @@
+# Sourced from mblode/taste-training sweep-runner.tsx (sweep 6, Emotion).
+id: copywriting-flat-description
+title: Information with no reason for the reader to care
+categoryId: reader-first-framing
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/sweep-runner.tsx,
+    line: 276,
+  }
+scope:
+  include: ["**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, jsx-text]
+tier: both
+mechanical:
+  # Candidate: a sentence that opens on It, This or The and pivots on "is".
+  regex: "(?:^|[.!?] )(?:It|This|The) [^.!?]{20,120} is [^.!?]{6,}[.!?]"
+  flags: gu
+question:
+  type: noul
+  context: [docType, headingAbove]
+  instructions: >-
+    The TEXT is marketing or product copy. Return true when it only describes what something is (a platform, a feature, a tool) and gives the reader no recognition of their own problem, no outcome for them, and no reason to keep reading. Return false when the TEXT names a problem the reader has, a change in their day, or a concrete scene, or when the DOC TYPE is documentation or a lesson where a neutral description is the point.
+  criteria:
+    true:
+      what: A neutral product description with no temperature.
+      examples:
+        - "This is a platform that provides file synchronisation for teams."
+        - "The dashboard is a tool that displays your metrics in one place."
+    false:
+      what: The reader's problem or outcome is present, or the text is a reference.
+      examples:
+        - "Stop losing an afternoon every Friday to merge cleanup."
+        - "The refresh endpoint returns a new token when the old one expires."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: llm
+  hint: Lead with the reader's problem or the scene after it is solved, then say what the product is.
+preconditions: { notInCode: true, docType: [marketing, ui, unknown, lesson] }
+status: active
+handWritten: [mechanical, question, fix, thresholds, preconditions]

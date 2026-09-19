@@ -1,0 +1,65 @@
+# Sourced from mblode/taste-training sweep-runner.tsx (sweep 2, Voice).
+id: copywriting-register-shift
+title: Formal or slangy register breaking the product voice
+categoryId: machine-prose
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/components/demos/copywriting/sweep-runner.tsx,
+    line: 84,
+  }
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, heading, jsx-text]
+tier: both
+mechanical:
+  phrases:
+    [
+      we are pleased to,
+      we're stoked,
+      furthermore,
+      moreover,
+      gonna,
+      ain't,
+      henceforth,
+      thus,
+      utilize,
+      utilise,
+      herein,
+      aforementioned,
+      kindly,
+      per our,
+      whilst,
+    ]
+question:
+  type: noul
+  context: []
+  instructions: >-
+    Read the TEXT as product or documentation copy. Return true when a word or phrase belongs to a clearly different register from plain spoken English: academic connectors (furthermore, moreover, thus), legal or corporate formality (henceforth, we are pleased to, kindly, utilize), or slang (gonna, stoked). Return false when the TEXT is consistently plain, when the formal word is a technical term with no plain equivalent, or when the TEXT quotes or teaches about register.
+  criteria:
+    true:
+      what: A register shift inside otherwise plain copy.
+      examples:
+        - "Furthermore, we are pleased to announce dark mode."
+        - "Utilize the dashboard to facilitate deployment."
+        - "We're stoked to have you. Henceforth your data syncs automatically."
+    false:
+      what: One plain register throughout, or discussion of the words.
+      examples:
+        - "Dark mode is here. Turn it on in Settings."
+        - "Use the dashboard to start your deployment."
+        - "Academic connectors like moreover signal a tone shift."
+severity: minor
+fix:
+  mode: llm
+  hint: Rewrite in the voice the rest of the page uses. Use "use" not "utilize", "so" not "thus", and drop the corporate opener.
+preconditions:
+  {
+    notInCode: true,
+    docType:
+      [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown],
+  }
+status: active
+handWritten: [mechanical, question, fix]
