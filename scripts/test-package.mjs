@@ -97,6 +97,7 @@ try {
   );
   const env = { ...process.env };
   delete env.TYPESAFE_API_KEY;
+  delete env.AI_GATEWAY_API_KEY;
   const dry = run(
     process.execPath,
     [

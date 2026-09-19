@@ -12,7 +12,7 @@ import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
 import { chunkQuestions } from "./map/batch.js";
 import { AnswerCache } from "./map/cache.js";
-import { DEFAULT_MODEL, makeFetchEvaluate } from "./map/jev.js";
+import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "./map/jev.js";
 import { judge } from "./map/judge.js";
 import { jevFindings } from "./reduce/bands.js";
 import { dedupe } from "./reduce/dedupe.js";
@@ -119,14 +119,11 @@ export const runLint = async (
   let evaluate = ctx.evaluate;
   let recorder: RecorderHandle | undefined;
   if (!options.dryRun && !options.mechanicalOnly) {
+    evaluate ??= evaluateFromEnv(options.apiKey);
     if (!evaluate) {
-      const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          "Set TYPESAFE_API_KEY for Jev-backed rules, or run with --dry-run or --mechanical-only."
-        );
-      }
-      evaluate = makeFetchEvaluate({ apiKey });
+      throw new Error(
+        `${KEY_HINT} Or run with --dry-run or --mechanical-only.`
+      );
     }
   } else {
     evaluate = undefined;
