@@ -1,5 +1,6 @@
 import { CATEGORIES } from "../rules/taxonomy.js";
 import type { Finding, Rule, Scorecard, Unit, Unknown } from "../types.js";
+import { STRUCTURAL_KINDS } from "../types.js";
 
 export const buildScorecard = (
   units: Unit[],
@@ -34,7 +35,9 @@ export const buildScorecard = (
   for (const r of rules) {
     byRule[r.id] = { act: 0, review: 0, silent: 0, unknown: 0 };
   }
-  const unitCount = units.filter((u) => u.kind !== "file").length;
+  const unitCount = units.filter(
+    (u) => !STRUCTURAL_KINDS.includes(u.kind)
+  ).length;
   for (const c of Object.values(byCategory)) {
     c.units = unitCount;
   }

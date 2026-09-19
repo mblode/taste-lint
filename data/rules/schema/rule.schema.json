@@ -77,7 +77,8 @@
         "flags": { "type": "string" },
         "phrases": { "type": "array", "items": { "type": "string" } },
         "function": { "type": "string" },
-        "minMatches": { "type": "integer", "minimum": 1 }
+        "minMatches": { "type": "integer", "minimum": 1 },
+        "absent": { "type": "string" }
       }
     },
     "question": {

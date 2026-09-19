@@ -1,0 +1,27 @@
+# Hand-authored from shadcn-ui/lint (shadcn/no-inline-styles). The rule is re-expressed over
+# slop-cop's extracted class lists; the original runs as an ESLint or oxlint plugin.
+id: craft-inline-styles
+title: Inline style object or style element in a component
+categoryId: look-constraints
+domain: craft
+source:
+  repo: shadcn-ui/lint
+  path: README.md
+  line: 1
+  ruleId: shadcn/no-inline-styles
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude:
+    ["**/*.test.*", "**/*.spec.*", "**/*.stories.*", "**/components/ui/**"]
+unit: [source]
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: "style=\\{\\{|<style\\b"
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Move the styling into utility classes or the theme. Inline styles bypass the design tokens, dark mode and the linter alike.
+status: review-only
+handWritten: [mechanical, fix, status, scope]

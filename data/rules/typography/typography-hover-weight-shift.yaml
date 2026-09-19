@@ -1,0 +1,33 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/type-hover-weight-shift.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: typography-hover-weight-shift
+title: Do not change font-weight on hover or selected
+categoryId: reading-comfort
+domain: typography
+source:
+  line: 10
+  path: skills/ui-design/rules/type-hover-weight-shift.md
+  repo: mblode/agent-skills
+  ruleId: type-hover-weight-shift
+  tier: backlog
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+    - "**/*.css"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: hover:font-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|data-\[(?:state=active|selected)\]:font-|aria-selected:font-|aria-current:font-
+severity: minor
+fix:
+  hint: Bumping `font-weight` on hover, focus, or selected nav items makes the label wider, so neighbours shift. The user sees the row jump rather than a state change. Use color, opacity, background, or underline for selected and hover; keep the weight stable.
+  mode: none
+status: review-only
+handWritten: []

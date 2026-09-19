@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/interaction-keyboard-operable.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-keyboard-operable
+title: Ensure Full Keyboard Operability
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/interaction-keyboard-operable.md
+  repo: mblode/agent-skills
+  ruleId: interaction-keyboard-operable
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: <[A-Za-z][^>]*?\b(?:role="button"|tabIndex=\{[0-9])(?![^>]*?(?:onKeyDown|onKeyUp|onKeyPress))[^>]*?>
+severity: major
+fix:
+  hint: Pointer-only handlers are not acceptable for critical actions. Anything reachable only by pointer cannot be completed by keyboard, switch, or screen reader users at all.
+  mode: none
+status: review-only
+handWritten: []

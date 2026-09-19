@@ -1,0 +1,40 @@
+# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
+# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
+# AI-tell questions and the four passage checks named in the article.
+id: copywriting-missing-reasoning-link
+title: A conclusion with no link to what came before
+categoryId: evidence-over-claims
+domain: copywriting
+source:
+  repo: every.to
+  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  line: 1
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Read the TEXT. Return true when a sentence draws a conclusion (so, therefore, which means, this is why) from what came before but the earlier sentences do not supply the step that gets there, so the reader has to guess the missing reasoning. Return false when the conclusion follows from the stated facts, or when the TEXT is openly stating an assumption.
+  criteria:
+    true:
+      what: A conclusion the stated facts do not reach.
+      examples:
+        - "Users spend most of their time on the dashboard. Therefore we should rebuild the settings page first."
+        - "Our churn fell in March. This is why the new onboarding video works."
+    false:
+      what: A conclusion the facts support, or an assumption named as one.
+      examples:
+        - "Users spend most of their time on the dashboard, and 60 percent of support tickets mention it, so it is the first page to rebuild."
+        - "Churn fell in March. We assume the onboarding video helped; the A/B test in April will tell."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Add the missing step, or mark the conclusion as an assumption and say what would test it.
+status: review-only
+handWritten: [question, fix, thresholds]

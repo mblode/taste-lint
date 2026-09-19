@@ -1,0 +1,22 @@
+# Hand-authored from mblode/agent-skills skills/ui-animation/references/live-tuning.md (the ten standards).
+id: motion-animate-without-reduced-motion
+title: Animation with no reduced-motion variant
+categoryId: motion-restraint
+domain: motion
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-animation/references/live-tuning.md
+  line: 57
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list]
+tier: mechanical
+mechanical: { function: animateWithoutMotionPreference }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Gate the animation with motion-safe:animate-* or pair it with motion-reduce:animate-none so users who asked for less motion get less.
+status: active
+handWritten: [mechanical, fix]

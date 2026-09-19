@@ -31,7 +31,7 @@ import type {
   Unit,
   Unknown,
 } from "./types.js";
-import { SEVERITY_RANK } from "./types.js";
+import { SEVERITY_RANK, STRUCTURAL_KINDS } from "./types.js";
 
 export interface LintOptions {
   root: string;
@@ -250,7 +250,7 @@ export const runLint = async (
     rulesLoaded: rules,
     scorecard,
     status,
-    units: units.filter((u) => u.kind !== "file").length,
+    units: units.filter((u) => !STRUCTURAL_KINDS.includes(u.kind)).length,
     unknowns,
     usage,
   };

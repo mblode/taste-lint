@@ -1,0 +1,52 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/perf-lazy-load-offscreen.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: craft-lazy-load-offscreen
+title: Lazy-Load Offscreen Media, Never the LCP Element
+categoryId: resilience
+domain: craft
+source:
+  line: 9
+  path: skills/ui-design/rules/perf-lazy-load-offscreen.md
+  repo: mblode/agent-skills
+  ruleId: perf-lazy-load-offscreen
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - paragraph
+  - heading
+  - jsx-text
+  - attr-string
+tier: jev
+question:
+  context:
+    - element
+    - docType
+  criteria:
+    "false":
+      examples:
+        - <img src="/hero.jpg" alt="..." fetchPriority="high" />
+        - <img src="/footer-logo.png" alt="..." loading="lazy" />
+        - <iframe src="/map" loading="lazy" title="Location map" />
+      what: A "hero" or "cover" inside a below-the-fold component (a card cover in a feed, a banner in a footer CTA) is correctly lazy, so confirm the element renders in the first viewport before reporting. The mirror defect, an offscreen image with no `loading` attribute, needs that same position evidence rath
+    "true":
+      examples:
+        - <img src="/hero.jpg" alt="..." loading="lazy" />
+        - <img src="/footer-logo.png" alt="..." />
+      what: TODO
+  instructions: 'TODO: Add `loading="lazy"` to offscreen images and iframes so they defer until the user scrolls near. Never lazy-load the LCP/above-the-fold hero; that delays the largest paint. Pair with `eager`/`priority` on the hero.'
+  type: noul
+severity: minor
+fix:
+  hint: 'TODO: Add `loading="lazy"` to offscreen images and iframes so they defer until the user scrolls near. Never lazy-load the LCP/above-the-fold hero; that delays the largest paint. Pair with `eager`/`priority`'
+  mode: none
+status: draft
+handWritten: []
+portNotes:
+  - 'rg pattern uses PCRE features JavaScript lacks: <(?:img|Image)\b(?=[^>]*loading="lazy")(?=[^>]*(?i:hero|banner|cover|masthead|priority))[^>]*>'

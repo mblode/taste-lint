@@ -1,0 +1,22 @@
+# Hand-authored from mblode/agent-skills skills/ui-animation/references/debugging-symptoms.md (the check-then-fix tables).
+id: motion-duration-over-300ms
+title: Transition longer than 300ms on product UI
+categoryId: easing-and-duration
+domain: motion
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-animation/references/debugging-symptoms.md
+  line: 29
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list]
+tier: mechanical
+mechanical: { function: durationOver300 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Cut the duration. A 180ms dropdown feels more responsive than a 400ms one; only a very steep curve earns a long duration.
+status: active
+handWritten: [mechanical, fix]

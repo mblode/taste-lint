@@ -1,0 +1,40 @@
+# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
+# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
+# AI-tell questions and the four passage checks named in the article.
+id: copywriting-unexplained-action
+title: Names an action that cannot be pictured
+categoryId: reader-first-framing
+domain: copywriting
+source:
+  repo: every.to
+  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  line: 1
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Read the TEXT. Return true when it asks the reader to do, or describes someone doing, an action whose concrete steps cannot be pictured from the words (teach a calendar, activate the culture, leverage the learnings). Return false when the action names a thing a person could start doing now, or when the TEXT is a heading or label that a following paragraph will explain.
+  criteria:
+    true:
+      what: An action with no picturable steps.
+      examples:
+        - "A shared appointment calendar that parents and staff teach together."
+        - "Activate the community around the launch and operationalise the insights."
+    false:
+      what: An action a person could begin.
+      examples:
+        - "A shared appointment calendar that parents and staff both add bookings to."
+        - "Post the launch thread in the community channel on Monday and reply to every question that day."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Replace the abstract verb with the first concrete step a person would take.
+status: review-only
+handWritten: [question, fix, thresholds]

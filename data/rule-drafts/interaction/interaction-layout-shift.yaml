@@ -1,0 +1,54 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/states-layout-shift.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-layout-shift
+title: Loading state causes layout shift on data arrival
+categoryId: state-coverage
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/states-layout-shift.md
+  repo: mblode/agent-skills
+  ruleId: states-layout-shift
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - element
+tier: jev
+question:
+  context:
+    - element
+    - docType
+  criteria:
+    "false":
+      examples:
+        - TODO
+      what: >-
+        - Skip files with `// ui-audit-ignore:states-layout-shift`.
+        
+        - Below-the-fold `content-visibility: auto` may CLS-shift inside its own subtree (acceptable).
+        
+        - Skip components declaring `min-height` via CSS class (Tailwind `min-h-*`); inspect class strings first.
+        
+        - Skip Storybook fixtures.
+    "true":
+      examples:
+        - TODO
+      what: TODO
+  instructions: "TODO: The skeleton or spinner takes 0x0 (or some height); loaded content takes 200x400; when data arrives every element below it jumps. This is the default Cumulative Layout Shift bug, everywhere: skeletons without `min-height`, images without `width`/`height`, fonts without `font-display: swap` and `size-adjust`. Fix is mechanical, one-time per surface."
+  type: noul
+severity: minor
+fix:
+  hint: "TODO: The skeleton or spinner takes 0x0 (or some height); loaded content takes 200x400; when data arrives every element below it jumps. This is the default Cumulative Layout Shift bug, everywhere: skeletons"
+  mode: none
+status: draft
+handWritten: []
+portNotes:
+  - detection is a shell pipeline or loop; port by hand
+  - "detect: rendered; only the rendered extractor can decide this rule"

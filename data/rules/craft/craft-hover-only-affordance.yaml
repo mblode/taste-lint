@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/mobile-hover-only-affordance.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: craft-hover-only-affordance
+title: Critical actions hidden behind hover-only affordances
+categoryId: resilience
+domain: craft
+source:
+  line: 10
+  path: skills/ui-design/rules/mobile-hover-only-affordance.md
+  repo: mblode/agent-skills
+  ruleId: mobile-hover-only-affordance
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: (group-hover|peer-hover|\bhover:):(opacity-100|visible|flex|block)
+severity: minor
+fix:
+  hint: 'Reveal-on-hover quietly disappears on touch: a row exposes "Edit / Delete / Share" only when the cursor enters, but a phone has no cursor. Touch users never discover the actions, or only via a frustrating long-press. The same pattern hides tooltips, secondary CTAs, and meaningful state ("3 unread") '
+  mode: none
+status: review-only
+handWritten: []

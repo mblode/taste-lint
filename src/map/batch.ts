@@ -1,7 +1,7 @@
 // Turn Jev jobs into requests, consulting the cache, and run them with the
 // limiter. Records only categories and token counts, never bodies.
 
-import { estimateTokens } from "../lib/tokens.js";
+import { charsPerTokenFor, estimateTokens } from "../lib/tokens.js";
 import { buildQuestion } from "../rules/question.js";
 import type {
   Evaluate,
@@ -54,8 +54,9 @@ export const prepareRequests = (
         keys[rule.id] = key;
       }
     }
+    const perToken = charsPerTokenFor(job.unit.kind);
     const estimatedTokens =
-      estimateTokens(state) +
+      estimateTokens(state, perToken) +
       Object.values(questions).reduce(
         (s, q) => s + estimateTokens(JSON.stringify(q)),
         0
@@ -83,7 +84,8 @@ export const chunkQuestions = (
   }
   const chunks: Record<string, SystemOneNoul>[] = [];
   let current: Record<string, SystemOneNoul> = {};
-  let tokens = estimateTokens(prepared.state);
+  const perToken = charsPerTokenFor(prepared.job.unit.kind);
+  let tokens = estimateTokens(prepared.state, perToken);
   for (const id of ids) {
     const q = prepared.questions[id];
     const qTokens = estimateTokens(JSON.stringify(q));
@@ -93,7 +95,7 @@ export const chunkQuestions = (
     ) {
       chunks.push(current);
       current = {};
-      tokens = estimateTokens(prepared.state);
+      tokens = estimateTokens(prepared.state, perToken);
     }
     current[id] = q;
     tokens += qTokens;

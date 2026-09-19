@@ -1,6 +1,8 @@
 # slop-cop
 
-Taste as a linter. slop-cop turns the copywriting and typography rules from [agent-skills](https://github.com/mblode/agent-skills) and [taste-training](https://github.com/mblode/taste-training) into checks that run on every file: mechanical where a regex or a real value decides, and a calibrated probability from [TypeSafe Jev](https://typesafe.ai) where a judgement is needed.
+Taste as a linter. slop-cop turns the design, copy, typography and motion rules from [agent-skills](https://github.com/mblode/agent-skills) and [taste-training](https://github.com/mblode/taste-training) into checks that run on every file: mechanical where a regex or a real value decides, and a calibrated probability from [TypeSafe Jev](https://typesafe.ai) where a judgement is needed.
+
+Rule packs, by domain folder under `data/rules/`: typography and copywriting (agent-skills `typography-audit`, `docs-writing`, `ui-design/guidelines/copywriting.md`, and Every's writing checks), interaction and craft (the static checks of `ui-design/rules`, ported as whole-file patterns, plus the shadcn/lint class hygiene rules), motion (the `ui-animation` flag-on-sight table) and product (the two deterministic `product-design` rules). Ported and hand-authored pattern rules ship `review-only` until a person has watched them on a real codebase; Jev-backed rules ship `review-only` until `slop-cop tune` promotes them on labelled data. `data/rule-drafts/` holds the source rules that still need a hand-written question or a rendered check; the loader never reads it.
 
 ```bash
 npx slop-cop lint src content --dry-run        # units, requests, estimated cost

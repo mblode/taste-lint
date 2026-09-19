@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/forms-labels-and-autocomplete.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-labels-and-autocomplete
+title: Label Inputs and Set Autocomplete Metadata
+categoryId: form-usability
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/forms-labels-and-autocomplete.md
+  repo: mblode/agent-skills
+  ruleId: forms-labels-and-autocomplete
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: <input\b(?![^>]*\bid=)(?![^>]*aria-label)[^>]*placeholder=
+severity: major
+fix:
+  hint: Inputs require explicit labels and appropriate `type`, `name`, and `autocomplete` values. Without them users retype data the browser already has, and assistive tech has no name to announce.
+  mode: none
+status: review-only
+handWritten: []

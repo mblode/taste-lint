@@ -145,14 +145,23 @@ const staticString = (node: Node | null | undefined): string | null => {
 };
 
 // Classes from a className value: literal, template statics, cn()-style calls.
-const staticClasses = (
-  node: Node | null | undefined
-): { classes: string[]; dynamic: boolean } => {
+interface ClassInfo {
+  classes: string[];
+  dynamic: boolean;
+  /** A template literal interpolates into a class (`bg-${color}`). */
+  interpolated: boolean;
+}
+
+const staticClasses = (node: Node | null | undefined): ClassInfo => {
   if (!node) {
-    return { classes: [], dynamic: false };
+    return { classes: [], dynamic: false, interpolated: false };
   }
   if (node.type === "Literal" && typeof node.value === "string") {
-    return { classes: splitClasses(node.value), dynamic: false };
+    return {
+      classes: splitClasses(node.value),
+      dynamic: false,
+      interpolated: false,
+    };
   }
   if (node.type === "JSXExpressionContainer") {
     return staticClasses(node.expression as Node);
@@ -161,10 +170,19 @@ const staticClasses = (
     const quasis = (node.quasis as Node[]).map(
       (q) => (q.value as { cooked?: string }).cooked ?? ""
     );
-    return {
-      classes: quasis.flatMap((q) => splitClasses(q)),
-      dynamic: (node.expressions as Node[]).length > 0,
-    };
+    const interpolated = (node.expressions as Node[]).length > 0;
+    // A token touching `${...}` is a fragment (`bg-` of `bg-${c}-500`), not a class.
+    const classes = quasis.flatMap((q, i) => {
+      const tokens = splitClasses(q);
+      if (i < quasis.length - 1 && !/\s$/u.test(q)) {
+        tokens.pop();
+      }
+      if (i > 0 && !/^\s/u.test(q)) {
+        tokens.shift();
+      }
+      return tokens;
+    });
+    return { classes, dynamic: interpolated, interpolated };
   }
   if (node.type === "CallExpression") {
     const callee = node.callee as Node;
@@ -175,14 +193,16 @@ const staticClasses = (
           ? ((callee.property as Node).name as string)
           : "";
     if (!CLASS_FUNCTIONS.has(calleeName)) {
-      return { classes: [], dynamic: true };
+      return { classes: [], dynamic: true, interpolated: false };
     }
     let dynamic = false;
+    let interpolated = false;
     const classes: string[] = [];
     for (const arg of node.arguments as Node[]) {
       const inner = staticClasses(arg);
       classes.push(...inner.classes);
       dynamic ||= inner.dynamic;
+      interpolated ||= inner.interpolated;
       if (
         arg.type !== "Literal" &&
         arg.type !== "TemplateLiteral" &&
@@ -191,15 +211,9 @@ const staticClasses = (
         dynamic = true;
       }
     }
-    return { classes, dynamic };
+    return { classes, dynamic, interpolated };
   }
-  if (
-    node.type === "ConditionalExpression" ||
-    node.type === "LogicalExpression"
-  ) {
-    return { classes: [], dynamic: true };
-  }
-  return { classes: [], dynamic: true };
+  return { classes: [], dynamic: true, interpolated: false };
 };
 
 const attributeByName = (opening: Node, name: string): Node | undefined => {
@@ -366,7 +380,7 @@ export const extractTsx = (
     const classAttr = attributeByName(opening, "className");
     const classes = classAttr
       ? staticClasses(classAttr.value as Node)
-      : { classes: [], dynamic: false };
+      : { classes: [], dynamic: false, interpolated: false };
     return {
       element: elementName(opening),
       text: text.text,
@@ -427,19 +441,23 @@ export const extractTsx = (
         text: normaliseText(value),
       });
     }
-    if (classInfo && classInfo.classes.length > 0 && text) {
+    // Every element with classes gets a class-list unit; motion and
+    // design-system checks apply to icon wrappers and containers too, while
+    // the typography functions decline units with no text of their own.
+    if (classInfo && (classInfo.classes.length > 0 || classInfo.interpolated)) {
       push({
         classes: classInfo.classes,
         context: {
           docType,
           dynamic: classInfo.dynamic || undefined,
           element: name,
+          interpolated: classInfo.interpolated || undefined,
           role,
         },
         kind: "class-list",
         sourceEnd: classAttr?.end ?? element.end,
         sourceStart: classAttr?.start ?? element.start,
-        text: text.text,
+        text: text?.text ?? "",
         typography: resolveTypography(classInfo.classes, config),
       });
     }

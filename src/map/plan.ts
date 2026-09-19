@@ -1,5 +1,6 @@
 // Decide which rules apply to which units and build one Jev job per unit.
 
+import { LineIndex } from "../extract/units.js";
 import { matchesAny } from "../lib/glob.js";
 import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
@@ -66,14 +67,33 @@ const passesPreconditions = (
 };
 
 // A mechanical hit is certain (p = 1) and acts unless the rule is review-only.
+// A source unit spans the file, so the finding points at the first match.
 export const mechanicalFinding = (
   rule: Rule,
   unit: Unit,
   hit: MechanicalHit
-): Finding => ({
-  ...toFinding(rule, unit, 1, rule.status === "review-only" ? "review" : "act"),
-  evidence: hit.evidence,
-});
+): Finding => {
+  const finding = {
+    ...toFinding(
+      rule,
+      unit,
+      1,
+      rule.status === "review-only" ? "review" : "act"
+    ),
+    evidence: hit.evidence,
+  };
+  if (unit.kind === "source" && hit.offset !== undefined) {
+    const at = new LineIndex(unit.text).positionAt(hit.offset);
+    return {
+      ...finding,
+      column: at.column,
+      endColumn: at.column,
+      endLine: at.line,
+      line: at.line,
+    };
+  }
+  return finding;
+};
 
 export const planRequests = (
   units: Unit[],

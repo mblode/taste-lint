@@ -1,0 +1,33 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/a11y-skip-link-heading-order.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-a11y-skip-link-heading-order
+title: Provide Skip Link and Logical Heading Order
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/a11y-skip-link-heading-order.md
+  repo: mblode/agent-skills
+  ruleId: a11y-skip-link-heading-order
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  absent: href="#
+  flags: gu
+  regex: <main\b
+severity: minor
+fix:
+  hint: Include a skip link and keep heading levels sequential. Without both, keyboard and screen reader users walk the whole header on every page and lose the outline they navigate by.
+  mode: none
+status: review-only
+handWritten: []

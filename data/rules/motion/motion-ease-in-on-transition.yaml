@@ -1,0 +1,22 @@
+# Hand-authored from mblode/agent-skills skills/ui-animation/references/debugging-symptoms.md (the check-then-fix tables).
+id: motion-ease-in-on-transition
+title: Transition eases in, so it starts slow while the user is watching
+categoryId: easing-and-duration
+domain: motion
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-animation/references/debugging-symptoms.md
+  line: 27
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list]
+tier: mechanical
+mechanical: { function: easeInOnTransition }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Swap ease-in for a strong ease-out (ease-out or a custom curve). The same duration reads as faster because the movement is visible at once.
+status: active
+handWritten: [mechanical, fix]

@@ -1,0 +1,22 @@
+# Hand-authored from mblode/agent-skills skills/ui-animation/references/review-format.md (flag-on-sight clauses).
+id: motion-transition-all
+title: transition-all animates every property, layout included
+categoryId: motion-restraint
+domain: motion
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-animation/references/review-format.md
+  line: 58
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list]
+tier: mechanical
+mechanical: { function: transitionAll }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Name the properties: transition-transform, transition-opacity or transition-colors. transition-all also animates width, height and margin off the GPU.
+status: active
+handWritten: [mechanical, fix]
