@@ -2,7 +2,6 @@
 // file path; `validateRule` in validate.ts composes them.
 
 import { FIXES } from "../reduce/fixes.js";
-import { FUNCTIONS } from "../reduce/mechanical.js";
 import { CONTEXT_KEYS, DOC_TYPES, ROLES } from "../types.js";
 import type {
   CriterionSide,
@@ -154,7 +153,6 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
     "regex",
     "flags",
     "phrases",
-    "function",
     "minMatches",
     "absent",
   ]);
@@ -184,15 +182,6 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
       noEmDash(file, "mechanical.phrases", phrase);
     }
   }
-  if (raw.function !== undefined) {
-    out.function = str(file, raw, "function");
-    if (!(out.function in FUNCTIONS)) {
-      fail(
-        file,
-        `mechanical.function ${out.function} is not registered in src/reduce/mechanical.ts`
-      );
-    }
-  }
   if (raw.minMatches !== undefined) {
     if (!Number.isInteger(raw.minMatches) || (raw.minMatches as number) < 1) {
       fail(file, "mechanical.minMatches must be a positive integer");
@@ -214,8 +203,8 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
       fail(file, "mechanical.absent needs a regex to pair with");
     }
   }
-  if (!(out.regex || out.phrases || out.function)) {
-    fail(file, "mechanical needs regex, phrases or function");
+  if (!(out.regex || out.phrases)) {
+    fail(file, "mechanical needs regex or phrases");
   }
   return out;
 };

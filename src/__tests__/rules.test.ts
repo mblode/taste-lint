@@ -36,13 +36,18 @@ const base = () => ({
   unit: ["paragraph"],
 });
 
-it("loads the fixture rules and applies a tuning overlay", () => {
+it("loads the fixture rules beside the code rules and applies a tuning overlay", () => {
   const rules = loadRules(path.join(FIXTURES, "rules"));
-  expect(rules.map((r) => r.id)).toEqual([
+  const yaml = rules.filter((r) => !r.file.startsWith("code:"));
+  expect(yaml.map((r) => r.id)).toEqual([
     "copywriting-claim-without-evidence",
-    "typography-hierarchy-size-only",
     "typography-straight-quotes",
   ]);
+  const hierarchy = rules.find(
+    (r) => r.id === "typography-hierarchy-size-only"
+  );
+  expect(hierarchy?.file).toBe("code:src/rules/code/typography.ts");
+  expect(hierarchy?.tier).toBe("both");
   const root = temporary();
   folders.push(root);
   fs.cpSync(path.join(FIXTURES, "rules"), root, { recursive: true });

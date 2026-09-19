@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { docTypeFor, loadConfig } from "../lib/config.js";
 import { FIXES } from "../reduce/fixes.js";
-import { FUNCTIONS } from "../reduce/mechanical.js";
+import { CODE_RULES } from "../rules/code/index.js";
 import { loadRules } from "../rules/load.js";
 import { DOC_TYPES, ROLES } from "../types.js";
 
@@ -44,18 +44,16 @@ describe("house rules", () => {
     expect(offenders.map((f) => path.relative(root, f))).toEqual([]);
   });
 
-  it("references every registered mechanical function and fix from at least one rule", () => {
+  it("references every registered fix from at least one rule and loads every code rule", () => {
     const rules = loadRules(path.join(root, "data/rules"), {
       allowDraft: true,
     });
-    const usedFunctions = new Set(
-      rules.map((r) => r.mechanical?.function).filter(Boolean)
-    );
     const usedFixes = new Set(rules.map((r) => r.fix.function).filter(Boolean));
-    expect(Object.keys(FUNCTIONS).filter((f) => !usedFunctions.has(f))).toEqual(
-      []
-    );
     expect(Object.keys(FIXES).filter((f) => !usedFixes.has(f))).toEqual([]);
+    const loaded = new Set(rules.map((r) => r.id));
+    expect(
+      CODE_RULES.filter((r) => !loaded.has(r.id)).map((r) => r.id)
+    ).toEqual([]);
   });
 
   it("keeps every Jev-backed rule review-only until tune promotes it", () => {

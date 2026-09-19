@@ -124,10 +124,12 @@ export const planRequests = (
       }
       let hit: MechanicalHit;
       try {
-        hit = runMechanical(
-          rule.mechanical as NonNullable<Rule["mechanical"]>,
-          unit
-        );
+        hit = rule.check
+          ? rule.check(unit)
+          : runMechanical(
+              rule.mechanical as NonNullable<Rule["mechanical"]>,
+              unit
+            );
       } catch (error) {
         if (error instanceof UnresolvedError) {
           unknowns.push({

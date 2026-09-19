@@ -5,6 +5,8 @@ import { parse } from "yaml";
 
 import { RULE_STATUSES } from "../types.js";
 import type { Rule, Tuning, TuningEntry } from "../types.js";
+import { CODE_RULES } from "./code/index.js";
+import { CATEGORY_BY_ID } from "./taxonomy.js";
 import { validateRule } from "./validate.js";
 
 // Walk up from this module to find the packaged data directory, so the CLI
@@ -134,25 +136,38 @@ export const loadRules = (
           `Invalid rule ${file}: domain ${rule.domain} does not match folder ${domain}`
         );
       }
-      if (seen.has(rule.id)) {
-        throw new Error(`Duplicate rule id ${rule.id}`);
-      }
-      seen.add(rule.id);
-      const overlay = tuning[rule.id];
-      if (overlay) {
-        if (overlay.act !== undefined) {
-          if (!(overlay.act > rule.thresholds.review && overlay.act <= 1)) {
-            throw new Error(
-              `Invalid tuning for ${rule.id}: act must be above review and at most 1`
-            );
-          }
-          rule.thresholds = { ...rule.thresholds, act: overlay.act };
-        }
-        if (overlay.status) {
-          rule.status = overlay.status;
-        }
-      }
       rules.push(rule);
+    }
+  }
+  // Code rules join the same list; a fresh object per load so the overlay
+  // below never mutates the module constant.
+  for (const code of CODE_RULES) {
+    const category = CATEGORY_BY_ID.get(code.categoryId);
+    if (!category || category.domain !== code.domain) {
+      throw new Error(
+        `Invalid code rule ${code.id}: category ${code.categoryId} is unknown or not in domain ${code.domain}`
+      );
+    }
+    rules.push({ ...code, thresholds: { ...code.thresholds } });
+  }
+  for (const rule of rules) {
+    if (seen.has(rule.id)) {
+      throw new Error(`Duplicate rule id ${rule.id}`);
+    }
+    seen.add(rule.id);
+    const overlay = tuning[rule.id];
+    if (overlay) {
+      if (overlay.act !== undefined) {
+        if (!(overlay.act > rule.thresholds.review && overlay.act <= 1)) {
+          throw new Error(
+            `Invalid tuning for ${rule.id}: act must be above review and at most 1`
+          );
+        }
+        rule.thresholds = { ...rule.thresholds, act: overlay.act };
+      }
+      if (overlay.status) {
+        rule.status = overlay.status;
+      }
     }
   }
   for (const id of Object.keys(tuning)) {

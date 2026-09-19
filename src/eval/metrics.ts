@@ -7,11 +7,10 @@ import { defaultResultsDir } from "../lib/config.js";
 import { makeRecorder } from "../lib/record.js";
 import { binaryMetrics, calibrationTable } from "../lib/stats.js";
 import type { BinaryMetrics } from "../lib/stats.js";
-import { costUsd } from "../lib/tokens.js";
-import { chunkQuestions, prepareRequests, runRequests } from "../map/batch.js";
 import { AnswerCache } from "../map/cache.js";
 import { DEFAULT_MODEL, makeFetchEvaluate } from "../map/jev.js";
-import { planRequests } from "../map/plan.js";
+import { judge } from "../map/judge.js";
+import type { JevJob } from "../map/plan.js";
 import { band } from "../reduce/bands.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
@@ -96,102 +95,70 @@ export const scoreItems = async (
     }
     return unit;
   });
-  // Restrict each unit to the rules it is labelled for, by giving the planner
-  // rules whose scope always matches and filtering after.
-  const plan = planRequests(units, rules, config);
+  // Each item is judged only for the rules it is labelled for.
+  const labelledFor = (job: JevJob): JevJob | null => {
+    const labels = itemById.get(job.unit.id)?.labels ?? {};
+    const kept = job.rules.filter(({ rule }) => rule.id in labels);
+    return kept.length > 0 ? { rules: kept, unit: job.unit } : null;
+  };
+  const judgement = await judge(units, rules, {
+    cache: options.cache,
+    config,
+    evaluate: options.dryRun ? undefined : options.evaluate,
+    jobFilter: labelledFor,
+    model: options.model,
+    onProgress: (m) => process.stderr.write(m),
+    recorder: options.recorder,
+  });
+  if (!options.dryRun && options.evaluate) {
+    process.stderr.write("\n");
+  }
   const probabilities = new Map<string, Record<string, number>>();
   for (const item of items) {
     probabilities.set(item.id, {});
   }
-  for (const f of plan.mechanical) {
+  for (const f of judgement.mechanical) {
     probabilities.get(f.unitId)![f.ruleId] = 1;
   }
-  const unknowns = plan.unknowns
+  for (const [unitId, answers] of judgement.answers) {
+    Object.assign(probabilities.get(unitId)!, answers);
+  }
+  const unknowns = judgement.unknowns
     .filter((u) => u.ruleId in (itemById.get(u.unitId)?.labels ?? {}))
     .map((u) => ({ itemId: u.unitId, reason: u.reason, ruleId: u.ruleId }));
   const abstained = new Set(
     unknowns.map((u) => `${u.itemId}\u0000${u.ruleId}`)
   );
-  // Mechanical rules that did not fire score 0 for labelled items, unless
-  // they abstained.
-  for (const rule of rules.filter((r) => r.tier === "mechanical")) {
-    for (const item of items) {
-      if (
-        rule.id in item.labels &&
-        !abstained.has(`${item.id}\u0000${rule.id}`) &&
-        probabilities.get(item.id)![rule.id] === undefined
-      ) {
-        probabilities.get(item.id)![rule.id] = 0;
-      }
-    }
-  }
-  const jobs = plan.jobs
-    .map((job) => ({
-      rules: job.rules.filter(
-        ({ rule }) => rule.id in (itemById.get(job.unit.id)?.labels ?? {})
-      ),
-      unit: job.unit,
-    }))
-    .filter((job) => job.rules.length > 0);
-  // `both` rules whose candidate did not fire: probability 0.
-  for (const rule of rules.filter((r) => r.tier === "both")) {
-    for (const item of items) {
-      const scheduled = jobs.some(
-        (j) =>
-          j.unit.id === item.id && j.rules.some((r) => r.rule.id === rule.id)
-      );
-      if (
-        rule.id in item.labels &&
-        !scheduled &&
-        !abstained.has(`${item.id}\u0000${rule.id}`) &&
-        probabilities.get(item.id)![rule.id] === undefined
-      ) {
-        probabilities.get(item.id)![rule.id] = 0;
-      }
-    }
-  }
-  const prepared = prepareRequests(jobs, options.cache, options.model);
-  const pending = prepared.filter((p) => Object.keys(p.questions).length > 0);
-  const pendingRequests = pending.reduce(
-    (s, p) => s + chunkQuestions(p).length,
-    0
+  // A labelled rule with no probability after judging did not fire (a
+  // mechanical rule, or a `both` rule whose candidate filter passed), so it
+  // scores 0 unless it abstained or is still pending.
+  const scheduled = new Set(
+    judgement.pending.flatMap((p) =>
+      Object.keys(p.questions).map(
+        (ruleId) => `${p.job.unit.id}\u0000${ruleId}`
+      )
+    )
   );
-  const usage = {
-    cached: 0,
-    costUsd: 0,
-    errors: 0,
-    inputTokens: 0,
-    requests: 0,
+  for (const item of items) {
+    for (const rule of rules) {
+      const key = `${item.id}\u0000${rule.id}`;
+      if (
+        rule.id in item.labels &&
+        rule.tier !== "jev" &&
+        probabilities.get(item.id)![rule.id] === undefined &&
+        !abstained.has(key) &&
+        !scheduled.has(key)
+      ) {
+        probabilities.get(item.id)![rule.id] = 0;
+      }
+    }
+  }
+  return {
+    pendingRequests: judgement.estimatedRequests,
+    probabilities,
+    unknowns,
+    usage: judgement.usage,
   };
-  if (options.dryRun || !options.evaluate) {
-    for (const p of prepared) {
-      Object.assign(probabilities.get(p.job.unit.id)!, p.cached);
-      usage.cached += Object.keys(p.cached).length;
-    }
-    return { pendingRequests, probabilities, unknowns, usage };
-  }
-  const outcome = await runRequests(prepared, {
-    cache: options.cache,
-    evaluate: options.evaluate,
-    model: options.model,
-    onProgress: (m) => process.stderr.write(m),
-    recorder: options.recorder,
-  });
-  process.stderr.write("\n");
-  for (const [unitId, answers] of outcome.answers) {
-    Object.assign(probabilities.get(unitId)!, answers);
-  }
-  usage.requests = outcome.requests;
-  usage.cached = outcome.cached;
-  usage.inputTokens = outcome.inputTokens;
-  usage.costUsd = costUsd(outcome.inputTokens);
-  usage.errors = outcome.errors;
-  for (const failed of outcome.failed) {
-    for (const ruleId of failed.ruleIds) {
-      unknowns.push({ itemId: failed.unitId, reason: failed.category, ruleId });
-    }
-  }
-  return { pendingRequests, probabilities, unknowns, usage };
 };
 
 export const evaluateRules = (

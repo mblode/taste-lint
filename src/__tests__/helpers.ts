@@ -4,7 +4,24 @@ import path from "node:path";
 
 import { vi } from "vitest";
 
-import type { Config, Evaluate, Rule, SystemOneRequest } from "../types.js";
+import { CODE_RULES } from "../rules/code/index.js";
+import type {
+  Config,
+  Evaluate,
+  MechanicalHit,
+  Rule,
+  SystemOneRequest,
+  Unit,
+} from "../types.js";
+
+// The check of a code rule, by id, for unit-level tests.
+export const check = (id: string): ((unit: Unit) => MechanicalHit) => {
+  const found = CODE_RULES.find((r) => r.id === id);
+  if (!found?.check) {
+    throw new Error(`No code rule ${id}`);
+  }
+  return found.check;
+};
 
 export const FIXTURES = path.join(import.meta.dirname, "fixtures");
 

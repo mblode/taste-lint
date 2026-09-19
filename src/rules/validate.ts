@@ -128,7 +128,10 @@ export const validateRule = (
     r.mechanical === undefined ? undefined : mechanical(file, r.mechanical);
   const q = r.question === undefined ? undefined : question(file, r.question);
   if (tier !== "jev" && !mech) {
-    fail(file, `tier ${tier} needs a mechanical section`);
+    fail(
+      file,
+      `tier ${tier} needs a mechanical section (a check that counts or measures is a code rule in src/rules/code)`
+    );
   }
   if (tier === "mechanical" && q) {
     fail(file, "tier mechanical must not carry a question");

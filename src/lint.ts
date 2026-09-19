@@ -10,11 +10,10 @@ import { loadConfig } from "./lib/config.js";
 import { collectFiles } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
-import { chunkQuestions, prepareRequests, runRequests } from "./map/batch.js";
-import type { RunOutcome } from "./map/batch.js";
+import { chunkQuestions } from "./map/batch.js";
 import { AnswerCache } from "./map/cache.js";
 import { DEFAULT_MODEL, makeFetchEvaluate } from "./map/jev.js";
-import { planRequests } from "./map/plan.js";
+import { judge } from "./map/judge.js";
 import { jevFindings } from "./reduce/bands.js";
 import { dedupe } from "./reduce/dedupe.js";
 import { FIXES } from "./reduce/fixes.js";
@@ -26,10 +25,10 @@ import type {
   Evaluate,
   Finding,
   LintResult,
+  RecorderHandle,
   Rule,
   Severity,
   Unit,
-  Unknown,
 } from "./types.js";
 import { SEVERITY_RANK, STRUCTURAL_KINDS } from "./types.js";
 
@@ -103,20 +102,10 @@ export const runLint = async (
     units = units.slice(0, options.limitUnits);
   }
 
-  const plan = planRequests(units, rules, config);
-  const jobs = options.mechanicalOnly ? [] : plan.jobs;
   const cache = new AnswerCache(
     path.join(resultsDir, "cache"),
     !options.noCache
   );
-  const prepared = prepareRequests(jobs, cache, model);
-  const pending = prepared.filter((p) => Object.keys(p.questions).length > 0);
-  const estimatedRequests = pending.reduce(
-    (s, p) => s + chunkQuestions(p).length,
-    0
-  );
-  const estimatedTokens = pending.reduce((s, p) => s + p.estimatedTokens, 0);
-
   const manifest: Record<string, unknown> = {
     config_root: config.root,
     model,
@@ -125,20 +114,31 @@ export const runLint = async (
     targets: options.targets,
   };
 
-  let findings: Finding[] = [...plan.mechanical];
-  const unknowns: Unknown[] = [...plan.unknowns];
-  let status: LintResult["status"] = options.dryRun ? "dry-run" : "complete";
-  const usage = {
-    cached: 0,
-    costUsd: 0,
-    errors: 0,
-    inputTokens: 0,
-    requests: 0,
-  };
-  let silent: { ruleId: string }[] = [];
-
+  // A live run needs an evaluate; a dry run reads the cache only. Deciding
+  // that here keeps the key check next to the flag that waives it.
+  let evaluate = ctx.evaluate;
+  let recorder: RecorderHandle | undefined;
+  if (!options.dryRun && !options.mechanicalOnly) {
+    if (!evaluate) {
+      const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "Set TYPESAFE_API_KEY for Jev-backed rules, or run with --dry-run or --mechanical-only."
+        );
+      }
+      evaluate = makeFetchEvaluate({ apiKey });
+    }
+  } else {
+    evaluate = undefined;
+  }
+  const preview = await judge(units, rules, {
+    cache,
+    config,
+    mechanicalOnly: options.mechanicalOnly,
+    model,
+  });
   if (options.printRequests) {
-    for (const p of pending) {
+    for (const p of preview.pending) {
       for (const questions of chunkQuestions(p)) {
         const ordered = Object.fromEntries(
           Object.keys(questions)
@@ -151,69 +151,30 @@ export const runLint = async (
       }
     }
   }
-
-  if (!options.dryRun && pending.length > 0) {
-    let evaluate = ctx.evaluate;
-    if (!evaluate) {
-      const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          "Set TYPESAFE_API_KEY for Jev-backed rules, or run with --dry-run or --mechanical-only."
-        );
-      }
-      evaluate = makeFetchEvaluate({ apiKey });
-    }
-    const recorder = makeRecorder("lint", {
-      resultsDir,
-      skillsDir: config.root,
-    });
+  let judgement = preview;
+  if (evaluate && preview.pending.length > 0) {
+    recorder = makeRecorder("lint", { resultsDir, skillsDir: config.root });
     recorder.append({ kind: "manifest", ...manifest });
-    const outcome: RunOutcome = await runRequests(prepared, {
+    judgement = await judge(units, rules, {
       cache,
+      config,
       evaluate,
+      mechanicalOnly: options.mechanicalOnly,
       model,
       onProgress: (mark) => stderr(mark),
       recorder,
     });
     stderr("\n");
-    usage.requests = outcome.requests;
-    usage.cached = outcome.cached;
-    usage.inputTokens = outcome.inputTokens;
-    usage.costUsd = costUsd(outcome.inputTokens);
-    usage.errors = outcome.errors;
-    if (outcome.errors > 0) {
-      status = "incomplete";
-    }
-    // A question the provider never answered is an abstention with a reason,
-    // not a silent pass.
-    const unitById = new Map(units.map((u) => [u.id, u]));
-    for (const failed of outcome.failed) {
-      const unit = unitById.get(failed.unitId);
-      for (const ruleId of failed.ruleIds) {
-        unknowns.push({
-          file: unit?.file ?? "",
-          line: unit?.line ?? 0,
-          reason: failed.category,
-          ruleId,
-          unitId: failed.unitId,
-        });
-      }
-    }
-    const jf = jevFindings(jobs, outcome.answers);
-    findings.push(...jf.findings);
-    silent = jf.silent;
-    recorder.summary({ findings: findings.length, status, usage });
-  } else if (jobs.length > 0) {
-    // Dry run, or everything came from cache: cached answers still band.
-    const answers = new Map(prepared.map((p) => [p.job.unit.id, p.cached]));
-    const jf = jevFindings(jobs, answers);
-    findings.push(...jf.findings);
-    silent = jf.silent;
-    usage.cached = prepared.reduce(
-      (s, p) => s + Object.keys(p.cached).length,
-      0
-    );
   }
+  const status: LintResult["status"] = options.dryRun
+    ? "dry-run"
+    : judgement.usage.errors > 0
+      ? "incomplete"
+      : "complete";
+  const jf = jevFindings(judgement.jobs, judgement.answers);
+  let findings: Finding[] = [...judgement.mechanical, ...jf.findings];
+  const { unknowns, usage } = judgement;
+  recorder?.summary({ findings: findings.length, status, usage });
 
   findings = dedupe(applySuppressions(findings, rules, sources));
 
@@ -221,7 +182,7 @@ export const runLint = async (
     applyFixes(config.root, findings, rules, units, stderr);
   }
 
-  const scorecard = buildScorecard(units, rules, findings, unknowns, silent);
+  const scorecard = buildScorecard(units, rules, findings, unknowns, jf.silent);
   const failOn = options.failOn ?? "minor";
   const failing = findings.filter(
     (f) =>
@@ -238,9 +199,9 @@ export const runLint = async (
   return {
     estimated: options.dryRun
       ? {
-          costUsd: costUsd(estimatedTokens),
-          inputTokens: estimatedTokens,
-          requests: estimatedRequests,
+          costUsd: costUsd(preview.estimatedTokens),
+          inputTokens: preview.estimatedTokens,
+          requests: preview.estimatedRequests,
         }
       : undefined,
     exitCode,
