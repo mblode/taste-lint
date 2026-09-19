@@ -59,6 +59,6 @@ fix:
   hint: >-
     Verb, result, qualifier. Name what the reader gets and add one promise you can back: free, no card, cancel anytime.
 preconditions: { notInCode: true, role: [button, link, heading, body, unknown] }
-status: active
+status: review-only
 handWritten:
   [mechanical, question, fix, thresholds, preconditions, severityOverrides]

@@ -48,7 +48,9 @@ const parseAttributes = (raw: string): Record<string, string> => {
   return out;
 };
 
-// A tolerant tree builder for the cleaned HTML style-capture emits.
+// SIMPLIFIED: a tolerant tag/text tokenizer, not an HTML5 parser. Fine for
+// the cleaned subtree style-capture emits (no scripts, no raw text elements);
+// swap for parse5 if captures start carrying <template> or <textarea>.
 export const parseHtmlTree = (html: string): HtmlNode => {
   const root: HtmlNode = {
     attributes: {},

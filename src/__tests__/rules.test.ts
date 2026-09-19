@@ -76,7 +76,11 @@ it.each([
     { thresholds: { act: 0.3, review: 0.5 } },
     /review < act/,
   ],
-  ["em dash in title", { title: "A — B" }, /em dash/],
+  [
+    "em dash in title",
+    { title: `A ${String.fromCodePoint(0x20_14)} B` },
+    /em dash/,
+  ],
   [
     "bad regex",
     { mechanical: { regex: "(" }, tier: "both" },

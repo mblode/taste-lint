@@ -4,12 +4,31 @@ import core from "ultracite/oxlint/core";
 export default defineConfig({
   extends: [core],
   ignorePatterns: [...core.ignorePatterns, "src/__tests__/fixtures/**"],
+  // Enforcement ladder, rung 3: the cap is on, and the three files already
+  // over it are listed by path so the list can only grow in a reviewed diff.
+  overrides: [
+    {
+      files: [
+        "src/extract/tsx.ts",
+        "scripts/port-rules.ts",
+        "scripts/seed-corpus.ts",
+      ],
+      rules: { "max-lines": "off" },
+    },
+  ],
   rules: {
     // Complexity: runLint, the extractors and the Tailwind resolver are long
     // but linear pipelines; splitting them hides the order of operations.
     complexity: "off",
     // func-style: closures and hoisted helpers are used where they read best.
     "func-style": "off",
+    // Files over 400 lines cost an agent chunked reads and revisits. The
+    // rule emits a fixed message: the fix is to split along the file's
+    // natural seams (extractor per input, one reporter per format).
+    "max-lines": [
+      "error",
+      { max: 400, skipBlankLines: true, skipComments: true },
+    ],
     // Sequential await in the request loop is intentional: each response is
     // recorded before the next batch starts so a crash leaves a usable log.
     "no-await-in-loop": "off",

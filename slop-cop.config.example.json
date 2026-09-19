@@ -1,0 +1,24 @@
+{
+  "$comment": "Copy to slop-cop.config.json at the scan root. Every key is optional.",
+  "exclude": [
+    "**/content/judgements/**",
+    "**/content/exercises/**",
+    "**/components/demos/**"
+  ],
+  "docTypes": [
+    {
+      "glob": "**/app/(marketing)/**",
+      "type": "marketing"
+    }
+  ],
+  "components": {
+    "unwrap": ["Callout"],
+    "skip": ["ExerciseRun"]
+  },
+  "tailwind": {
+    "theme": {
+      "body": "17px"
+    }
+  },
+  "smartQuotesAtBuild": false
+}

@@ -54,5 +54,5 @@ fix:
   hint: >-
     Name the object and the first move: "No deployments yet. Push to your repository to create one."
 preconditions: { notInCode: true, docType: [ui, unknown, lesson] }
-status: active
+status: review-only
 handWritten: [mechanical, question, fix, preconditions]

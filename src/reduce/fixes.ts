@@ -7,17 +7,10 @@ export type FixFunction = (slice: string) => string;
 // always the right single quote.
 export const smartQuotes: FixFunction = (slice) =>
   slice
-    .replaceAll(/(^|[\s([{—–-])"/gu, "$1“")
+    .replaceAll(/(^|[\s([{\u2014\u2013-])"/gu, "$1“")
     .replaceAll('"', "”")
     .replaceAll(/(^|[\s([{])'(?=\S)/gu, "$1‘")
     .replaceAll("'", "’");
-
-// Double hyphen to em dash, spaced hyphen to spaced en dash is left alone (a
-// project decision), hyphen between digits to en dash.
-export const dashes: FixFunction = (slice) =>
-  slice
-    .replaceAll(/(?<=\S)--(?=\S)/gu, "—")
-    .replaceAll(/(?<=\d)-(?=\d)/gu, "–");
 
 // Three periods to an ellipsis character.
 export const ellipsis: FixFunction = (slice) => slice.replaceAll("...", "…");
@@ -35,15 +28,9 @@ export const nbspValueUnit: FixFunction = (slice) =>
     "$1 "
   );
 
-// Collapse two spaces after sentence punctuation to one.
-export const singleSpace: FixFunction = (slice) =>
-  slice.replaceAll(/([.!?])  +/gu, "$1 ");
-
 export const FIXES: Record<string, FixFunction> = {
-  dashes,
   ellipsis,
   multiplicationSign,
   nbspValueUnit,
-  singleSpace,
   smartQuotes,
 };

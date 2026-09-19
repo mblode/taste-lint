@@ -1,6 +1,8 @@
 // Fail-closed rule validation. Any problem throws with the file path so a bad
 // rule aborts the run before a single request is made.
 
+import { FIXES } from "../reduce/fixes.js";
+import { FUNCTIONS } from "../reduce/mechanical.js";
 import {
   CONTEXT_KEYS,
   DOC_TYPES,
@@ -24,7 +26,7 @@ import type {
 } from "../types.js";
 import { CATEGORY_BY_ID } from "./taxonomy.js";
 
-const EM_DASH = "—";
+const EM_DASH = String.fromCodePoint(0x20_14);
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type Raw = Record<string, unknown>;
@@ -143,6 +145,12 @@ const mechanical = (file: string, v: unknown): Mechanical => {
   }
   if (raw.function !== undefined) {
     out.function = str(file, raw, "function");
+    if (!(out.function in FUNCTIONS)) {
+      fail(
+        file,
+        `mechanical.function ${out.function} is not registered in src/reduce/mechanical.ts`
+      );
+    }
   }
   if (raw.minMatches !== undefined) {
     if (typeof raw.minMatches !== "number" || raw.minMatches < 1) {
@@ -205,6 +213,12 @@ const fix = (file: string, v: unknown): Fix => {
   const out: Fix = { hint, mode };
   if (raw.function !== undefined) {
     out.function = str(file, raw, "function");
+    if (!(out.function in FIXES)) {
+      fail(
+        file,
+        `fix.function ${out.function} is not registered in src/reduce/fixes.ts`
+      );
+    }
   }
   if (mode === "deterministic" && !out.function) {
     fail(file, "fix.mode deterministic needs fix.function");

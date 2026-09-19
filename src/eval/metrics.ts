@@ -36,7 +36,7 @@ export interface RuleEval {
   ruleId: string;
   n: number;
   metrics: ReturnType<typeof binaryMetrics>;
-  abstain: number;
+  reviewRate: number;
   calibration: ReturnType<typeof calibrationTable>;
   /** Per item: label, probability. */
   pairs: { id: string; label: boolean; probability: number }[];
@@ -181,7 +181,7 @@ export const evaluateRules = (
 ): RuleEval[] =>
   rules.map((rule) => {
     const pairs: RuleEval["pairs"] = [];
-    let abstain = 0;
+    let review = 0;
     for (const item of items) {
       if (!(rule.id in item.labels)) {
         continue;
@@ -192,7 +192,7 @@ export const evaluateRules = (
       }
       pairs.push({ id: item.id, label: item.labels[rule.id], probability: p });
       if (band(p, rule.thresholds) === "review") {
-        abstain += 1;
+        review += 1;
       }
     }
     const metrics = binaryMetrics(
@@ -202,11 +202,11 @@ export const evaluateRules = (
       }))
     );
     return {
-      abstain: pairs.length === 0 ? 0 : abstain / pairs.length,
       calibration: calibrationTable(pairs),
       metrics,
       n: pairs.length,
       pairs,
+      reviewRate: pairs.length === 0 ? 0 : review / pairs.length,
       ruleId: rule.id,
     };
   });
@@ -227,7 +227,7 @@ export const renderEval = (
     }
     const m = e.metrics;
     out.push(
-      `${e.ruleId}: n=${e.n} precision ${pct(m.precision)} [${pct(m.precisionCI[0])}, ${pct(m.precisionCI[1])}] recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}] f1 ${m.f1.toFixed(2)} abstain ${pct(e.abstain)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
+      `${e.ruleId}: n=${e.n} precision ${pct(m.precision)} [${pct(m.precisionCI[0])}, ${pct(m.precisionCI[1])}] recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}] f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
     );
     const rows = e.calibration.filter((b) => b.n > 0);
     if (rows.length > 0) {

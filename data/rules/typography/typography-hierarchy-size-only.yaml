@@ -42,5 +42,5 @@ severity: minor
 fix:
   mode: none
   hint: Make the sizes clearly different (a step of 20 to 25 percent or more) or add a second cue such as weight or colour. Two roles two pixels apart read as a mistake.
-status: active
+status: review-only
 handWritten: [question, fix, thresholds, mechanical]

@@ -66,5 +66,5 @@ fix:
   hint: Replace the adjective with the mechanism, the number or the standard it stands for. If none exists, cut the sentence.
 preconditions:
   notInCode: true
-status: active
+status: review-only
 handWritten: [question, fix, severityOverrides, mechanical]
