@@ -1,18 +1,87 @@
-# slop-cop
+<div align="center">
 
-Taste as a linter. slop-cop turns the design, copy, typography and motion rules from [agent-skills](https://github.com/mblode/agent-skills) and [taste-training](https://github.com/mblode/taste-training) into checks that run on every file: mechanical where a regex or a real value decides, and a calibrated probability from [TypeSafe Jev](https://typesafe.ai) where a judgement is needed.
+# [slop-cop](https://github.com/mblode/slop-cop)
 
-Rule packs, by domain folder under `data/rules/`: typography and copywriting (agent-skills `typography-audit`, `docs-writing`, `ui-design/guidelines/copywriting.md`, and Every's writing checks), interaction and craft (the static checks of `ui-design/rules`, ported as whole-file patterns, plus the shadcn/lint class hygiene rules), motion (the `ui-animation` flag-on-sight table) and product (the two deterministic `product-design` rules). Ported and hand-authored pattern rules ship `review-only` until a person has watched them on a real codebase; Jev-backed rules ship `review-only` until `slop-cop tune` promotes them on labelled data. `data/rule-drafts/` holds the source rules that still need a hand-written question or a rendered check; the loader never reads it.
+**Taste rules from agent-skills and taste-training, run as a linter on every file**
 
-The Every pack carries 19 of the 21 checks in Every's published AI-tell checker (`scripts/run-ai-checker.mjs` in the source bundle of the explainer that accompanies Every's article [Written in 0.7 Seconds](https://every.to/), Mike Taylor, September 2026), one rule per check with the question quoted from the source, plus Dan Shipper's three checks the article paraphrases (unexplained action, missing reasoning link, mechanism over outcome). Where the MIT-licensed `cw-ai-check` skill in `EveryInc/compound-writing` gives a phrase list, the rule is `both`: the phrases pick candidates and Jev decides. Two checks are not ported: `uniform_cadence` compares sentence lengths, which is arithmetic Jev cannot do and a counting function not worth adding for one rule, and `formatting_overuse` looks at headings and bullets that a paragraph unit never sees. The two authorship verdicts (`is_ai_generated`, `overall_ai_tells`) are excluded on purpose: slop-cop reports defects, not authorship.
+Point it at Markdown, MDX, TSX or a rendered page and get findings with a severity and a probability.
+
+</div>
+
+## Install
 
 ```bash
-npx slop-cop lint src content --dry-run        # units, requests, estimated cost
-TYPESAFE_API_KEY=... npx slop-cop lint src content
-npx slop-cop lint --url https://example.com    # computed styles via style-capture; runs npx style-capture, needs network and a Playwright Chromium
-npx slop-cop eval                              # precision, recall, calibration per rule
+npm install -g slop-cop
 ```
 
-Findings carry a severity (how bad if real) and a band (how sure): `act` fails the run, `review` is a note, below that is silent. Every rule traces to the line of the skill or lesson it came from.
+Requires Node 24. Jev-backed rules need `TYPESAFE_API_KEY` (api.typesafe.ai) or `AI_GATEWAY_API_KEY` (Vercel AI Gateway); mechanical rules need neither.
 
-Requires Node 24. Set `TYPESAFE_API_KEY` for Jev-backed rules; `--mechanical-only` needs no key.
+## Quickstart
+
+```bash
+# Every rule the pack ships, validated
+slop-cop rules check
+
+# Lint a file; Jev answers each question in one request per unit
+AI_GATEWAY_API_KEY=... slop-cop lint notes.md
+```
+
+```text
+PASS: 118 active rules in data/rules
+
+notes.md
+[MINOR] typography-straight-quotes (p=1.00) notes.md:3:1
+    Straight quotes in rendered copy
+    2 matches: "'", "'"
+    Fix: Replace with the matching curly mark. Opening after whitespace or at the start, closing otherwise; an apostrophe is always the right single quote.
+[MINOR?] copywriting-claim-without-evidence (p=0.95) notes.md:3:1
+    Quality claimed, nothing the reader could check
+    3 matches: "fast", "powerful", "seamless"; p=0.95
+    Fix: Replace the adjective with the mechanism, the number or the standard it stands for. If none exists, cut the sentence.
+
+Units: 3  |  Rules: 118  |  Act: 1  |  Review: 4  |  Unknown: 0
+Jev: 2 requests, 0 cached answers, 7238 input tokens, $0.0003
+FAIL - 1 finding in the act band
+```
+
+## Two answers per finding
+
+- **Severity:** how bad the finding is if real, `major` or `minor`. Set by the rule, never by the model.
+- **Band:** how sure the tool is. `act` fails the run (mechanical hits, or Jev at or above the rule's act threshold), `review` prints a note with a `?`, below that is silent.
+- **Cost:** every question about one unit travels in one request; Jev output is free and input is $0.042 per million tokens. Answers are cached by question and text, so a second run over unchanged files costs nothing.
+
+## Rule packs
+
+- **Typography:** straight quotes, dashes, ellipses, primes and units from `typography-audit`, plus size, weight, tracking and line-height checks over resolved Tailwind classes or computed styles.
+- **Copywriting:** claims without evidence, vague errors, friction CTAs, hedges and register shifts from `docs-writing` and the ui-design copy guideline, and Every's published AI-tell checker: 19 of its 21 questions, one rule each, with phrase candidates from the MIT `cw-ai-check` skill where it has them. Not ported: `uniform_cadence` (sentence-length arithmetic) and `formatting_overuse` (needs headings and bullets a paragraph never sees). The two authorship verdicts are excluded on purpose: slop-cop reports defects, not authorship.
+- **Interaction and craft:** the static checks of `ui-design/rules` as whole-file patterns (focus traps, error and empty states, target size, i18n, lazy loading) plus the shadcn/lint class hygiene rules (raw palette colours, arbitrary values, interpolated class strings).
+- **Motion and product:** the `ui-animation` flag-on-sight table (ease-in, linear easing, transitions over 300ms, `transition-all`, entrances from scale zero, no reduced-motion variant) and the two deterministic `product-design` rules.
+
+Every rule names the file and line of the skill or lesson it came from, and `slop-cop rules list` prints tier, status and category per rule.
+
+## Rendered mode
+
+```bash
+slop-cop lint --url https://example.com/pricing --selector main
+```
+
+Runs [style-capture](https://www.npmjs.com/package/style-capture) in headless Chromium and lints computed styles: real pixel sizes, line heights, weights and letter-spacing, so the typography rules judge what the reader sees rather than what the class list implies. `--capture file.json` lints a saved capture.
+
+## Options
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--dry-run` |  | Plan and print units, requests and estimated cost without calling Jev |
+| `--mechanical-only` |  | Skip every Jev-backed rule; no key needed |
+| `--only <ids>` |  | Comma-separated rule ids |
+| `--exclude <globs>` |  | Comma-separated globs to skip, added to `slop-cop.config.json` |
+| `--fail-on <severity>` | `minor` | Lowest severity that fails the run |
+| `--fix` |  | Apply deterministic fixes (curly quotes, ellipsis, multiplication sign, unit spaces) to act-band findings |
+| `--output <format>` | `tty` | `tty`, `json` or `sarif` |
+| `--url <url>` |  | Lint a rendered page through style-capture |
+
+`slop-cop eval` scores every rule against its labelled corpus (precision, recall, Wilson intervals, a calibration table) and `slop-cop tune` picks act thresholds from the dev split, promoting a rule only when its precision lower bound clears the floor.
+
+## License
+
+MIT

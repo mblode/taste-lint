@@ -22,11 +22,22 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 
 ### Jev request
 
-`src/map/jev.ts` speaks `POST /v1/systemone` with `{ model, state, questions }`. State is a labelled string built from the unit and only the context keys the batched questions asked for. Questions use the noul primitive with `criteria.true` and `criteria.false` as `{ what, examples }` objects, which is the structured form the API accepts. The response is validated fail-closed; bodies are never logged.
+`src/map/jev.ts` speaks `POST /v1/systemone` with `{ model, state, questions }`, or the same request through Vercel AI Gateway's evaluation route (model in a header, `boolean` for `noul`) when only `AI_GATEWAY_API_KEY` is set. State is a labelled string built from the unit and only the context keys the batched questions asked for. Questions use the noul primitive with `criteria.true` and `criteria.false` as `{ what, examples }` objects, which is the structured form the API accepts. The response is validated fail-closed; bodies are never logged.
 
 ### Finding
 
 `src/types.ts` (`Finding`): rule id, category, domain, severity, band, probability, unit provenance, message, evidence, fix hint.
+
+## Pipeline
+
+`src/cli.ts` (Commander) calls `src/lint.ts`, which runs extract, judge, reduce, report.
+
+- `src/rules/`: fail-closed loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the wire format. `src/rules/code/`: the rules that count, compare or measure, as `Rule` objects with a `check` attached (`typography.ts`, `classes.ts`); `loadRules` returns them beside the YAML rules under the same tuning overlay.
+- `src/extract/`: units from Markdown and MDX (mdast), TSX (oxc-parser), Tailwind class lists, style-capture output, and one `source` unit per TSX, JSX or CSS file.
+- `src/map/`: `plan.ts` (which rules apply to which unit, mechanical checks), `judge.ts` (the one stage lint and eval share: plan, answer questions from cache or live, report abstentions), one request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, the fetch client with its two transports.
+- `src/reduce/`: bands, dedupe, scorecard, deterministic fixes, `mechanical.ts` (regex and phrase matching plus the helpers code rules share).
+- `src/report/`: tty, JSON, SARIF. `src/eval/`: corpus loader, precision and recall with Wilson intervals, calibration, threshold tuning, McNemar A/B.
+- `data/rules/<domain>/<id>.yaml` shipped rules; `data/rules/tuning.json` written only by `tune --write`; `data/corpus/*.jsonl` labelled units; `data/rule-drafts/` never loaded. `scripts/port-rules.ts` ships ui-design static checks and drafts the rest; `--check` verifies every shipped rule against its source.
 
 ## Glossary
 
