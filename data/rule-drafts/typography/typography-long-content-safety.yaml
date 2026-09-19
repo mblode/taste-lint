@@ -1,0 +1,60 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/layout-long-content-safety.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: typography-long-content-safety
+title: Handle Long and Unbroken Content Safely
+categoryId: reading-comfort
+domain: typography
+source:
+  line: 9
+  path: skills/ui-design/rules/layout-long-content-safety.md
+  repo: mblode/agent-skills
+  ruleId: layout-long-content-safety
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.md"
+    - "**/*.mdx"
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - element
+tier: jev
+question:
+  context:
+    - element
+    - docType
+  criteria:
+    "false":
+      examples:
+        - .card {
+        - "min-width: 0;"
+        - "}"
+        - .card-title {
+        - "overflow: hidden;"
+        - "text-overflow: ellipsis;"
+        - "white-space: nowrap;"
+        - "}"
+        - .card-body {
+        - "overflow-wrap: anywhere;"
+        - "}"
+      what: "TODO: the correct code this pattern also matches"
+    "true":
+      examples:
+        - .card-title {
+        - "white-space: nowrap;"
+        - "}"
+      what: TODO
+  instructions: "TODO: Protect UI against long names, URLs, and dense content blocks. Unhandled, a single long token overflows its container and breaks the layout around it."
+  type: noul
+severity: minor
+fix:
+  hint: "TODO: Protect UI against long names, URLs, and dense content blocks. Unhandled, a single long token overflows its container and breaks the layout around it."
+  mode: none
+status: draft
+handWritten: []
+portNotes:
+  - "detect: rendered; only the rendered extractor can decide this rule"

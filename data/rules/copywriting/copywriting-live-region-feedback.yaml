@@ -1,0 +1,33 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/nav-live-region-feedback.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: copywriting-live-region-feedback
+title: Announce Status Changes with Live Regions
+categoryId: page-structure
+domain: copywriting
+source:
+  line: 9
+  path: skills/ui-design/rules/nav-live-region-feedback.md
+  repo: mblode/agent-skills
+  ruleId: nav-live-region-feedback
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  absent: aria-live|role="(status|alert)"
+  flags: gu
+  regex: className="[^"]*\b(toast|snackbar|notification|banner)\b
+severity: minor
+fix:
+  hint: Toasts and validation summaries should use polite live regions unless interruption is critical. A toast that is only painted on screen never reaches assistive tech, so the user never learns the action finished.
+  mode: none
+status: review-only
+handWritten: []

@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/a11y-disabled-control-tooltip.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-a11y-disabled-control-tooltip
+title: Do not put tooltips on disabled controls
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/a11y-disabled-control-tooltip.md
+  repo: mblode/agent-skills
+  ruleId: a11y-disabled-control-tooltip
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: <[^>]*\bdisabled\b[^>]*>[\s\S]{0,400}<(Tooltip|HoverCard)
+severity: minor
+fix:
+  hint: "A tooltip on a `disabled` button never reaches keyboard or screen-reader users: disabled controls are omitted from the tab order, so the reason the action is blocked is invisible. Mouse users see a hover hint; everyone else hits a dead control with no explanation."
+  mode: none
+status: review-only
+handWritten: []

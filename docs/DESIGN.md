@@ -9,6 +9,7 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 - `tier: mechanical` decides in code and never calls Jev.
 - `tier: jev` sends one question per matching unit.
 - `tier: both` uses the mechanical part as a candidate filter; only units it fires on are sent to Jev, and the mechanical hit never surfaces alone.
+- `mechanical.absent` pairs with `regex`: the rule fires only when `regex` matches and `absent` matches nowhere in the unit (a file with a `<form>` and no focus call). It is how rg's `--files-without-match` pipelines port.
 - `thresholds.act` and `thresholds.review` are per rule. Findings at or above `act` fail the run, between the two print as review notes, below are silent.
 - `severity` is independent of probability.
 - `source` points at the exact file and line the rule was harvested from. `handWritten` lists the keys `scripts/port-rules.ts` must not overwrite.
@@ -16,7 +17,7 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 
 ### Unit
 
-`src/types.ts` (`Unit`). One extracted piece of text or one class list, with `file`, 1-based `line`/`column`, UTF-16 source offsets, `fixRanges` (the prose inside that slice a fix may rewrite: JSX text pieces, string literal insides, Markdown text nodes; absent when nothing can be rewritten safely), `inCode`, `context` (heading above, doc type, element, role) and, for class lists, resolved typography plus text-bearing neighbours. `id` is a stable hash used for cache keys and SARIF fingerprints.
+`src/types.ts` (`Unit`). One extracted piece of text, one class list, or (kind `source`) one whole TSX, JSX or CSS file for mechanical rules that pattern-match raw markup; a `source` rule is always `tier: mechanical` because Jev never sees a file. Each has `file`, 1-based `line`/`column`, UTF-16 source offsets, `fixRanges` (the prose inside that slice a fix may rewrite: JSX text pieces, string literal insides, Markdown text nodes; absent when nothing can be rewritten safely), `inCode`, `context` (heading above, doc type, element, role) and, for class lists, resolved typography plus text-bearing neighbours. `id` is a stable hash used for cache keys and SARIF fingerprints.
 
 ### Jev request
 

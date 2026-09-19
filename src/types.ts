@@ -17,8 +17,13 @@ export const UNIT_KINDS = [
   "attr-string",
   "class-list",
   "element",
+  /** The whole file, for mechanical-only regex rules over raw source. */
+  "source",
+  /** A file that did not parse; carries the error and nothing else. */
   "file",
 ] as const;
+/** Kinds that are not a piece of copy and never count as units in a report. */
+export const STRUCTURAL_KINDS: readonly UnitKind[] = ["source", "file"];
 export type UnitKind = (typeof UNIT_KINDS)[number];
 
 export const TIERS = ["mechanical", "jev", "both"] as const;
@@ -94,6 +99,8 @@ export interface Mechanical {
   function?: string;
   /** Minimum matches before the rule fires (default 1). */
   minMatches?: number;
+  /** The rule fires only when this regex matches nowhere in the unit. */
+  absent?: string;
 }
 
 export interface CriterionSide {
@@ -188,7 +195,10 @@ export interface UnitContext {
   attr?: string;
   component?: string;
   role: Role;
+  /** The className has parts this extractor could not read statically. */
   dynamic?: boolean;
+  /** The className is a template literal with `${...}` inside a class. */
+  interpolated?: boolean;
   parseError?: string;
   mdxFallback?: boolean;
 }
@@ -227,6 +237,8 @@ export interface Unit {
 export interface MechanicalHit {
   fired: boolean;
   evidence: string;
+  /** Offset into `unit.text` of the first match; a source unit's finding line. */
+  offset?: number;
 }
 
 export interface Finding {

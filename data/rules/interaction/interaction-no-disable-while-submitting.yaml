@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/forms-no-disable-while-submitting.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-no-disable-while-submitting
+title: Submit button not disabled while pending
+categoryId: form-usability
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/forms-no-disable-while-submitting.md
+  repo: mblode/agent-skills
+  ruleId: forms-no-disable-while-submitting
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: <form
+severity: major
+fix:
+  hint: "A double-clickable submit button creates duplicate accounts, double-charges cards, and posts the same comment twice. React 19's `useFormStatus` makes the fix mechanical: a child component reads `pending` from the surrounding `<form>`, disables itself, and exposes a busy state. Keep the label stable "
+  mode: none
+status: review-only
+handWritten: []

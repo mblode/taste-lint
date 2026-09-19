@@ -1,0 +1,40 @@
+# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
+# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
+# AI-tell questions and the four passage checks named in the article.
+id: copywriting-symmetrical-both-sides
+title: Forces a symmetrical both-sides argument
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  line: 1
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Read the TEXT. Return true when it balances a claim against an opposite claim of equal weight (on one hand, on the other; while X, Y; some say, others say) without choosing, so the reader learns the writer\u0027s position on neither. Return false when the TEXT takes a side, when it weighs the two unequally with a reason, or when the topic is a genuine open question the writer names as open.
+  criteria:
+    true:
+      what: A forced balance that avoids a position.
+      examples:
+        - "On one hand, dark mode reduces eye strain; on the other hand, light mode improves readability. Both approaches have merit."
+        - "While some teams prefer monorepos, others favour polyrepos. Each has trade-offs worth considering."
+    false:
+      what: A position, or an unequal weighing with a reason.
+      examples:
+        - "Dark mode reduces glare at night, but body text in light mode measured 12 percent faster to read in our test, so light is the default."
+        - "Whether to split the repo is an open question for us; the two teams disagree and we have not measured either path."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Pick a side and say why, or name the question as open and say what would settle it.
+status: review-only
+handWritten: [question, fix, thresholds]

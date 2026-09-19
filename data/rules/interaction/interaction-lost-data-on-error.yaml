@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/forms-lost-data-on-error.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-lost-data-on-error
+title: Form data lost on validation error
+categoryId: form-usability
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/forms-lost-data-on-error.md
+  repo: mblode/agent-skills
+  ruleId: forms-lost-data-on-error
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: <form
+severity: minor
+fix:
+  hint: "When a form fails server validation, typed values must survive the round-trip. Clearing fields on error is one of the highest-cost UX bugs in production: users abandon checkout, retype passwords wrong, lose multi-paragraph inputs. React 19's `useActionState` makes preservation the default, but only "
+  mode: none
+status: review-only
+handWritten: []

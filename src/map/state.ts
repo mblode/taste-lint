@@ -1,7 +1,7 @@
 // Build the Jev state string for a unit from only the context keys the
 // batched questions asked for. Numbers never enter the state.
 
-import { estimateTokens } from "../lib/tokens.js";
+import { charsPerTokenFor, estimateTokens } from "../lib/tokens.js";
 import type { ContextKey, Rule, Unit } from "../types.js";
 
 export const STATE_TOKEN_CAP = 1500;
@@ -18,18 +18,21 @@ export const buildState = (
   }
   const lines: string[] = [];
   let truncated = false;
+  const perToken = charsPerTokenFor(unit.kind);
   const budgetFor = (label: string): number =>
     Math.max(
       0,
-      STATE_TOKEN_CAP - estimateTokens(lines.join("\n")) - estimateTokens(label)
+      STATE_TOKEN_CAP -
+        estimateTokens(lines.join("\n"), perToken) -
+        estimateTokens(label, perToken)
     );
   const clip = (label: string, value: string): string => {
     const budget = budgetFor(label);
-    if (estimateTokens(value) <= budget) {
+    if (estimateTokens(value, perToken) <= budget) {
       return value;
     }
     truncated = true;
-    return `${value.slice(0, Math.max(0, budget * 3))} [truncated]`;
+    return `${value.slice(0, Math.max(0, Math.floor(budget * perToken)))} [truncated]`;
   };
   if (keys.has("neighbours") && unit.neighbours?.next) {
     lines.push(

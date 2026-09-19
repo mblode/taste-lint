@@ -8,6 +8,7 @@ import type {
   ResolvedTypography,
   Unit,
 } from "../types.js";
+import { CLASS_FUNCTIONS } from "./mechanical-classes.js";
 
 const escapeRegExp = (s: string): string =>
   s.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -82,7 +83,12 @@ const isMutedColour = (cls: string): boolean =>
     cls
   );
 
+// Typography functions judge text; an element with classes and no text of
+// its own (an icon wrapper) is not theirs to judge.
+const needText = (unit: Unit): boolean => unit.text.trim().length > 0;
+
 export const FUNCTIONS: Record<string, MechanicalFunction> = {
+  ...CLASS_FUNCTIONS,
   // Body-sized text below 15px, the phone floor from make-text-comfortable-to-read.
   bodyBelow15px: (unit) => {
     const t = needTypography(unit);
@@ -111,7 +117,7 @@ export const FUNCTIONS: Record<string, MechanicalFunction> = {
   // Positive letter-spacing on lowercase body text.
   letterSpacedLowercaseBody: (unit) => {
     const t = needTypography(unit);
-    if (t.letterSpacingEm === undefined) {
+    if (t.letterSpacingEm === undefined || !needText(unit)) {
       return none;
     }
     if (t.uppercase) {
@@ -128,7 +134,7 @@ export const FUNCTIONS: Record<string, MechanicalFunction> = {
   // Weight 100 to 300 on text at or below 18px. An inherited size is not judged.
   lightWeightSmallBody: (unit) => {
     const t = needTypography(unit);
-    if (t.fontWeight === undefined) {
+    if (t.fontWeight === undefined || !needText(unit)) {
       return none;
     }
     const size = sizeOrAbstain(t);
@@ -223,6 +229,9 @@ export const FUNCTIONS: Record<string, MechanicalFunction> = {
   // italic. A muted colour quiets the element and is not an axis.
   stackedEmphasis: (unit) => {
     const t = needTypography(unit);
+    if (!needText(unit)) {
+      return none;
+    }
     const axes = [
       (t.fontWeight ?? 400) >= 600,
       t.uppercase === true,
@@ -240,7 +249,7 @@ export const FUNCTIONS: Record<string, MechanicalFunction> = {
   // Uppercase text with no positive tracking.
   uppercaseWithoutTracking: (unit) => {
     const t = needTypography(unit);
-    if (!t.uppercase) {
+    if (!t.uppercase || !needText(unit)) {
       return none;
     }
     if ((t.letterSpacingEm ?? 0) <= 0) {
@@ -263,7 +272,7 @@ export const runMechanical = (
   }
   const text = maskCodeSpans(unit.text, unit.codeSpans);
   const minMatches = mechanical.minMatches ?? 1;
-  const matches: string[] = [];
+  const matches: { text: string; offset: number }[] = [];
   if (mechanical.regex) {
     const flags = mechanical.flags ?? "gu";
     const re = new RegExp(
@@ -271,23 +280,32 @@ export const runMechanical = (
       flags.includes("g") ? flags : `${flags}g`
     );
     for (const m of text.matchAll(re)) {
-      matches.push(m[0]);
+      matches.push({ offset: m.index ?? 0, text: m[0] });
     }
   }
   if (mechanical.phrases) {
     for (const m of text.matchAll(phraseRegex(mechanical.phrases))) {
-      matches.push(m[0]);
+      matches.push({ offset: m.index ?? 0, text: m[0] });
     }
   }
   if (matches.length < minMatches) {
     return none;
   }
+  // "Has A but never B": the file mentions a form and no focus call, a table
+  // and no caption.
+  if (
+    mechanical.absent &&
+    new RegExp(mechanical.absent, mechanical.flags ?? "gu").test(text)
+  ) {
+    return none;
+  }
   const shown = matches
     .slice(0, 3)
-    .map((m) => JSON.stringify(m))
+    .map((m) => JSON.stringify(m.text.replaceAll(/\s+/gu, " ").slice(0, 80)))
     .join(", ");
   return {
     evidence: `${matches.length} match${matches.length === 1 ? "" : "es"}: ${shown}`,
     fired: true,
+    offset: Math.min(...matches.map((m) => m.offset)),
   };
 };

@@ -156,6 +156,7 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
     "phrases",
     "function",
     "minMatches",
+    "absent",
   ]);
   const out: Mechanical = {};
   if (raw.flags !== undefined && typeof raw.flags !== "string") {
@@ -197,6 +198,21 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
       fail(file, "mechanical.minMatches must be a positive integer");
     }
     out.minMatches = raw.minMatches as number;
+  }
+  if (raw.absent !== undefined) {
+    out.absent = str(file, raw, "absent");
+    try {
+      const compiled = new RegExp(out.absent, out.flags ?? "gu");
+      void compiled;
+    } catch (error) {
+      fail(
+        file,
+        `mechanical.absent does not compile: ${(error as Error).message}`
+      );
+    }
+    if (!out.regex) {
+      fail(file, "mechanical.absent needs a regex to pair with");
+    }
   }
   if (!(out.regex || out.phrases || out.function)) {
     fail(file, "mechanical needs regex, phrases or function");

@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/states-no-error-state.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-no-error-state
+title: Async fetch has no inline error state
+categoryId: state-coverage
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/states-no-error-state.md
+  repo: mblode/agent-skills
+  ruleId: states-no-error-state
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: useQuery|useSWR|await fetch|async function
+severity: major
+fix:
+  hint: "Every async op can fail. A happy-path-only component turns a transient 500 into a blank screen, an infinite spinner, or a silent stale render. This rule owns the component's own error branch: the failure renders a message naming what broke plus a way out (retry, go back, contact support), in place, "
+  mode: none
+status: review-only
+handWritten: []

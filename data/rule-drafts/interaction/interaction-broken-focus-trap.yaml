@@ -1,0 +1,54 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/focus-broken-focus-trap.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-broken-focus-trap
+title: Modal without working focus trap
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/focus-broken-focus-trap.md
+  repo: mblode/agent-skills
+  ruleId: focus-broken-focus-trap
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - paragraph
+  - heading
+  - jsx-text
+  - attr-string
+tier: jev
+question:
+  context:
+    - element
+    - docType
+  criteria:
+    "false":
+      examples:
+        - TODO
+      what: >-
+        - Skip non-modal dialogs (`role="dialog"` with `aria-modal="false"`: rare, but valid).
+        
+        - Skip components imported from a known wrapper that already uses Radix/react-aria internally.
+        
+        - Skip files annotated `// ui-audit-ignore:focus-broken-focus-trap`.
+    "true":
+      examples:
+        - TODO
+      what: TODO
+  instructions: "TODO: When a modal opens, Tab and Shift+Tab must cycle inside it and Esc must close it. Without a focus trap, keyboard users tab into the page behind the modal, lose context, and may not realise it is open. Hand-rolled traps almost always miss edge cases (iframes, contenteditable, dynamically-added focusables). Use a primitive that gets it right: Radix UI, react-aria, or `focus-trap-react`."
+  type: noul
+severity: major
+fix:
+  hint: "TODO: When a modal opens, Tab and Shift+Tab must cycle inside it and Esc must close it. Without a focus trap, keyboard users tab into the page behind the modal, lose context, and may not realise it is open."
+  mode: none
+status: draft
+handWritten: []
+portNotes:
+  - detection is a shell pipeline or loop; port by hand

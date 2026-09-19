@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/a11y-icon-controls-labeled.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-a11y-icon-controls-labeled
+title: Label Icon-Only Controls
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/a11y-icon-controls-labeled.md
+  repo: mblode/agent-skills
+  ruleId: a11y-icon-controls-labeled
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: <button\b(?![^>]*(aria-label|aria-labelledby|title=))[^>]*>\s*<[A-Z][\w.]*[^>]*/>\s*</button>
+severity: minor
+fix:
+  hint: Any control with no visible text requires an accessible name. Without one, assistive tech announces nothing usable and the control cannot be identified.
+  mode: none
+status: review-only
+handWritten: []

@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/slop-unverifiable-proof.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: copywriting-unverifiable-proof
+title: Unverifiable proof standing in for real evidence
+categoryId: evidence-over-claims
+domain: copywriting
+source:
+  line: 10
+  path: skills/ui-design/rules/slop-unverifiable-proof.md
+  repo: mblode/agent-skills
+  ruleId: slop-unverifiable-proof
+  tier: backlog
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gui
+  regex: logoipsum|placehold\.|placeholder\.com|via\.placeholder|dummyimage|lorem ipsum
+severity: minor
+fix:
+  hint: '"99.9% uptime", "10,000+ teams", "3x faster", a testimonial from Jane Doe, CEO at Acme, and a strip of logos nobody has heard of. Every one of these is a claim about the world, and a visitor who cannot check any of them learns that this page''s numbers are decoration. The damage is not aesthetic: it '
+  mode: none
+status: review-only
+handWritten: []

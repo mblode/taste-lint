@@ -1,0 +1,40 @@
+# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
+# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
+# AI-tell questions and the four passage checks named in the article.
+id: copywriting-mechanism-over-outcome
+title: Describes the mechanism where the reader needed the outcome
+categoryId: reader-first-framing
+domain: copywriting
+source:
+  repo: every.to
+  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  line: 1
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Read the TEXT. Return true when it answers what something does for the reader by describing how it works internally (the algorithm, the pipeline, the sync process) and never states the result the reader gets. Return false when the outcome is stated and the mechanism follows as support, or when the DOC TYPE is reference or explanation and the mechanism is the subject.
+  criteria:
+    true:
+      what: Mechanism in place of the outcome.
+      examples:
+        - "Our sync engine batches writes into a queue and replays them through a conflict resolver with vector clocks."
+        - "The scheduler recomputes priorities every five minutes using a weighted decay function."
+    false:
+      what: The outcome first, mechanism as support.
+      examples:
+        - "Edits made offline land in the shared document when you reconnect, without overwriting anyone else. A queue and conflict resolver do the work."
+        - "Urgent tickets rise to the top of the list within five minutes of being flagged."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Lead with what the reader gets; keep the mechanism as the second sentence, or move it to the reference page.
+status: review-only
+handWritten: [question, fix, thresholds]

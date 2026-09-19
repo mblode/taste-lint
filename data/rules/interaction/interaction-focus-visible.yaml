@@ -1,0 +1,34 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/interaction-focus-visible.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-focus-visible
+title: Preserve Visible Focus States
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/interaction-focus-visible.md
+  repo: mblode/agent-skills
+  ruleId: interaction-focus-visible
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.css"
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  absent: focus-visible
+  flags: gu
+  regex: outline:\s*(none|0)|\boutline-(none|hidden)\b
+severity: major
+fix:
+  hint: Never remove outlines without a clear `:focus-visible` replacement. With the outline gone, keyboard users cannot see where they are and the interface stops being navigable.
+  mode: none
+status: review-only
+handWritten: []

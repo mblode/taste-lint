@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/a11y-semantic-html-first.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-a11y-semantic-html-first
+title: Prefer Native Semantics Before ARIA
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/a11y-semantic-html-first.md
+  repo: mblode/agent-skills
+  ruleId: a11y-semantic-html-first
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: <(div|span|li|td)\b[^>]*\bonClick=
+severity: major
+fix:
+  hint: Use semantic HTML controls first; only add ARIA when native elements cannot express intent. Rebuilding those semantics in ARIA reimplements keyboard behaviour, role, and state by hand, and any gap leaves assistive tech reporting the wrong thing.
+  mode: none
+status: review-only
+handWritten: []

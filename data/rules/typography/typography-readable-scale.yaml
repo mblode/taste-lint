@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/type-readable-scale.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: typography-readable-scale
+title: Set a Readable Type Scale
+categoryId: reading-comfort
+domain: typography
+source:
+  line: 9
+  path: skills/ui-design/rules/type-readable-scale.md
+  repo: mblode/agent-skills
+  ruleId: type-readable-scale
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.css"
+    - "**/*.scss"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: (?:\bbody\b|\bhtml\b|:root|\.prose)[^{}/]*\{[^}]*font-(?:size:\s*(?:0?\.\d+rem|(?<![\d.])(?:\d|1[0-5])(?:\.\d+)?px)|weight:\s*[123]00\b)
+severity: minor
+fix:
+  hint: Use body sizes and weights readable across desktop and mobile. Undersized or underweight body text slows scanning and tires readers.
+  mode: none
+status: review-only
+handWritten: []

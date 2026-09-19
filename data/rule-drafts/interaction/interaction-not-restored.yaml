@@ -1,0 +1,54 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/focus-not-restored.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-not-restored
+title: Focus not restored after modal/sheet/popover close
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/focus-not-restored.md
+  repo: mblode/agent-skills
+  ruleId: focus-not-restored
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - paragraph
+  - heading
+  - jsx-text
+  - attr-string
+tier: jev
+question:
+  context:
+    - element
+    - docType
+  criteria:
+    "false":
+      examples:
+        - TODO
+      what: >-
+        - Skip if Radix is used and `onCloseAutoFocus` is not provided (default behaviour restores focus).
+        
+        - Skip if the dialog closes by navigating to a new route (focus management is the new page's responsibility).
+        
+        - Skip files annotated `// ui-audit-ignore:focus-not-restored`.
+    "true":
+      examples:
+        - TODO
+      what: TODO
+  instructions: "TODO: When a dialog closes, focus must return to the element that opened it (the trigger). If it does not, keyboard and screen-reader users land on `<body>` and must tab from the top to recover their place. One of the most common accessibility bugs, and invisible to mouse users. Radix and react-aria handle it automatically; hand-rolled dialogs almost never do."
+  type: noul
+severity: major
+fix:
+  hint: "TODO: When a dialog closes, focus must return to the element that opened it (the trigger). If it does not, keyboard and screen-reader users land on `<body>` and must tab from the top to recover their place."
+  mode: none
+status: draft
+handWritten: []
+portNotes:
+  - detection is a shell pipeline or loop; port by hand

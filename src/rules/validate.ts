@@ -119,6 +119,11 @@ export const validateRule = (
     fail(file, "unit needs at least one kind");
   }
   const tier = oneOf<Tier>(file, "tier", r.tier, TIERS);
+  // Jev never sees a whole file: source-unit rules are mechanical and only
+  // ever pattern-match raw markup.
+  if (unit.includes("source") && (tier !== "mechanical" || unit.length > 1)) {
+    fail(file, "unit source needs tier mechanical and no other unit kind");
+  }
   const mech =
     r.mechanical === undefined ? undefined : mechanical(file, r.mechanical);
   const q = r.question === undefined ? undefined : question(file, r.question);

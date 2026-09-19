@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/async-no-suspense-boundary.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-no-suspense-boundary
+title: Async server component without Suspense boundary
+categoryId: state-coverage
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/async-no-suspense-boundary.md
+  repo: mblode/agent-skills
+  ruleId: async-no-suspense-boundary
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: ^export (default )?async function
+severity: minor
+fix:
+  hint: "In the App Router and React 19, an async server component with no enclosing `<Suspense>` boundary blocks the whole route from streaming. Users wait for the slowest fetch before seeing anything: no shell, no skeleton, no progressive paint. Wrap the slow async tree in `<Suspense fallback={...}>` to un"
+  mode: none
+status: review-only
+handWritten: []

@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/forms-dont-block-paste-ime.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-dont-block-paste-ime
+title: Do Not Block Paste or IME Input
+categoryId: form-usability
+domain: interaction
+source:
+  line: 9
+  path: skills/ui-design/rules/forms-dont-block-paste-ime.md
+  repo: mblode/agent-skills
+  ruleId: forms-dont-block-paste-ime
+  tier: fix-this-sprint
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: onPaste=\{[^}]*preventDefault
+severity: minor
+fix:
+  hint: Avoid handlers that prevent paste or aggressively filter keystrokes. Blocking paste breaks password managers and assistive input, and keystroke filters swallow the composition events IME users type with.
+  mode: none
+status: review-only
+handWritten: []

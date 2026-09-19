@@ -1,13 +1,20 @@
-// Regenerate draft rule files from a sibling agent-skills checkout.
+// Regenerate rule files from a sibling agent-skills checkout.
 //
-//   npm run port-rules -- --skills-dir ../agent-skills [--out data/rules] [--check] [--only typography-audit,ui-design]
+//   npm run port-rules -- --skills-dir ../agent-skills [--out data/rules] [--check] [--write] [--only typography-audit,ui-design]
 //
 // Two frontmatter dialects are read: ui-design (`id`, `category`,
-// `defaultTier`, `detect`, a `## Detection` section with an rg pattern and a
+// `defaultTier`, `detect`, a `## Detection` section with an rg command and a
 // false-positive paragraph) and typography-audit / docs-writing (`title`,
-// `impact`, `tags`, an Incorrect/Correct pair). Existing rule files keep every
-// key listed in `handWritten`; everything else is regenerated. `--check` exits
-// 1 when a regeneration would change a non-hand-written key.
+// `impact`, `tags`, an Incorrect/Correct pair).
+//
+// A ui-design rule whose detection is one rg command JavaScript can run
+// (optionally piped through `xargs rg --files-without-match`) ships as a
+// mechanical rule over the whole file (`unit: [source]`), review-only, with
+// `--write`. Everything else (loops, PCRE-only syntax, rendered or rubric
+// checks, the copy and typography sources that need a hand-written question)
+// is written as a draft under data/rule-drafts, which the loader never reads.
+// Existing rule files keep every key listed in `handWritten`; `--check` exits
+// 1 when a regeneration would change a traced key or a source has moved.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,8 +27,9 @@ import { parseFrontmatter } from "../src/lib/frontmatter.ts";
 interface Args {
   skillsDir: string;
   out: string;
+  draftsOut: string;
   check: boolean;
-  writeDrafts: boolean;
+  write: boolean;
   only: string[] | null;
 }
 
@@ -32,19 +40,21 @@ const args = ((): Args => {
       only: { type: "string" },
       out: { type: "string" },
       "skills-dir": { type: "string" },
-      "write-drafts": { type: "boolean" },
+      write: { type: "boolean" },
     },
   });
   const skillsDir =
     values["skills-dir"] ??
     process.env.AGENT_SKILLS_DIR ??
     path.resolve("../agent-skills");
+  const out = values.out ?? path.resolve("data/rules");
   return {
     check: values.check ?? false,
+    draftsOut: path.join(path.dirname(out), "rule-drafts"),
     only: values.only?.split(",") ?? null,
-    out: values.out ?? path.resolve("data/rules"),
+    out,
     skillsDir: path.resolve(skillsDir),
-    writeDrafts: values["write-drafts"] ?? false,
+    write: values.write ?? false,
   };
 })();
 
@@ -77,6 +87,7 @@ const CATEGORY_MAP: [RegExp, string][] = [
   [/^a11y-|^focus-|^interaction-/, "focus-and-a11y"],
   [/^forms-/, "form-usability"],
   [/^states-|^async-/, "state-coverage"],
+  [/^perf-|^mobile-|^dark-i18n-/, "resilience"],
   [/^voice-/, "reader-first-framing"],
   [/^clarity-/, "reader-first-framing"],
   [/^structure-|^nav-|^scan-/, "page-structure"],
@@ -96,6 +107,7 @@ const DOMAIN_BY_CATEGORY: Record<string, string> = {
   "reader-first-framing": "copywriting",
   "reading-comfort": "typography",
   "reference-reading": "copywriting",
+  resilience: "craft",
   "state-coverage": "interaction",
   "type-hierarchy": "typography",
   "type-pairing": "typography",
@@ -116,38 +128,126 @@ const SEVERITY_MAP: Record<string, string> = {
   "release-blocker": "major",
 };
 
-// A subset of PCRE that JavaScript accepts as-is. Anything else is dropped
-// and noted so the mechanical part is hand-written.
-const translateRegex = (pattern: string): string | null => {
-  if (/\\K|\(\?[>|]|\+\+|\*\+|\?\+|\\h|\(\?P</.test(pattern)) {
+// A subset of PCRE that JavaScript accepts as-is. A leading `(?s)` becomes the
+// `s` flag; inline modifier groups such as `(?i:...)`, possessive quantifiers,
+// `\K`, `\h` and named groups in PCRE syntax are left for a hand port.
+const translateRegex = (
+  raw: string
+): { pattern: string; flags: string } | null => {
+  let pattern = raw;
+  let flags = "gu";
+  if (pattern.startsWith("(?s)")) {
+    pattern = pattern.slice(4);
+    flags += "s";
+  }
+  if (/\\K|\(\?[>|]|\(\?[a-z]+:|\+\+|\*\+|\?\+|\\h|\(\?P</.test(pattern)) {
     return null;
   }
   try {
-    const re = new RegExp(pattern, "u");
+    const re = new RegExp(pattern, flags);
     void re;
-    return pattern;
+    return { flags, pattern };
   } catch {
     return null;
   }
 };
 
-const firstRgPattern = (
-  body: string
-): { pattern: string; globs: string[] } | null => {
+interface RgCommand {
+  pattern: string;
+  /** rg flags that change matching: i (case), U (multiline). */
+  caseInsensitive: boolean;
+  multiline: boolean;
+  include: string[];
+  exclude: string[];
+  /** `| xargs rg --files-without-match -P '<pattern>'`: fire only when absent. */
+  absent?: string;
+  /** The command continued into a pipeline or loop this script cannot run. */
+  piped: boolean;
+}
+
+const RG_TYPE_GLOBS: Record<string, string[]> = {
+  css: ["**/*.css"],
+  js: ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+  ts: ["**/*.ts", "**/*.tsx"],
+};
+
+// Split a shell line on `|` outside single quotes, so an alternation inside
+// the rg pattern is not mistaken for a pipe.
+const splitPipeline = (line: string): string[] => {
+  const parts: string[] = [];
+  let current = "";
+  let quoted = false;
+  for (const ch of line) {
+    if (ch === "'") {
+      quoted = !quoted;
+    }
+    if (ch === "|" && !quoted) {
+      parts.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  parts.push(current.trim());
+  return parts;
+};
+
+// The first rg invocation in the first bash block, with the shell
+// continuation lines joined so the pipeline is visible.
+const firstRgCommand = (body: string): RgCommand | null => {
   const block = body.match(/```bash\n([\s\S]*?)```/);
   if (!block) {
     return null;
   }
-  const line = block[1].split("\n").find((l) => l.trim().startsWith("rg "));
+  const joined = block[1].replaceAll(/\\\n\s*/g, " ");
+  const commands = joined
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+  const line = commands.find((l) => l.startsWith("rg "));
   if (!line) {
     return null;
   }
-  const quoted = line.match(/'((?:[^'\\]|\\.)*)'/);
+  const [head, ...rest] = splitPipeline(line);
+  const quoted = head.match(/'((?:[^'\\]|\\.)*)'/);
   if (!quoted) {
     return null;
   }
-  const globs = [...line.matchAll(/-g\s+'([^']+)'/g)].map((m) => `**/${m[1]}`);
-  return { globs, pattern: quoted[1] };
+  const shortFlags = [...head.matchAll(/(?:^|\s)-([a-zA-Z]+)(?=\s)/g)]
+    .map((m) => m[1])
+    .join("");
+  const include: string[] = [];
+  const exclude: string[] = [];
+  for (const m of head.matchAll(/(?:-g|--glob)\s+'([^']+)'/g)) {
+    if (m[1].startsWith("!")) {
+      exclude.push(`**/${m[1].slice(1)}`);
+    } else {
+      include.push(`**/${m[1]}`);
+    }
+  }
+  for (const m of head.matchAll(/--type[= ](\w+)/g)) {
+    include.push(...(RG_TYPE_GLOBS[m[1]] ?? []));
+  }
+  let absent: string | undefined;
+  let piped = rest.length > 0;
+  if (rest.length === 1) {
+    const without = rest[0].match(
+      /^xargs(?:\s+-r)?\s+rg\s+--files-without-match\s+(?:-P\s+)?'((?:[^'\\]|\\.)*)'\s*$/
+    );
+    if (without) {
+      absent = without[1];
+      piped = false;
+    }
+  }
+  return {
+    absent,
+    caseInsensitive: shortFlags.includes("i"),
+    exclude,
+    include,
+    multiline: shortFlags.includes("U"),
+    pattern: quoted[1],
+    piped,
+  };
 };
 
 const fenced = (body: string, marker: RegExp): string[] => {
@@ -235,6 +335,7 @@ let changed = 0;
 let written = 0;
 let unmapped = 0;
 let available = 0;
+let ported = 0;
 const problems: string[] = [];
 
 for (const { skill, folder, dialect } of SKILLS) {
@@ -297,21 +398,51 @@ for (const { skill, folder, dialect } of SKILLS) {
           : ["paragraph", "heading", "jsx-text", "attr-string"],
     };
     const notes = generated.portNotes as string[];
+    let shippable = false;
     if (dialect === "ui-design") {
-      const rg = firstRgPattern(body);
-      if (rg) {
-        const translated = translateRegex(rg.pattern);
-        if (translated) {
-          generated.mechanical = { flags: "gu", regex: translated };
-          generated.tier = "both";
-        } else {
-          notes.push(
-            `rg pattern uses PCRE features JavaScript lacks: ${rg.pattern}`
-          );
+      const rg = firstRgCommand(body);
+      const translated = rg ? translateRegex(rg.pattern) : null;
+      const absent = rg?.absent ? translateRegex(rg.absent) : null;
+      if (rg && rg.include.length > 0) {
+        (generated.scope as { include: string[] }).include = rg.include;
+      }
+      if (rg && rg.exclude.length > 0) {
+        (generated.scope as { exclude: string[] }).exclude.push(...rg.exclude);
+      }
+      if (
+        fm.detect === "static" &&
+        rg &&
+        translated &&
+        !rg.piped &&
+        (rg.absent === undefined || absent)
+      ) {
+        // The whole file is the unit; rg's -U and -i become flags.
+        let flags = translated.flags;
+        if (rg.multiline && !flags.includes("s")) {
+          flags += "s";
         }
-        if (rg.globs.length > 0) {
-          (generated.scope as { include: string[] }).include = rg.globs;
+        if (rg.caseInsensitive) {
+          flags += "i";
         }
+        generated.mechanical = {
+          ...(absent ? { absent: absent.pattern } : {}),
+          flags,
+          regex: translated.pattern,
+        };
+        generated.tier = "mechanical";
+        generated.unit = ["source"];
+        generated.status = "review-only";
+        generated.fix = {
+          hint: firstParagraph(body).slice(0, 300),
+          mode: "none",
+        };
+        shippable = true;
+      } else if (rg && !translated) {
+        notes.push(
+          `rg pattern uses PCRE features JavaScript lacks: ${rg.pattern}`
+        );
+      } else if (rg?.piped) {
+        notes.push("detection is a shell pipeline or loop; port by hand");
       }
       if (fm.detect === "rendered") {
         generated.unit = ["element"];
@@ -323,23 +454,28 @@ for (const { skill, folder, dialect } of SKILLS) {
         body.match(
           /\*\*False-positive guards:\*\*\n([\s\S]*?)(?:\n\n|\n\*\*)/
         )?.[1] ?? body.match(/```\n\n([^\n#*][^\n]+)\n/)?.[1];
-      generated.question = {
-        context: ["element", "docType"],
-        criteria: {
-          false: {
-            examples: fenced(body, /\*\*Applied \(passes\)|\*\*Correct/),
-            what: fp
-              ? fp.trim().slice(0, 300)
-              : "TODO: the correct code this pattern also matches",
+      if (!shippable) {
+        generated.question = {
+          context: ["element", "docType"],
+          criteria: {
+            false: {
+              examples: fenced(body, /\*\*Applied \(passes\)|\*\*Correct/),
+              what: fp
+                ? fp.trim().slice(0, 300)
+                : "TODO: the correct code this pattern also matches",
+            },
+            true: {
+              examples: fenced(
+                body,
+                /\*\*Anti-pattern \(fails\)|\*\*Incorrect/
+              ),
+              what: "TODO",
+            },
           },
-          true: {
-            examples: fenced(body, /\*\*Anti-pattern \(fails\)|\*\*Incorrect/),
-            what: "TODO",
-          },
-        },
-        instructions: `TODO: ${firstParagraph(body).slice(0, 400)}`,
-        type: "noul",
-      };
+          instructions: `TODO: ${firstParagraph(body).slice(0, 400)}`,
+          type: "noul",
+        };
+      }
     } else {
       generated.question = {
         context: ["docType"],
@@ -353,13 +489,16 @@ for (const { skill, folder, dialect } of SKILLS) {
     }
     for (const side of ["true", "false"] as const) {
       const c = (
-        generated.question as {
-          criteria: Record<string, { examples: string[] }>;
-        }
-      ).criteria[side];
-      if (c.examples.length === 0) {
+        generated.question as
+          | { criteria: Record<string, { examples: string[] }> }
+          | undefined
+      )?.criteria[side];
+      if (c && c.examples.length === 0) {
         c.examples = ["TODO"];
       }
+    }
+    if (shippable) {
+      delete generated.portNotes;
     }
     const target = path.join(args.out, domain, `${id}.yaml`);
     let existing: Record<string, unknown> | null = null;
@@ -427,10 +566,20 @@ for (const { skill, folder, dialect } of SKILLS) {
       }
       continue;
     }
+    if (shippable) {
+      ported += 1;
+      if (!args.check && args.write) {
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, outText);
+        written += 1;
+      }
+      continue;
+    }
     available += 1;
-    if (!args.check && args.writeDrafts) {
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, outText);
+    if (!args.check && args.write) {
+      const draft = path.join(args.draftsOut, domain, `${id}.yaml`);
+      fs.mkdirSync(path.dirname(draft), { recursive: true });
+      fs.writeFileSync(draft, outText);
       written += 1;
     }
   }
@@ -495,9 +644,9 @@ if (args.check) {
       !handWritten.has("mechanical") &&
       rule.mechanical?.regex
     ) {
-      const rg = firstRgPattern(parseFrontmatter(sourceText).body);
+      const rg = firstRgCommand(parseFrontmatter(sourceText).body);
       const translated = rg ? translateRegex(rg.pattern) : null;
-      if (translated !== rule.mechanical.regex) {
+      if (translated?.pattern !== rule.mechanical.regex) {
         changed += 1;
         problems.push(
           `${rel}: mechanical.regex no longer matches the source rg pattern`
@@ -511,7 +660,7 @@ if (problems.length > 0) {
   process.stderr.write(`${problems.join("\n")}\n`);
 }
 process.stdout.write(
-  `${args.check ? `${checked} shipped rules checked against the source; ${changed} drifted` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${available} draft${available === 1 ? "" : "s"} available (pass --write-drafts to generate); ${unmapped} source rules have no category mapping\n`
+  `${args.check ? `${checked} shipped rules checked against the source; ${changed} drifted` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${ported} mechanical port${ported === 1 ? "" : "s"} and ${available} draft${available === 1 ? "" : "s"} available (pass --write to generate); ${unmapped} source rules have no category mapping\n`
 );
 if (args.check && (changed > 0 || problems.length > 0)) {
   process.exit(1);

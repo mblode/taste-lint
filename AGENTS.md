@@ -19,13 +19,13 @@ node dist/cli.js rules check                     # validate data/rules
 
 - `src/cli.ts`: Commander entry point. Explicit flags win over environment defaults.
 - `src/rules/`: fail-closed rule loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the Jev wire format.
-- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, and style-capture output (the CLI text block or `CaptureResult` JSON). Every unit carries file, line, column, UTF-16 source offsets and, where a fix may rewrite it, the prose ranges inside that slice.
+- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, style-capture output (the CLI text block or `CaptureResult` JSON), and one `source` unit per TSX, JSX or CSS file for mechanical rules that pattern-match raw markup. Every unit carries file, line, column, UTF-16 source offsets and, where a fix may rewrite it, the prose ranges inside that slice.
 - `src/map/`: plan (which rules apply to which unit), one Jev request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, fetch client.
-- `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes.
+- `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes, the named mechanical functions (`mechanical.ts` for typography over text and resolved values, `mechanical-classes.ts` for motion and design-system checks over class lists).
 - `src/report/`: tty, JSON, SARIF.
 - `src/eval/`: corpus loader, precision/recall/Wilson, calibration table, threshold tuning, McNemar A/B.
-- `data/rules/<domain>/<id>.yaml`: shipped rules. `data/rules/tuning.json`: threshold overlay written only by `tune --write`. `data/corpus/*.jsonl`: labelled units.
-- `scripts/port-rules.ts`: regenerates draft rules from a sibling agent-skills checkout. `scripts/seed-corpus.ts`: seeds the corpus from taste-training manifests.
+- `data/rules/<domain>/<id>.yaml`: shipped rules. `data/rules/tuning.json`: threshold overlay written only by `tune --write`. `data/corpus/*.jsonl`: labelled units. `data/rule-drafts/`: source rules the port script could not ship (a shell pipeline, PCRE-only syntax, a rendered check, or a question nobody has written); never loaded.
+- `scripts/port-rules.ts`: `--write` ships ui-design static checks as whole-file mechanical rules and writes everything else as drafts; `--check` verifies every shipped rule against its source. `scripts/seed-corpus.ts`: seeds the corpus from taste-training manifests.
 
 Read `docs/DESIGN.md` for contracts.
 
@@ -39,7 +39,7 @@ Read `docs/DESIGN.md` for contracts.
 
 Commands that pass while proving less than they look:
 
-- `slop-cop rules check` prints `N active rules`; active here means not draft. A Jev-backed rule can be `review-only` and still count.
+- `slop-cop rules check` prints `N active rules`; active here means not draft. A Jev-backed rule can be `review-only` and still count, and so can every ported pattern rule: today most of the pack is review-only by design.
 - `slop-cop lint --dry-run` exits 1 on any act-band mechanical finding. `verify:full` runs it with `--fail-on critical` so the fixtures, which contain deliberate straight quotes, do not fail the umbrella. No shipped rule is critical, so that step only proves the CLI runs end to end; the fixture finding counts are asserted in `src/__tests__/lint.test.ts`.
 - `slop-cop eval` without `--include-weak` skips every item whose category maps to more than one rule, which today is every typography rule.
 

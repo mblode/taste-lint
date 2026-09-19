@@ -1,0 +1,32 @@
+# Ported from mblode/agent-skills skills/ui-design/rules/forms-use-form-status-misuse.md by scripts/port-rules.ts.
+# Keys listed in handWritten are preserved on re-run; everything else is regenerated.
+id: interaction-use-form-status-misuse
+title: useFormStatus called in same component as form (silent bug)
+categoryId: form-usability
+domain: interaction
+source:
+  line: 10
+  path: skills/ui-design/rules/forms-use-form-status-misuse.md
+  repo: mblode/agent-skills
+  ruleId: forms-use-form-status-misuse
+  tier: release-blocker
+scope:
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+unit:
+  - source
+tier: mechanical
+mechanical:
+  flags: gu
+  regex: useFormStatus
+severity: major
+fix:
+  hint: "`useFormStatus` returns the **parent** `<form>`'s status. Called in the same component that renders the `<form>`, it returns `{ pending: false }` forever (no parent form to inspect). It compiles, runs, never warns, and silently breaks everything depending on it (disabled submit, pending label, optim"
+  mode: none
+status: review-only
+handWritten: []
