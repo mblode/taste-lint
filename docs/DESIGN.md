@@ -26,6 +26,21 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 
 `src/types.ts` (`Finding`): rule id, category, domain, severity, band, probability, unit provenance, message, evidence, fix hint.
 
+## Glossary
+
+One name per concept. Substituting a synonym splits the concept across the code.
+
+- **Unit**: one extracted piece of text or one class list (`src/types.ts` `Unit`). A corpus row is an **item** until `unitFromItem` turns it into a unit.
+- **Unresolved**: a value the extractor could not resolve (a Tailwind theme token, a missing class list). Lives on `ResolvedTypography.unresolved` and in `UnresolvedError`.
+- **Unknown**: the finding-level outcome when a rule cannot decide for a unit, usually because a value was unresolved or a precondition was unmet. Reported, never counted as pass or fail.
+- **Band**: how sure a finding is: `act`, `review` or `silent`. The eval reports the share of labelled items in the review band as the review rate.
+- **Severity**: how bad a finding is if real: `critical`, `major`, `minor`. Set by the rule, independent of the band.
+- **Mechanical / Jev / both**: the rule tiers. `both` means the mechanical part filters candidates and Jev decides.
+
+## fix.mode
+
+`deterministic` names a function in `src/reduce/fixes.ts` that `--fix` applies to the unit's source range. `llm` and `none` print the hint under the finding for a person or an agent; nothing in this package calls a text model. An executor that hands the unit and hint to an agent and re-asks the same Jev question as the acceptance test is a candidate for a later version, not a present capability.
+
 ## Non-goals for v1
 
 - No Vercel AI Gateway transport (one-file addition later).
