@@ -21,5 +21,8 @@ severity: minor
 fix:
   mode: none
   hint: Add tabular-nums (font-variant-numeric) to numeric columns so digits share one width and align.
-status: active
-handWritten: [mechanical, fix]
+# review-only: tabular-nums inherits, and the check sees only the cell's own
+# classes, so a table-level class reads as a miss. Promote once ancestor
+# classes reach the unit.
+status: review-only
+handWritten: [mechanical, fix, status]

@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 
 import { runTune, runTuneAb } from "../eval/tune.js";
+import { DEFAULT_MODEL } from "../map/jev.js";
 
 export function registerTuneCommand(program: Command): void {
   const tune = program
@@ -12,13 +13,19 @@ export function registerTuneCommand(program: Command): void {
     .option("--rules <path>", "Rules directory")
     .option("--only <ids>", "Comma-separated rule ids")
     .option("--floor <p>", "Required lower bound on act-band precision", "0.8")
+    .option(
+      "--min-items <n>",
+      "Labelled dev items a rule needs before a decision",
+      "10"
+    )
     .option("--write", "Write tuning.json")
     .option("--results-dir <path>", "Where logs and cache live")
-    .option("--model <id>", "Jev model id", "jev-latest")
+    .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
       const result = await runTune({
         corpusDir: options.corpus,
         floor: Number(options.floor),
+        minItems: Number(options.minItems),
         model: options.model,
         only: options.only
           ?.split(",")
@@ -41,7 +48,7 @@ export function registerTuneCommand(program: Command): void {
     .option("--corpus <path>", "Corpus directory")
     .option("--rules <path>", "Rules directory")
     .option("--results-dir <path>", "Where logs and cache live")
-    .option("--model <id>", "Jev model id", "jev-latest")
+    .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
       const result = await runTuneAb({
         corpusDir: options.corpus,

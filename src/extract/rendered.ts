@@ -4,67 +4,13 @@
 // available to the mechanical checks.
 
 import { spawnCapture } from "../lib/spawn.js";
-import type {
-  NeighbourSummary,
-  ResolvedTypography,
-  Role,
-  Unit,
-} from "../types.js";
+import type { NeighbourSummary, ResolvedTypography, Unit } from "../types.js";
+import { assertCapture } from "./capture.js";
+import type { CaptureResult, ElementSnapshot } from "./capture.js";
 import { parseCaptureInput } from "./style-capture-text.js";
-import { LineIndex, makeUnit, normaliseText } from "./units.js";
+import { LineIndex, makeUnit, normaliseText, ROLE_BY_TAG } from "./units.js";
 
-export interface BoundingBox {
-  bottom: number;
-  height: number;
-  left: number;
-  right: number;
-  top: number;
-  width: number;
-  x: number;
-  y: number;
-}
-
-export interface ElementSnapshot {
-  attributes: Record<string, string>;
-  boundingBox: BoundingBox;
-  children: string[];
-  classList: string[];
-  id: string;
-  parentId: string | null;
-  selector: string;
-  styles: Record<string, string>;
-  tagName: string;
-  text?: string;
-}
-
-export interface CaptureResult {
-  elements: Record<string, ElementSnapshot>;
-  metadata: { url: string; title?: string; capturedAt?: string };
-  order: string[];
-  rootElementId: string;
-  rootOuterHtml: string;
-  settings?: unknown;
-  version: 1;
-}
-
-const ROLE_BY_TAG: Record<string, Role> = {
-  a: "link",
-  button: "button",
-  caption: "caption",
-  figcaption: "caption",
-  h1: "heading",
-  h2: "heading",
-  h3: "heading",
-  h4: "heading",
-  h5: "heading",
-  h6: "heading",
-  label: "label",
-  li: "list-item",
-  p: "body",
-  span: "body",
-  td: "cell",
-  th: "heading",
-};
+export type { BoundingBox, CaptureResult, ElementSnapshot } from "./capture.js";
 
 const px = (value: string | undefined): number | undefined => {
   if (!value) {
@@ -122,39 +68,25 @@ export const typographyFromStyles = (
   };
 };
 
-// Text directly inside an element: style-capture v1 carries the subtree HTML
-// at the root only, so we derive direct text from `text` when present, else
-// from the root HTML by id lookup is not possible; capture tools that omit
-// text yield units without prose, still useful for typography values.
-const directTextOf = (el: ElementSnapshot, root: string): string => {
+// Text directly inside an element. style-capture carries per-element text
+// only from the CLI text block; captures that omit it yield units without
+// prose, still useful for typography values.
+const directTextOf = (el: ElementSnapshot): string => {
   if (typeof el.text === "string") {
     return normaliseText(el.text);
   }
   const attr = el.attributes["data-slop-cop-text"];
-  if (attr) {
-    return normaliseText(attr);
-  }
-  void root;
-  return "";
+  return attr ? normaliseText(attr) : "";
 };
 
-export const extractCapture = (
-  capture: CaptureResult,
-  label: string
-): Unit[] => {
-  if (capture.version !== 1 || typeof capture.elements !== "object") {
-    throw new Error(
-      "Unsupported capture: expected style-capture CaptureResult version 1"
-    );
-  }
+export const extractCapture = (raw: CaptureResult, label: string): Unit[] => {
+  const capture = assertCapture(raw);
   const file = `rendered:${label}`;
   // Synthetic source: one line per element in document order, so findings
   // point at a stable line number that maps to `order`.
   const lines = capture.order.map((id) => {
     const el = capture.elements[id];
-    return el
-      ? `${el.selector} ${directTextOf(el, capture.rootOuterHtml)}`
-      : id;
+    return el ? `${el.selector} ${directTextOf(el)}` : id;
   });
   const source = lines.join("\n");
   const index = new LineIndex(source);
@@ -169,7 +101,7 @@ export const extractCapture = (
       summaries.set(id, null);
       return null;
     }
-    const text = directTextOf(el, capture.rootOuterHtml);
+    const text = directTextOf(el);
     const summary = text
       ? {
           element: el.tagName.toLowerCase(),
@@ -180,6 +112,19 @@ export const extractCapture = (
     summaries.set(id, summary);
     return summary;
   };
+  const nearestSummary = (
+    siblings: string[],
+    at: number,
+    step: -1 | 1
+  ): NeighbourSummary | undefined => {
+    for (let i = at + step; i >= 0 && i < siblings.length; i += step) {
+      const summary = summaryFor(siblings[i]);
+      if (summary) {
+        return summary;
+      }
+    }
+    return undefined;
+  };
   let offset = 0;
   for (const [i, id] of capture.order.entries()) {
     const el = capture.elements[id];
@@ -189,7 +134,7 @@ export const extractCapture = (
     if (!el) {
       continue;
     }
-    const text = directTextOf(el, capture.rootOuterHtml);
+    const text = directTextOf(el);
     const tag = el.tagName.toLowerCase();
     if (!text || ["script", "style", "noscript", "svg", "path"].includes(tag)) {
       continue;
@@ -198,17 +143,9 @@ export const extractCapture = (
       ? (capture.elements[el.parentId]?.children ?? [])
       : [];
     const at = siblings.indexOf(id);
-    const prev =
-      siblings
-        .slice(0, Math.max(0, at))
-        .toReversed()
-        .map(summaryFor)
-        .find(Boolean) ?? undefined;
-    const next =
-      siblings
-        .slice(at + 1)
-        .map(summaryFor)
-        .find(Boolean) ?? undefined;
+    // An element its parent does not list has no siblings to compare against.
+    const prev = at === -1 ? undefined : nearestSummary(siblings, at, -1);
+    const next = at === -1 ? undefined : nearestSummary(siblings, at, 1);
     units.push(
       makeUnit(file, index, {
         classes: el.classList,

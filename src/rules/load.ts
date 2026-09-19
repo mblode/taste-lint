@@ -3,7 +3,8 @@ import path from "node:path";
 
 import { parse } from "yaml";
 
-import type { Rule, Tuning } from "../types.js";
+import { RULE_STATUSES } from "../types.js";
+import type { Rule, Tuning, TuningEntry } from "../types.js";
 import { validateRule } from "./validate.js";
 
 // Walk up from this module to find the packaged data directory, so the CLI
@@ -29,7 +30,9 @@ export const resolveRulesDir = (explicit?: string): string => {
   );
 };
 
-const readTuning = (rulesDir: string): Tuning => {
+// tuning.json is the one file `tune --write` edits; a typo here would flip a
+// rule's status or threshold silently, so every entry is checked.
+export const readTuning = (rulesDir: string): Tuning => {
   const file = path.join(rulesDir, "tuning.json");
   if (!fs.existsSync(file)) {
     return {};
@@ -38,7 +41,55 @@ const readTuning = (rulesDir: string): Tuning => {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     throw new Error(`Invalid tuning file ${file}: must be an object`);
   }
-  return raw as Tuning;
+  const bad = (id: string, why: string): never => {
+    throw new Error(`Invalid tuning file ${file}: ${id} ${why}`);
+  };
+  const out: Tuning = {};
+  for (const [id, entry] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      bad(id, "must be an object");
+    }
+    const e = entry as Record<string, unknown>;
+    const allowed = new Set(["act", "status", "precisionLower", "n", "ts"]);
+    for (const key of Object.keys(e)) {
+      if (!allowed.has(key)) {
+        bad(id, `has unknown key ${key}`);
+      }
+    }
+    const tuned: TuningEntry = {};
+    if (e.act !== undefined) {
+      if (typeof e.act !== "number" || !(e.act > 0 && e.act <= 1)) {
+        bad(id, "act must be a number in (0, 1]");
+      }
+      tuned.act = e.act as number;
+    }
+    if (e.status !== undefined) {
+      if (!RULE_STATUSES.includes(e.status as (typeof RULE_STATUSES)[number])) {
+        bad(id, `status must be one of ${RULE_STATUSES.join(", ")}`);
+      }
+      tuned.status = e.status as TuningEntry["status"];
+    }
+    if (e.precisionLower !== undefined) {
+      if (typeof e.precisionLower !== "number") {
+        bad(id, "precisionLower must be a number");
+      }
+      tuned.precisionLower = e.precisionLower as number;
+    }
+    if (e.n !== undefined) {
+      if (!Number.isInteger(e.n)) {
+        bad(id, "n must be an integer");
+      }
+      tuned.n = e.n as number;
+    }
+    if (e.ts !== undefined) {
+      if (typeof e.ts !== "string") {
+        bad(id, "ts must be a string");
+      }
+      tuned.ts = e.ts as string;
+    }
+    out[id] = tuned;
+  }
+  return out;
 };
 
 export interface LoadOptions {
@@ -89,7 +140,7 @@ export const loadRules = (
       seen.add(rule.id);
       const overlay = tuning[rule.id];
       if (overlay) {
-        if (typeof overlay.act === "number") {
+        if (overlay.act !== undefined) {
           if (!(overlay.act > rule.thresholds.review && overlay.act <= 1)) {
             throw new Error(
               `Invalid tuning for ${rule.id}: act must be above review and at most 1`

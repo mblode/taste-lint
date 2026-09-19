@@ -1,7 +1,9 @@
-// Dependency-free YAML frontmatter slice. Handles plain scalars, quoted
-// strings and block scalars. `blanked` keeps line numbers intact by
-// replacing frontmatter lines with empty lines, so mdast positions still
-// point at the original file.
+// YAML frontmatter slice. The fences are found by hand so `blanked` keeps
+// line numbers intact (frontmatter lines become empty lines and mdast
+// positions still point at the original file); the mapping itself is parsed
+// by the `yaml` dependency the rule loader already uses.
+
+import { parse } from "yaml";
 
 export type Frontmatter = Record<string, string | undefined>;
 
@@ -13,19 +15,24 @@ export interface FrontmatterResult {
   error: string | null;
 }
 
+// A BOM becomes a space rather than disappearing, so every offset in
+// `blanked` still lines up with the caller's source string.
 const stripBom = (text: string): string =>
-  text.codePointAt(0) === 0xfe_ff ? text.slice(1) : text;
+  text.codePointAt(0) === 0xfe_ff ? ` ${text.slice(1)}` : text;
 
-const parseScalar = (raw: string): string => {
-  const v = raw.trim();
-  if (v.length >= 2) {
-    const [first] = v;
-    const last = v.at(-1);
-    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
-      return v.slice(1, -1);
-    }
+// Frontmatter consumers read scalars; nested values are kept as JSON text.
+const scalar = (value: unknown): string | undefined => {
+  if (value === null || value === undefined) {
+    return undefined;
   }
-  return v;
+  if (typeof value === "string") {
+    // A folded or literal block keeps its final newline; consumers want the text.
+    return value.replace(/\n+$/u, "");
+  }
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
 };
 
 export const parseFrontmatter = (text: string): FrontmatterResult => {
@@ -44,54 +51,28 @@ export const parseFrontmatter = (text: string): FrontmatterResult => {
   if (closeIdx === -1) {
     return { blanked: src, body: src, error: "missing closing fence", fm: {} };
   }
-  const fmLines = lines.slice(1, closeIdx);
-  const fm: Frontmatter = {};
-  for (let i = 0; i < fmLines.length; i += 1) {
-    const line = fmLines[i];
-    if (line.trim() === "" || /^\s*#/.test(line)) {
-      continue;
-    }
-    const m = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
-    if (!m) {
-      continue;
-    }
-    const [, key, rest] = m as [string, string, string];
-    const trimmedRest = rest.trim();
-    if (/^[>|][+-]?\s*$/.test(trimmedRest)) {
-      const folded = trimmedRest[0] === ">";
-      const block: string[] = [];
-      let j = i + 1;
-      for (; j < fmLines.length; j += 1) {
-        const bl = fmLines[j];
-        if (bl.trim() === "") {
-          block.push("");
-          continue;
-        }
-        if (/^\s/.test(bl)) {
-          block.push(bl.replace(/^\s+/, ""));
-        } else {
-          break;
-        }
-      }
-      while (block.length && block.at(-1) === "") {
-        block.pop();
-      }
-      fm[key] = folded
-        ? block.join(" ").replaceAll(/\s+/gu, " ").trim()
-        : block.join("\n");
-      i = j - 1;
-      continue;
-    }
-    fm[key] = parseScalar(rest);
-  }
   const blanked = [
     ...Array.from({ length: closeIdx + 1 }, () => ""),
     ...lines.slice(closeIdx + 1),
   ].join("\n");
-  return {
-    blanked,
-    body: lines.slice(closeIdx + 1).join("\n"),
-    error: null,
-    fm,
-  };
+  const body = lines.slice(closeIdx + 1).join("\n");
+  const fm: Frontmatter = {};
+  let problem: string | null = null;
+  try {
+    const parsed: unknown = parse(lines.slice(1, closeIdx).join("\n"));
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      for (const [key, value] of Object.entries(parsed)) {
+        fm[key] = scalar(value);
+      }
+    } else if (parsed !== null && parsed !== undefined) {
+      problem = "frontmatter is not a mapping";
+    }
+  } catch (error) {
+    problem = `frontmatter did not parse: ${(error as Error).message}`;
+  }
+  return { blanked, body, error: problem, fm };
 };

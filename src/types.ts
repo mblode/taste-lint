@@ -26,6 +26,12 @@ export type Tier = (typeof TIERS)[number];
 
 export const SEVERITIES = ["critical", "major", "minor"] as const;
 export type Severity = (typeof SEVERITIES)[number];
+/** Lower is more severe; the single owner of severity ordering. */
+export const SEVERITY_RANK: Record<Severity, number> = {
+  critical: 0,
+  major: 1,
+  minor: 2,
+};
 
 export const RULE_STATUSES = ["active", "draft", "review-only"] as const;
 export type RuleStatus = (typeof RULE_STATUSES)[number];
@@ -185,7 +191,6 @@ export interface UnitContext {
   dynamic?: boolean;
   parseError?: string;
   mdxFallback?: boolean;
-  truncated?: boolean;
 }
 
 export interface Unit {
@@ -205,6 +210,13 @@ export interface Unit {
   inCode: boolean;
   /** Ranges inside `text` that are code and must be skipped by regexes. */
   codeSpans: [number, number][];
+  /**
+   * Source ranges (UTF-16 offsets into the file) holding prose a
+   * deterministic fix may rewrite: JSX text pieces, the inside of string
+   * literals, Markdown text nodes. Never quotes, braces, inline code or
+   * expressions. Absent means the unit cannot be fixed in place.
+   */
+  fixRanges?: [number, number][];
   context: UnitContext;
   typography?: ResolvedTypography;
   neighbours?: { prev?: NeighbourSummary; next?: NeighbourSummary };
@@ -215,8 +227,6 @@ export interface Unit {
 export interface MechanicalHit {
   fired: boolean;
   evidence: string;
-  /** Match range inside unit.text, when a regex or phrase matched. */
-  match?: { start: number; end: number; text: string };
 }
 
 export interface Finding {

@@ -44,7 +44,13 @@ export class AnswerCache {
       const raw = JSON.parse(
         fs.readFileSync(this.file(key), "utf-8")
       ) as CacheEntry;
-      if (typeof raw.noul !== "number") {
+      // A hand-edited or corrupt entry must not reach the bands.
+      if (
+        typeof raw.noul !== "number" ||
+        !Number.isFinite(raw.noul) ||
+        raw.noul < 0 ||
+        raw.noul > 1
+      ) {
         return null;
       }
       return raw;
@@ -57,24 +63,5 @@ export class AnswerCache {
     const file = this.file(key);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(entry));
-  }
-
-  prune(olderThanMs: number): number {
-    if (!fs.existsSync(this.dir)) {
-      return 0;
-    }
-    let removed = 0;
-    const cutoff = Date.now() - olderThanMs;
-    for (const shard of fs.readdirSync(this.dir)) {
-      const shardDir = path.join(this.dir, shard);
-      for (const name of fs.readdirSync(shardDir)) {
-        const file = path.join(shardDir, name);
-        if (fs.statSync(file).mtimeMs < cutoff) {
-          fs.unlinkSync(file);
-          removed += 1;
-        }
-      }
-    }
-    return removed;
   }
 }

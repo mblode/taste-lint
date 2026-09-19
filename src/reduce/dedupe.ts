@@ -1,12 +1,8 @@
 // Collapse duplicate findings and merge same-category findings on one unit.
 
 import type { Finding } from "../types.js";
+import { SEVERITY_RANK } from "../types.js";
 
-const SEVERITY_RANK: Record<Finding["severity"], number> = {
-  critical: 0,
-  major: 1,
-  minor: 2,
-};
 const BAND_RANK: Record<Finding["band"], number> = {
   act: 0,
   review: 1,
@@ -40,15 +36,20 @@ export const dedupe = (findings: Finding[]): Finding[] => {
     }
   }
   // Merge findings that share unit and category: keep the strongest, list
-  // the others under `also`.
+  // the others under `also`. Suppressed findings pass through on their own so
+  // a suppression on one rule never hides a live finding from another.
   const byUnitCategory = new Map<string, Finding[]>();
+  const out: Finding[] = [];
   for (const f of exact.values()) {
+    if (f.suppressed) {
+      out.push(f);
+      continue;
+    }
     const key = `${f.unitId}\u0000${f.categoryId}`;
     const list = byUnitCategory.get(key) ?? [];
     list.push(f);
     byUnitCategory.set(key, list);
   }
-  const out: Finding[] = [];
   for (const list of byUnitCategory.values()) {
     const sorted = list.toSorted((a, b) => {
       if (BAND_RANK[a.band] !== BAND_RANK[b.band]) {

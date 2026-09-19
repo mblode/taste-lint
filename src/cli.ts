@@ -1,5 +1,6 @@
 import { Command } from "commander";
 
+import pkg from "../package.json" with { type: "json" };
 import { registerEvalCommand } from "./commands/eval.js";
 import { registerExtractCommand } from "./commands/extract.js";
 import { registerLintCommand } from "./commands/lint.js";
@@ -13,7 +14,7 @@ program
   .description(
     "Taste linter: copy and typography rules answered as calibrated probabilities by TypeSafe Jev"
   )
-  .version("0.0.1");
+  .version(pkg.version);
 
 registerLintCommand(program);
 registerExtractCommand(program);

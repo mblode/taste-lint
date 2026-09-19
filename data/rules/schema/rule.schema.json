@@ -66,6 +66,12 @@
     "tier": { "enum": ["mechanical", "jev", "both"] },
     "mechanical": {
       "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["regex"] },
+        { "required": ["phrases"] },
+        { "required": ["function"] }
+      ],
       "properties": {
         "regex": { "type": "string" },
         "flags": { "type": "string" },
@@ -98,9 +104,10 @@
     },
     "thresholds": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "review": { "type": "number" },
-        "act": { "type": "number" }
+        "review": { "type": "number", "minimum": 0, "maximum": 1 },
+        "act": { "type": "number", "minimum": 0, "maximum": 1 }
       }
     },
     "severity": { "enum": ["critical", "major", "minor"] },
@@ -128,15 +135,50 @@
       "type": "object",
       "properties": {
         "notInCode": { "const": true },
-        "docType": { "type": "array", "items": { "type": "string" } },
-        "role": { "type": "array", "items": { "type": "string" } },
+        "docType": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "tutorial",
+              "howto",
+              "reference",
+              "explanation",
+              "agent-instructions",
+              "lesson",
+              "marketing",
+              "ui",
+              "unknown"
+            ]
+          }
+        },
+        "role": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "heading",
+              "body",
+              "list-item",
+              "cell",
+              "button",
+              "link",
+              "label",
+              "placeholder",
+              "aria",
+              "literal-copy",
+              "caption",
+              "unknown"
+            ]
+          }
+        },
         "element": { "type": "array", "items": { "type": "string" } },
         "smartQuotesAtBuild": { "const": false }
       }
     },
     "status": { "enum": ["active", "draft", "review-only"] },
-    "handWritten": { "type": "array", "items": { "type": "string" } }
+    "handWritten": { "type": "array", "items": { "type": "string" } },
+    "portNotes": { "type": "array", "items": { "type": "string" } }
   },
+  "additionalProperties": false,
   "$defs": {
     "side": {
       "type": "object",

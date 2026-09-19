@@ -39,9 +39,10 @@ const DEFAULT_DOC_TYPES: { glob: string; type: DocType }[] = [
   { glob: "**/.claude/**/*.md", type: "agent-instructions" },
   { glob: "**/content/**/*.mdx", type: "lesson" },
   { glob: "**/docs/**/*.md", type: "explanation" },
-  { glob: "**/*.{tsx,jsx}", type: "ui" },
+  // Marketing paths before the catch-all so app/(marketing)/page.tsx is not `ui`.
   { glob: "**/(marketing)/**", type: "marketing" },
   { glob: "**/landing/**", type: "marketing" },
+  { glob: "**/*.{tsx,jsx}", type: "ui" },
 ];
 
 const CONFIG_FILES = ["slop-cop.config.json"];
@@ -98,6 +99,10 @@ export const loadConfig = (root: string): Config => {
     tailwind: { theme: user.tailwind?.theme ?? {} },
   };
 };
+
+// Results, logs and the answer cache live under the current working directory.
+export const defaultResultsDir = (): string =>
+  path.join(process.cwd(), "results");
 
 export const docTypeFor = (config: Config, relativeFile: string): DocType => {
   const rel = toPosix(relativeFile);

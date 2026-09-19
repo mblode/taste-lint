@@ -1,13 +1,13 @@
 // Decide which rules apply to which units and build one Jev job per unit.
 
 import { matchesAny } from "../lib/glob.js";
+import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
 import type {
   Config,
   Finding,
   MechanicalHit,
   Rule,
-  Severity,
   Unit,
   Unknown,
 } from "../types.js";
@@ -22,8 +22,6 @@ export interface Plan {
   mechanical: Finding[];
   jobs: JevJob[];
   unknowns: Unknown[];
-  /** Units that matched at least one rule's scope and kind. */
-  consideredUnits: number;
 }
 
 // Rendered units come from a URL, not a file, so only the unit kind gates them.
@@ -31,15 +29,6 @@ const inScope = (rule: Rule, unit: Unit): boolean =>
   unit.kind === "element" ||
   (matchesAny(unit.file, rule.scope.include) &&
     !matchesAny(unit.file, rule.scope.exclude ?? []));
-
-export const severityFor = (rule: Rule, file: string): Severity => {
-  for (const override of rule.severityOverrides ?? []) {
-    if (matchesAny(file, [override.scope])) {
-      return override.severity;
-    }
-  }
-  return rule.severity;
-};
 
 const passesPreconditions = (
   rule: Rule,
@@ -76,31 +65,14 @@ const passesPreconditions = (
   return true;
 };
 
+// A mechanical hit is certain (p = 1) and acts unless the rule is review-only.
 export const mechanicalFinding = (
   rule: Rule,
   unit: Unit,
-  hit: MechanicalHit,
-  config: Config
+  hit: MechanicalHit
 ): Finding => ({
-  band: rule.status === "review-only" ? "review" : "act",
-  categoryId: rule.categoryId,
-  column: unit.column,
-  domain: rule.domain,
-  endColumn: unit.endColumn,
-  endLine: unit.endLine,
+  ...toFinding(rule, unit, 1, rule.status === "review-only" ? "review" : "act"),
   evidence: hit.evidence,
-  file: unit.file,
-  fixHint: rule.fix.hint,
-  fixMode: rule.fix.mode,
-  line: unit.line,
-  message: rule.title,
-  probability: 1,
-  ruleId: rule.id,
-  severity: severityFor(rule, unit.file),
-  suppressed: false,
-  tier: rule.tier,
-  unitId: unit.id,
-  ...(config ? {} : {}),
 });
 
 export const planRequests = (
@@ -111,7 +83,6 @@ export const planRequests = (
   const mechanical: Finding[] = [];
   const jobs: JevJob[] = [];
   const unknowns: Unknown[] = [];
-  let consideredUnits = 0;
   for (const unit of units) {
     if (unit.kind === "file") {
       continue;
@@ -122,7 +93,6 @@ export const planRequests = (
     if (candidates.length === 0) {
       continue;
     }
-    consideredUnits += 1;
     const job: JevJob = { rules: [], unit };
     for (const rule of candidates) {
       if (!passesPreconditions(rule, unit, config)) {
@@ -155,7 +125,7 @@ export const planRequests = (
         continue;
       }
       if (rule.tier === "mechanical") {
-        mechanical.push(mechanicalFinding(rule, unit, hit, config));
+        mechanical.push(mechanicalFinding(rule, unit, hit));
       } else {
         job.rules.push({ hit, rule });
       }
@@ -164,5 +134,5 @@ export const planRequests = (
       jobs.push(job);
     }
   }
-  return { consideredUnits, jobs, mechanical, unknowns };
+  return { jobs, mechanical, unknowns };
 };

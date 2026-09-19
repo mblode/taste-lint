@@ -37,7 +37,7 @@ question:
   type: noul
   context: []
   instructions: >-
-    Read the TEXT. Return true when it uses two or more intensifiers or filler words (very, really, just, basically, actually, simply, quite, extremely) that could be deleted without changing what the sentence says. Return false when each such word carries a real distinction ("just one file" meaning only one), or when the TEXT lists or teaches about filler words.
+    Read the TEXT. Return true when the intensifiers or filler words in it (very, really, just, basically, actually, simply, quite, extremely) could be deleted without changing what the sentence says. Return false when each such word carries a real distinction ("just one file" meaning only one), or when the TEXT lists or teaches about filler words.
   criteria:
     true:
       what: Removable intensifiers.

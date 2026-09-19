@@ -3,8 +3,10 @@
 import path from "node:path";
 
 import { resolveTypography } from "../extract/tailwind.js";
+import { defaultResultsDir } from "../lib/config.js";
 import { makeRecorder } from "../lib/record.js";
 import { binaryMetrics, calibrationTable } from "../lib/stats.js";
+import type { BinaryMetrics } from "../lib/stats.js";
 import { costUsd } from "../lib/tokens.js";
 import { chunkQuestions, prepareRequests, runRequests } from "../map/batch.js";
 import { AnswerCache } from "../map/cache.js";
@@ -35,7 +37,9 @@ export interface EvalContext {
 export interface RuleEval {
   ruleId: string;
   n: number;
-  metrics: ReturnType<typeof binaryMetrics>;
+  /** Labelled items the rule could not judge (unresolved value, failed request). */
+  unknown: number;
+  metrics: BinaryMetrics;
   reviewRate: number;
   calibration: ReturnType<typeof calibrationTable>;
   /** Per item: label, probability. */
@@ -78,10 +82,13 @@ export const scoreItems = async (
   }
 ): Promise<{
   probabilities: Map<string, Record<string, number>>;
+  /** (item id, rule id) pairs with no probability and a reason. */
+  unknowns: { itemId: string; ruleId: string; reason: string }[];
   usage: EvalResult["usage"];
   pendingRequests: number;
 }> => {
   const config = corpusConfig();
+  const itemById = new Map(items.map((i) => [i.id, i]));
   const units: Unit[] = items.map((item) => {
     const unit = unitFromItem(item);
     if (unit.classes && unit.classes.length > 0) {
@@ -99,12 +106,19 @@ export const scoreItems = async (
   for (const f of plan.mechanical) {
     probabilities.get(f.unitId)![f.ruleId] = 1;
   }
-  // Mechanical rules that did not fire score 0 for labelled items.
-  const itemById = new Map(items.map((i) => [i.id, i]));
+  const unknowns = plan.unknowns
+    .filter((u) => u.ruleId in (itemById.get(u.unitId)?.labels ?? {}))
+    .map((u) => ({ itemId: u.unitId, reason: u.reason, ruleId: u.ruleId }));
+  const abstained = new Set(
+    unknowns.map((u) => `${u.itemId}\u0000${u.ruleId}`)
+  );
+  // Mechanical rules that did not fire score 0 for labelled items, unless
+  // they abstained.
   for (const rule of rules.filter((r) => r.tier === "mechanical")) {
     for (const item of items) {
       if (
         rule.id in item.labels &&
+        !abstained.has(`${item.id}\u0000${rule.id}`) &&
         probabilities.get(item.id)![rule.id] === undefined
       ) {
         probabilities.get(item.id)![rule.id] = 0;
@@ -129,6 +143,7 @@ export const scoreItems = async (
       if (
         rule.id in item.labels &&
         !scheduled &&
+        !abstained.has(`${item.id}\u0000${rule.id}`) &&
         probabilities.get(item.id)![rule.id] === undefined
       ) {
         probabilities.get(item.id)![rule.id] = 0;
@@ -153,7 +168,7 @@ export const scoreItems = async (
       Object.assign(probabilities.get(p.job.unit.id)!, p.cached);
       usage.cached += Object.keys(p.cached).length;
     }
-    return { pendingRequests, probabilities, usage };
+    return { pendingRequests, probabilities, unknowns, usage };
   }
   const outcome = await runRequests(prepared, {
     cache: options.cache,
@@ -171,23 +186,35 @@ export const scoreItems = async (
   usage.inputTokens = outcome.inputTokens;
   usage.costUsd = costUsd(outcome.inputTokens);
   usage.errors = outcome.errors;
-  return { pendingRequests, probabilities, usage };
+  for (const failed of outcome.failed) {
+    for (const ruleId of failed.ruleIds) {
+      unknowns.push({ itemId: failed.unitId, reason: failed.category, ruleId });
+    }
+  }
+  return { pendingRequests, probabilities, unknowns, usage };
 };
 
 export const evaluateRules = (
   items: CorpusItem[],
   rules: Rule[],
-  probabilities: Map<string, Record<string, number>>
+  probabilities: Map<string, Record<string, number>>,
+  unknowns: { itemId: string; ruleId: string }[] = []
 ): RuleEval[] =>
   rules.map((rule) => {
     const pairs: RuleEval["pairs"] = [];
     let review = 0;
+    let unknown = 0;
     for (const item of items) {
       if (!(rule.id in item.labels)) {
         continue;
       }
       const p = probabilities.get(item.id)?.[rule.id];
       if (p === undefined) {
+        if (
+          unknowns.some((u) => u.itemId === item.id && u.ruleId === rule.id)
+        ) {
+          unknown += 1;
+        }
         continue;
       }
       pairs.push({ id: item.id, label: item.labels[rule.id], probability: p });
@@ -208,6 +235,7 @@ export const evaluateRules = (
       pairs,
       reviewRate: pairs.length === 0 ? 0 : review / pairs.length,
       ruleId: rule.id,
+      unknown,
     };
   });
 
@@ -226,8 +254,13 @@ export const renderEval = (
       continue;
     }
     const m = e.metrics;
+    const precision =
+      m.tp + m.fp === 0
+        ? "precision n/a (no positive predictions)"
+        : `precision ${pct(m.precision)} [${pct(m.precisionCI[0])}, ${pct(m.precisionCI[1])}]`;
+    const unknown = e.unknown > 0 ? ` unknown ${e.unknown}` : "";
     out.push(
-      `${e.ruleId}: n=${e.n} precision ${pct(m.precision)} [${pct(m.precisionCI[0])}, ${pct(m.precisionCI[1])}] recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}] f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
+      `${e.ruleId}: n=${e.n}${unknown} ${precision} recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}] f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
     );
     const rows = e.calibration.filter((b) => b.n > 0);
     if (rows.length > 0) {
@@ -257,15 +290,19 @@ export const runEval = async (
 ): Promise<EvalResult> => {
   const rulesDir = resolveRulesDir(options.rulesDir);
   const rules = loadRules(rulesDir, { allowDraft: false, only: options.only });
+  const knownRuleIds = new Set(
+    loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
+  );
   const corpusDir = resolveCorpusDir(options.corpusDir);
   let items = loadCorpus(corpusDir, rules, {
     includeWeak: options.includeWeak,
+    knownRuleIds,
   });
   if (options.split && options.split !== "all") {
     items = items.filter((i) => i.split === options.split);
   }
   const model = options.model ?? DEFAULT_MODEL;
-  const resultsDir = options.resultsDir ?? path.join(process.cwd(), "results");
+  const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(
     path.join(resultsDir, "cache"),
     !options.noCache
@@ -281,7 +318,7 @@ export const runEval = async (
   const recorder = options.dryRun
     ? undefined
     : makeRecorder("eval", { resultsDir });
-  const { probabilities, usage, pendingRequests } = await scoreItems(
+  const { probabilities, unknowns, usage, pendingRequests } = await scoreItems(
     items,
     rules,
     {
@@ -292,7 +329,7 @@ export const runEval = async (
       recorder,
     }
   );
-  const evals = evaluateRules(items, rules, probabilities);
+  const evals = evaluateRules(items, rules, probabilities, unknowns);
   recorder?.summary({
     rules: evals.map((e) => ({
       id: e.ruleId,

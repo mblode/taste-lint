@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 
 import { runEval } from "../eval/metrics.js";
+import { DEFAULT_MODEL } from "../map/jev.js";
 
 export function registerEvalCommand(program: Command): void {
   program
@@ -19,8 +20,11 @@ export function registerEvalCommand(program: Command): void {
     .option("--dry-run", "Plan without calling Jev")
     .option("--no-cache", "Ignore cached answers")
     .option("--results-dir <path>", "Where logs and cache live")
-    .option("--model <id>", "Jev model id", "jev-latest")
+    .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
+      if (!["dev", "holdout", "all"].includes(options.split)) {
+        throw new Error("--split must be dev, holdout or all");
+      }
       const result = await runEval({
         corpusDir: options.corpus,
         dryRun: options.dryRun,

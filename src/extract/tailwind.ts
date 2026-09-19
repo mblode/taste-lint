@@ -150,8 +150,7 @@ const isColour = (token: string): boolean => {
   ) {
     return true;
   }
-  const name = token.replace(/\/\d+$/, "").replace(/-\d{2,3}$/, "");
-  return COLOUR_NAMES.has(name);
+  return COLOUR_NAMES.has(token.replace(/-\d{2,3}$/, ""));
 };
 
 export const resolveTypography = (
@@ -160,6 +159,13 @@ export const resolveTypography = (
 ): ResolvedTypography => {
   const out: ResolvedTypography = { colourClasses: [], unresolved: [] };
   const theme = config?.tailwind.theme ?? {};
+  // A size class brings a default line height; an explicit leading wins, and a
+  // later size class replaces an earlier size's default (cn("text-sm", "text-lg")).
+  let lineHeightFromSize = false;
+  const applyLeading = (token: string, cls: string): void => {
+    lineHeightFromSize = false;
+    resolveLeading(out, token, cls);
+  };
   for (const cls of classes) {
     const { base, variants } = stripVariants(cls);
     // Responsive and state variants are recorded but not judged in v1.
@@ -196,11 +202,12 @@ export const resolveTypography = (
         out.fontSizePx = known[0];
         if (
           !leadingToken &&
-          known[1] > 0 &&
-          out.lineHeightPx === undefined &&
-          out.lineHeight === undefined
+          (lineHeightFromSize ||
+            (out.lineHeightPx === undefined && out.lineHeight === undefined))
         ) {
           out.lineHeightPx = known[1];
+          out.lineHeight = undefined;
+          lineHeightFromSize = true;
         }
       } else if (sizeToken.startsWith("[") && sizeToken.endsWith("]")) {
         const px = parseLength(sizeToken.slice(1, -1));
@@ -220,12 +227,12 @@ export const resolveTypography = (
         out.unresolved.push(cls);
       }
       if (leadingToken) {
-        applyLeading(out, leadingToken, cls);
+        applyLeading(leadingToken, cls);
       }
       continue;
     }
     if (base.startsWith("leading-")) {
-      applyLeading(out, base.slice("leading-".length), cls);
+      applyLeading(base.slice("leading-".length), cls);
       continue;
     }
     if (base.startsWith("tracking-")) {
@@ -289,7 +296,7 @@ export const resolveTypography = (
   return out;
 };
 
-const applyLeading = (
+const resolveLeading = (
   out: ResolvedTypography,
   token: string,
   cls: string

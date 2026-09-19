@@ -12,7 +12,13 @@ import type {
   Unit,
 } from "../types.js";
 import { resolveTypography, splitClasses } from "./tailwind.js";
-import { LineIndex, makeUnit, normaliseText } from "./units.js";
+import {
+  decodeEntities,
+  LineIndex,
+  makeUnit,
+  normaliseText,
+  ROLE_BY_TAG,
+} from "./units.js";
 import type { UnitDraft } from "./units.js";
 
 type Node = Record<string, unknown> & {
@@ -65,28 +71,6 @@ const SKIP_CALLEES = new Set([
   "invariant",
   "assert",
 ]);
-
-const ROLE_BY_TAG: Record<string, Role> = {
-  a: "link",
-  button: "button",
-  caption: "caption",
-  figcaption: "caption",
-  h1: "heading",
-  h2: "heading",
-  h3: "heading",
-  h4: "heading",
-  h5: "heading",
-  h6: "heading",
-  label: "label",
-  legend: "label",
-  li: "list-item",
-  option: "label",
-  p: "body",
-  span: "body",
-  summary: "heading",
-  td: "cell",
-  th: "heading",
-};
 
 const ROLE_BY_COMPONENT: Record<string, Role> = {
   Button: "button",
@@ -235,53 +219,91 @@ const attributeByName = (opening: Node, name: string): Node | undefined => {
   return undefined;
 };
 
-const decodeEntities = (text: string): string =>
-  text
-    .replaceAll("&nbsp;", " ")
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'")
-    .replaceAll("&apos;", "'")
-    .replaceAll("&mdash;", String.fromCodePoint(0x20_14))
-    .replaceAll("&ndash;", String.fromCodePoint(0x20_13))
-    .replaceAll("&hellip;", "…")
-    .replaceAll("&ldquo;", "“")
-    .replaceAll("&rdquo;", "”")
-    .replaceAll("&lsquo;", "‘")
-    .replaceAll("&rsquo;", "’")
-    .replaceAll("&times;", "×")
-    .replaceAll("&middot;", "·");
+// The inside of a string literal (no quotes), unwrapping expression
+// containers and casts. Template literals and anything computed give null.
+const literalInner = (
+  node: Node | null | undefined
+): [number, number] | null => {
+  if (!node) {
+    return null;
+  }
+  if (
+    node.type === "JSXExpressionContainer" ||
+    node.type === "TSAsExpression" ||
+    node.type === "TSSatisfiesExpression" ||
+    node.type === "ParenthesizedExpression"
+  ) {
+    return literalInner(node.expression as Node);
+  }
+  if (
+    node.type === "Literal" &&
+    typeof node.value === "string" &&
+    node.end - node.start >= 2
+  ) {
+    return [node.start + 1, node.end - 1];
+  }
+  return null;
+};
+
+interface DirectText {
+  text: string;
+  start: number;
+  end: number;
+  /** Source ranges of the prose pieces only: text nodes and literal insides. */
+  fixRanges: [number, number][];
+}
 
 // Direct text of an element: JSXText plus static string expressions, in order.
-const directText = (
-  element: Node
-): { text: string; start: number; end: number } | null => {
+// The range starts at the first non-blank character so findings point at the
+// word, not the newline before it.
+const directText = (element: Node): DirectText | null => {
   let text = "";
   let start = -1;
   let end = -1;
+  // Inline children that contributed text; they widen the range only when the
+  // element has direct text of its own, so a container of block children
+  // never becomes a unit of all its descendants' prose.
+  let childStart = -1;
+  let childEnd = -1;
+  const fixRanges: [number, number][] = [];
   for (const child of element.children as Node[]) {
     let piece: string | null = null;
+    let range: [number, number] | null = null;
     if (child.type === "JSXText") {
-      piece = decodeEntities(child.value as string);
+      const raw = child.value as string;
+      piece = decodeEntities(raw);
+      if (raw.trim() !== "") {
+        const lead = raw.length - raw.trimStart().length;
+        const trail = raw.length - raw.trimEnd().length;
+        range = [child.start + lead, child.end - trail];
+      }
     } else if (child.type === "JSXExpressionContainer") {
       piece = staticString(child.expression as Node);
+      range = literalInner(child);
     }
     if (piece !== null && piece.trim() !== "") {
+      const [s, e] = range ?? [child.start, child.end];
       if (start === -1) {
-        start = child.start;
+        start = s;
       }
-      end = child.end;
+      end = e;
+      if (range) {
+        fixRanges.push(range);
+      }
     }
     if (piece !== null) {
       text += piece;
     } else if (child.type === "JSXElement" || child.type === "JSXFragment") {
       // Inline child elements (a <b> inside a <p>) contribute their text so the
-      // sentence stays whole; they are also extracted as their own units.
+      // sentence stays whole; they are also extracted as their own units, so
+      // their prose is not a fix range here.
       const inner = directText(child);
       if (inner) {
         text += inner.text;
+        if (childStart === -1) {
+          childStart = child.start;
+        }
+        childEnd = child.end;
       }
     } else {
       text += " ";
@@ -291,7 +313,11 @@ const directText = (
   if (normalised === "" || start === -1) {
     return null;
   }
-  return { end, start, text: normalised };
+  if (childStart !== -1) {
+    start = Math.min(start, childStart);
+    end = Math.max(end, childEnd);
+  }
+  return { end, fixRanges, start, text: normalised };
 };
 
 export interface TsxExtractOptions {
@@ -306,13 +332,7 @@ export const extractTsx = (
 ): Unit[] => {
   const { config, docType } = options;
   const index = new LineIndex(source);
-  const lang = file.endsWith(".tsx")
-    ? "tsx"
-    : file.endsWith(".jsx")
-      ? "jsx"
-      : file.endsWith(".ts")
-        ? "ts"
-        : "js";
+  const lang = file.endsWith(".jsx") ? "jsx" : "tsx";
   const parsed = parseSync(file, source, { lang, sourceType: "module" });
   if (parsed.errors.length > 0) {
     const first = parsed.errors[0];
@@ -368,6 +388,7 @@ export const extractTsx = (
     if (text && !skipContext) {
       push({
         context: { docType, element: name, role },
+        fixRanges: text.fixRanges,
         kind: "jsx-text",
         sourceEnd: text.end,
         sourceStart: text.start,
@@ -386,6 +407,7 @@ export const extractTsx = (
       if (value === null || value.trim() === "") {
         continue;
       }
+      const inner = literalInner(attr.value as Node);
       push({
         context: {
           attr: attrName,
@@ -398,6 +420,7 @@ export const extractTsx = (
                 ? "aria"
                 : "label",
         },
+        fixRanges: inner ? [inner] : undefined,
         kind: "attr-string",
         sourceEnd: attr.end,
         sourceStart: attr.start,
@@ -430,10 +453,7 @@ export const extractTsx = (
       const summary = summaries[i];
       if (summary) {
         const prev =
-          summaries
-            .slice(0, i)
-            .toReversed()
-            .find((s) => s !== null) ?? undefined;
+          summaries.slice(0, i).findLast((s) => s !== null) ?? undefined;
         const next =
           summaries.slice(i + 1).find((s) => s !== null) ?? undefined;
         neighbourMap.set(child, {
@@ -445,6 +465,8 @@ export const extractTsx = (
     for (const child of element.children as Node[]) {
       walk(child, skipContext);
     }
+    // JSX passed through props (render props, slots) carries copy too.
+    walk(opening.attributes, skipContext);
   };
 
   const neighbourMap = new WeakMap<
@@ -539,6 +561,7 @@ export const extractTsx = (
           if (text.length > 0) {
             push({
               context: { attr: keyName, docType, role: "literal-copy" },
+              fixRanges: [[value.start + 1, value.end - 1]],
               kind: "jsx-text",
               sourceEnd: value.end,
               sourceStart: value.start,

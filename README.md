@@ -5,7 +5,7 @@ Taste as a linter. slop-cop turns the copywriting and typography rules from [age
 ```bash
 npx slop-cop lint src content --dry-run        # units, requests, estimated cost
 TYPESAFE_API_KEY=... npx slop-cop lint src content
-npx slop-cop lint --url https://example.com    # computed styles via style-capture
+npx slop-cop lint --url https://example.com    # computed styles via style-capture; runs npx style-capture, needs network and a Playwright Chromium
 npx slop-cop eval                              # precision, recall, calibration per rule
 ```
 

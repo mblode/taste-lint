@@ -21,6 +21,7 @@ export const REQUEST_TOKEN_CAP = 60_000;
 export interface PreparedRequest {
   job: JevJob;
   state: string;
+  /** The state was clipped to the token cap; recorded with each request. */
   truncated: boolean;
   /** Questions still needing an answer, keyed by rule id. */
   questions: Record<string, SystemOneNoul>;
@@ -137,6 +138,9 @@ export const runRequests = async (
     requests: 0,
   };
   const tasks: Promise<void>[] = [];
+  // The first auth failure stops every request still waiting on the limiter;
+  // a bad key would otherwise be tried once per chunk.
+  const abort: { error?: ProviderError } = {};
   for (const p of prepared) {
     const unitAnswers: Record<string, number> = { ...p.cached };
     answers.set(p.job.unit.id, unitAnswers);
@@ -146,27 +150,13 @@ export const runRequests = async (
       tasks.push(
         (async () => {
           const release = await limiter.acquire();
+          if (abort.error) {
+            release();
+            return;
+          }
+          let response;
           try {
-            const response = await evaluate(request);
-            outcome.requests += 1;
-            outcome.inputTokens += response.usage.input_tokens;
-            for (const [ruleId, answer] of Object.entries(response.answers)) {
-              const noul = answer.noul as number;
-              unitAnswers[ruleId] = noul;
-              cache.set(p.keys[ruleId], {
-                model: response.model,
-                noul,
-                ts: new Date().toISOString(),
-              });
-            }
-            recorder?.append({
-              input_tokens: response.usage.input_tokens,
-              kind: "request",
-              rule_ids: Object.keys(questions),
-              status: "ok",
-              unit_id: p.job.unit.id,
-            });
-            onProgress?.(".");
+            response = await evaluate(request);
           } catch (error) {
             outcome.errors += 1;
             const category =
@@ -186,14 +176,45 @@ export const runRequests = async (
               kind: "request",
               rule_ids: Object.keys(questions),
               status: "error",
+              truncated: p.truncated,
               unit_id: p.job.unit.id,
             });
             onProgress?.("x");
             if (error instanceof ProviderError && error.category === "auth") {
-              throw error;
+              abort.error = error;
             }
-          } finally {
             release();
+            return;
+          }
+          release();
+          outcome.requests += 1;
+          outcome.inputTokens += response.usage.input_tokens;
+          for (const [ruleId, answer] of Object.entries(response.answers)) {
+            unitAnswers[ruleId] = answer.noul as number;
+          }
+          recorder?.append({
+            input_tokens: response.usage.input_tokens,
+            kind: "request",
+            rule_ids: Object.keys(questions),
+            status: "ok",
+            truncated: p.truncated,
+            unit_id: p.job.unit.id,
+          });
+          onProgress?.(".");
+          // A cache write failure is not a provider error; the answer is kept.
+          try {
+            for (const [ruleId, answer] of Object.entries(response.answers)) {
+              cache.set(p.keys[ruleId], {
+                model: response.model,
+                noul: answer.noul as number,
+                ts: new Date().toISOString(),
+              });
+            }
+          } catch {
+            recorder?.append({
+              kind: "cache_write_failed",
+              unit_id: p.job.unit.id,
+            });
           }
         })()
       );
@@ -202,15 +223,9 @@ export const runRequests = async (
       onProgress?.("c");
     }
   }
-  const results = await Promise.allSettled(tasks);
-  const auth = results.find(
-    (r) =>
-      r.status === "rejected" &&
-      r.reason instanceof ProviderError &&
-      r.reason.category === "auth"
-  );
-  if (auth && auth.status === "rejected") {
-    throw auth.reason;
+  await Promise.all(tasks);
+  if (abort.error) {
+    throw abort.error;
   }
   return outcome;
 };

@@ -16,7 +16,7 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 
 ### Unit
 
-`src/types.ts` (`Unit`). One extracted piece of text or one class list, with `file`, 1-based `line`/`column`, byte offsets, `inCode`, `context` (heading above, doc type, element, role) and, for class lists, resolved typography plus text-bearing neighbours. `id` is a stable hash used for cache keys and SARIF fingerprints.
+`src/types.ts` (`Unit`). One extracted piece of text or one class list, with `file`, 1-based `line`/`column`, UTF-16 source offsets, `fixRanges` (the prose inside that slice a fix may rewrite: JSX text pieces, string literal insides, Markdown text nodes; absent when nothing can be rewritten safely), `inCode`, `context` (heading above, doc type, element, role) and, for class lists, resolved typography plus text-bearing neighbours. `id` is a stable hash used for cache keys and SARIF fingerprints.
 
 ### Jev request
 
@@ -39,7 +39,7 @@ One name per concept. Substituting a synonym splits the concept across the code.
 
 ## fix.mode
 
-`deterministic` names a function in `src/reduce/fixes.ts` that `--fix` applies to the unit's source range. `llm` and `none` print the hint under the finding for a person or an agent; nothing in this package calls a text model. An executor that hands the unit and hint to an agent and re-asks the same Jev question as the acceptance test is a candidate for a later version, not a present capability.
+`deterministic` names a function in `src/reduce/fixes.ts` that `--fix` applies to each of the unit's `fixRanges`, never to quotes, braces, expressions or inline code around them; a unit without ranges is reported and left for a hand fix. Each fix function matches exactly what its rule's `mechanical.regex` flags. `llm` and `none` print the hint under the finding for a person or an agent; nothing in this package calls a text model. An executor that hands the unit and hint to an agent and re-asks the same Jev question as the acceptance test is a candidate for a later version, not a present capability.
 
 ## Non-goals for v1
 

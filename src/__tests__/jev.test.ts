@@ -31,6 +31,11 @@ it("validates responses fail-closed", () => {
     /invalid_response/
   );
   expect(() => validateResponse("nope", request)).toThrow(/invalid_response/);
+  for (const noul of [-0.1, Number.NaN, "0.5"]) {
+    expect(() =>
+      validateResponse({ answers: { a: { noul } } }, request)
+    ).toThrow(/invalid_response/);
+  }
 });
 
 it("retries 429 and 5xx, fails fast on 401 and sends the bearer header", async () => {

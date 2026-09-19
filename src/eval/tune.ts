@@ -7,10 +7,11 @@ import path from "node:path";
 
 import { parse } from "yaml";
 
+import { defaultResultsDir } from "../lib/config.js";
 import { mcnemar, wilson } from "../lib/stats.js";
 import { AnswerCache } from "../map/cache.js";
 import { DEFAULT_MODEL, makeFetchEvaluate } from "../map/jev.js";
-import { loadRules, resolveRulesDir } from "../rules/load.js";
+import { loadRules, readTuning, resolveRulesDir } from "../rules/load.js";
 import { validateRule } from "../rules/validate.js";
 import type { Evaluate, Rule, Tuning } from "../types.js";
 import { loadCorpus, resolveCorpusDir } from "./corpus.js";
@@ -112,26 +113,36 @@ export const runTune = async (
   options: TuneOptions,
   ctx: TuneContext = {}
 ): Promise<{ report: string; exitCode: number; decisions: TuneDecision[] }> => {
+  const floor = options.floor ?? 0.8;
+  const minItems = options.minItems ?? 10;
+  // A NaN floor would demote every rule and --write would record it.
+  if (!(Number.isFinite(floor) && floor > 0 && floor < 1)) {
+    throw new Error("--floor must be a number between 0 and 1 (exclusive)");
+  }
+  if (!Number.isInteger(minItems) || minItems < 1) {
+    throw new Error("--min-items must be a positive integer");
+  }
   const rulesDir = resolveRulesDir(options.rulesDir);
   const rules = loadRules(rulesDir, {
     allowDraft: false,
     only: options.only,
   }).filter((r) => r.tier !== "mechanical");
-  const items = loadCorpus(resolveCorpusDir(options.corpusDir), rules).filter(
-    (i) => i.split === "dev"
+  const knownRuleIds = new Set(
+    loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
+  const items = loadCorpus(resolveCorpusDir(options.corpusDir), rules, {
+    knownRuleIds,
+  }).filter((i) => i.split === "dev");
   const model = options.model ?? DEFAULT_MODEL;
-  const resultsDir = options.resultsDir ?? path.join(process.cwd(), "results");
+  const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(path.join(resultsDir, "cache"));
   const evaluate = resolveEvaluate(options, ctx);
-  const { probabilities } = await scoreItems(items, rules, {
+  const { probabilities, unknowns } = await scoreItems(items, rules, {
     cache,
     evaluate,
     model,
   });
-  const evals = evaluateRules(items, rules, probabilities);
-  const floor = options.floor ?? 0.8;
-  const minItems = options.minItems ?? 10;
+  const evals = evaluateRules(items, rules, probabilities, unknowns);
   const decisions: TuneDecision[] = evals.map((e) => {
     const rule = rules.find((r) => r.id === e.ruleId) as Rule;
     return {
@@ -154,9 +165,7 @@ export const runTune = async (
   });
   if (options.write) {
     const file = path.join(rulesDir, "tuning.json");
-    const existing: Tuning = fs.existsSync(file)
-      ? (JSON.parse(fs.readFileSync(file, "utf-8")) as Tuning)
-      : {};
+    const existing: Tuning = readTuning(rulesDir);
     const ts = new Date().toISOString();
     for (const d of decisions) {
       if (d.action === "insufficient") {
@@ -208,11 +217,14 @@ export const runTuneAb = async (
   ) as Record<string, unknown>;
   const merged = { ...ruleToRaw(rule), ...variantRaw, id: rule.id };
   const variant = validateRule(merged, options.variantFile, rule.id);
-  const items = loadCorpus(resolveCorpusDir(options.corpusDir), [rule]).filter(
-    (i) => i.split === "dev" && rule.id in i.labels
+  const knownRuleIds = new Set(
+    loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
+  const items = loadCorpus(resolveCorpusDir(options.corpusDir), [rule], {
+    knownRuleIds,
+  }).filter((i) => i.split === "dev" && rule.id in i.labels);
   const model = options.model ?? DEFAULT_MODEL;
-  const resultsDir = options.resultsDir ?? path.join(process.cwd(), "results");
+  const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(path.join(resultsDir, "cache"));
   const evaluate = resolveEvaluate(options, ctx);
   const a = await scoreItems(items, [rule], { cache, evaluate, model });

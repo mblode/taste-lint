@@ -14,11 +14,15 @@ export function spawnCapture(
     });
     let stdout = "";
     let stderr = "";
-    child.stdout.on("data", (d: Buffer) => {
-      stdout += d.toString();
+    // Decode as a stream so a multi-byte character split across chunks
+    // (curly quotes in page text) never becomes U+FFFD.
+    child.stdout.setEncoding("utf-8");
+    child.stderr.setEncoding("utf-8");
+    child.stdout.on("data", (d: string) => {
+      stdout += d;
     });
-    child.stderr.on("data", (d: Buffer) => {
-      stderr += d.toString();
+    child.stderr.on("data", (d: string) => {
+      stderr += d;
     });
     child.on("error", (err: Error) => reject(err));
     child.on("close", (code: number | null) => {

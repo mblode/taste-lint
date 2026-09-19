@@ -38,7 +38,10 @@ const ATTR_STRING_NAMES = new Set([
 
 interface Rendered {
   text: string;
+  /** UTF-16 ranges inside `text` that came from inline code. */
   codeSpans: [number, number][];
+  /** Source ranges of the text nodes, the only prose a fix may touch. */
+  fixRanges: [number, number][];
 }
 
 type AnyNode = Node & {
@@ -46,6 +49,8 @@ type AnyNode = Node & {
   value?: string;
   name?: string | null;
 };
+
+type Offsets = (node: Node) => { start: number; end: number } | null;
 
 const parseTree = (source: string, mdx: boolean): Root => {
   const extensions = mdx ? [gfm(), mdxjs()] : [gfm()];
@@ -56,12 +61,22 @@ const parseTree = (source: string, mdx: boolean): Root => {
 };
 
 // Render phrasing content to text, recording inline code as code spans and
-// dropping expressions and images.
-const renderPhrasing = (nodes: AnyNode[], out: Rendered): void => {
+// dropping expressions and images. `onInline` sees each inline MDX element so
+// its string attributes become units too.
+const renderPhrasing = (
+  nodes: AnyNode[],
+  out: Rendered,
+  offsets: Offsets,
+  onInline?: (node: MdxJsxTextElement) => void
+): void => {
   for (const node of nodes) {
     switch (node.type) {
       case "text": {
         out.text += node.value ?? "";
+        const range = offsets(node);
+        if (range && range.end > range.start && (node.value ?? "").trim()) {
+          out.fixRanges.push([range.start, range.end]);
+        }
         break;
       }
       case "inlineCode": {
@@ -74,13 +89,17 @@ const renderPhrasing = (nodes: AnyNode[], out: Rendered): void => {
         out.text += " ";
         break;
       }
+      case "mdxJsxTextElement": {
+        onInline?.(node as MdxJsxTextElement);
+        renderPhrasing(node.children ?? [], out, offsets, onInline);
+        break;
+      }
       case "emphasis":
       case "strong":
       case "delete":
       case "link":
-      case "linkReference":
-      case "mdxJsxTextElement": {
-        renderPhrasing(node.children ?? [], out);
+      case "linkReference": {
+        renderPhrasing(node.children ?? [], out, offsets, onInline);
         break;
       }
       default: {
@@ -93,29 +112,52 @@ const renderPhrasing = (nodes: AnyNode[], out: Rendered): void => {
 };
 
 // Collapse whitespace in the rendered text while keeping code span offsets
-// pointing at the same characters.
+// pointing at the same characters. Everything indexes UTF-16 code units.
 const collapse = (rendered: Rendered): Rendered => {
   let text = "";
-  const map: number[] = [];
+  const source = rendered.text;
+  // Indexed by UTF-16 code unit, matching the span offsets; a for...of over
+  // the string would step by code point and shift every span after an emoji.
+  const map: number[] = Array.from({ length: source.length + 1 }, () => 0);
   let pendingSpace = false;
-  for (const ch of rendered.text) {
+  for (let i = 0; i < source.length; i += 1) {
+    const ch = source.charAt(i);
+    map[i] = text.length;
     if (/[ \t\n\r\f\v]/u.test(ch)) {
       pendingSpace = text.length > 0;
-      map.push(text.length);
       continue;
     }
     if (pendingSpace) {
       text += " ";
       pendingSpace = false;
+      map[i] = text.length;
     }
-    map.push(text.length);
     text += ch;
   }
-  map.push(text.length);
+  map[source.length] = text.length;
   const codeSpans = rendered.codeSpans.map(
     ([s, e]) => [map[s] ?? 0, map[e] ?? text.length] as [number, number]
   );
-  return { codeSpans, text };
+  return { codeSpans, fixRanges: rendered.fixRanges, text };
+};
+
+// The inside of a quoted attribute value, so a fix never touches the quotes.
+const quotedValueRange = (
+  source: string,
+  start: number,
+  end: number
+): [number, number] | null => {
+  const slice = source.slice(start, end);
+  const eq = slice.indexOf("=");
+  if (eq === -1) {
+    return null;
+  }
+  const quote = slice[eq + 1];
+  if ((quote !== '"' && quote !== "'") || slice.at(-1) !== quote) {
+    return null;
+  }
+  const inner: [number, number] = [start + eq + 2, end - 1];
+  return inner[1] > inner[0] ? inner : null;
 };
 
 export interface MarkdownExtractOptions {
@@ -131,6 +173,7 @@ export const extractMarkdown = (
   const { config, docType } = options;
   const index = new LineIndex(source);
   const isMdx = file.endsWith(".mdx");
+  // `blanked` keeps every offset aligned with `source` (a BOM becomes a space).
   const { blanked } = parseFrontmatter(source);
   let tree: Root;
   let mdxFallback = false;
@@ -168,7 +211,7 @@ export const extractMarkdown = (
     units.push(makeUnit(file, index, draft));
   };
 
-  const offsets = (node: Node): { start: number; end: number } | null => {
+  const offsets: Offsets = (node) => {
     const pos = node.position;
     if (!pos) {
       return null;
@@ -177,36 +220,6 @@ export const extractMarkdown = (
       end: index.offsetAt(pos.end.line, pos.end.column),
       start: index.offsetAt(pos.start.line, pos.start.column),
     };
-  };
-
-  const textUnit = (
-    node: Parent,
-    kind: "paragraph" | "heading",
-    role: Role,
-    component?: string
-  ): void => {
-    const range = offsets(node);
-    if (!range) {
-      return;
-    }
-    const rendered = collapse(
-      (() => {
-        const out: Rendered = { codeSpans: [], text: "" };
-        renderPhrasing(node.children as AnyNode[], out);
-        return out;
-      })()
-    );
-    if (rendered.text.trim() === "") {
-      return;
-    }
-    push({
-      codeSpans: rendered.codeSpans,
-      context: { component, docType, headingAbove, role },
-      kind,
-      sourceEnd: range.end,
-      sourceStart: range.start,
-      text: rendered.text,
-    });
   };
 
   const attrUnits = (
@@ -225,6 +238,7 @@ export const extractMarkdown = (
       if (!range) {
         continue;
       }
+      const inner = quotedValueRange(source, range.start, range.end);
       push({
         context: {
           attr: a.name,
@@ -233,6 +247,7 @@ export const extractMarkdown = (
           headingAbove,
           role: "caption",
         },
+        fixRanges: inner ? [inner] : undefined,
         kind: "attr-string",
         sourceEnd: range.end,
         sourceStart: range.start,
@@ -241,14 +256,53 @@ export const extractMarkdown = (
     }
   };
 
+  const render = (
+    nodes: AnyNode[],
+    component: string | undefined
+  ): Rendered => {
+    const out: Rendered = { codeSpans: [], fixRanges: [], text: "" };
+    renderPhrasing(nodes, out, offsets, (inline) => {
+      const name = inline.name ?? "fragment";
+      if (!config.components.skip.includes(name)) {
+        attrUnits(inline, component ?? name);
+      }
+    });
+    return collapse(out);
+  };
+
+  const textUnit = (
+    node: Parent,
+    kind: "paragraph" | "heading",
+    role: Role,
+    component?: string
+  ): void => {
+    const range = offsets(node);
+    if (!range) {
+      return;
+    }
+    const rendered = render(node.children as AnyNode[], component);
+    if (rendered.text.trim() === "") {
+      return;
+    }
+    push({
+      codeSpans: rendered.codeSpans,
+      context: { component, docType, headingAbove, role },
+      fixRanges: rendered.fixRanges,
+      kind,
+      sourceEnd: range.end,
+      sourceStart: range.start,
+      text: rendered.text,
+    });
+  };
+
   const walk = (nodes: AnyNode[], role: Role, component?: string): void => {
     for (const node of nodes) {
       switch (node.type) {
         case "heading": {
           const h = node as Heading;
           textUnit(h, "heading", "heading", component);
-          const out: Rendered = { codeSpans: [], text: "" };
-          renderPhrasing(h.children as AnyNode[], out);
+          const out: Rendered = { codeSpans: [], fixRanges: [], text: "" };
+          renderPhrasing(h.children as AnyNode[], out, offsets);
           headingAbove = normaliseText(out.text).slice(0, 120);
           break;
         }
@@ -281,9 +335,8 @@ export const extractMarkdown = (
           textUnit(node as TableCell, "paragraph", "cell", component);
           break;
         }
-        case "mdxJsxFlowElement":
-        case "mdxJsxTextElement": {
-          const el = node as MdxJsxFlowElement | MdxJsxTextElement;
+        case "mdxJsxFlowElement": {
+          const el = node as MdxJsxFlowElement;
           const name = el.name ?? "fragment";
           if (config.components.skip.includes(name)) {
             break;

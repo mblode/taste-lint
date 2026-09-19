@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { makePRNG } from "../lib/stats.js";
 import { CATEGORY_BY_ID } from "../rules/taxonomy.js";
-import { UNIT_KINDS } from "../types.js";
+import { DOC_TYPES, ROLES, UNIT_KINDS } from "../types.js";
 import type { CorpusItem, Rule, Unit } from "../types.js";
 
 const ID = /^[a-z0-9][a-z0-9-]*$/;
@@ -41,12 +41,27 @@ export const splitFor = (id: string): "dev" | "holdout" => {
   return makePRNG(h)() < 0.8 ? "dev" : "holdout";
 };
 
+export interface LoadCorpusOptions {
+  includeWeak?: boolean;
+  /**
+   * Every rule id the catalogue knows, drafts included. Labels are validated
+   * against this set; `rules` says which of them are under evaluation, and
+   * labels for the others are dropped rather than rejected, so `--only` and
+   * `tune` can run over a corpus labelled for the whole catalogue.
+   */
+  knownRuleIds?: Set<string>;
+}
+
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+
 export const loadCorpus = (
   corpusDir: string,
   rules: Rule[],
-  options: { includeWeak?: boolean } = {}
+  options: LoadCorpusOptions = {}
 ): CorpusItem[] => {
   const ruleIds = new Set(rules.map((r) => r.id));
+  const known = options.knownRuleIds ?? ruleIds;
   const items: CorpusItem[] = [];
   const seen = new Set<string>();
   const files = fs
@@ -95,27 +110,25 @@ export const loadCorpus = (
       ) {
         throw new Error(`Invalid corpus line ${where}: unknown categoryId`);
       }
-      if (
-        typeof r.labels !== "object" ||
-        r.labels === null ||
-        Object.keys(r.labels as object).length === 0
-      ) {
+      if (!isRecord(r.labels) || Object.keys(r.labels).length === 0) {
         throw new Error(
           `Invalid corpus line ${where}: labels must map rule ids to booleans`
         );
       }
-      for (const [ruleId, label] of Object.entries(
-        r.labels as Record<string, unknown>
-      )) {
+      const labels: Record<string, boolean> = {};
+      for (const [ruleId, label] of Object.entries(r.labels)) {
         if (typeof label !== "boolean") {
           throw new TypeError(
             `Invalid corpus line ${where}: label for ${ruleId} must be boolean`
           );
         }
-        if (!ruleIds.has(ruleId)) {
+        if (!known.has(ruleId)) {
           throw new Error(
             `Invalid corpus line ${where}: unknown rule ${ruleId}`
           );
+        }
+        if (ruleIds.has(ruleId)) {
+          labels[ruleId] = label;
         }
       }
       const labelSource = r.labelSource;
@@ -126,31 +139,89 @@ export const loadCorpus = (
       ) {
         throw new Error(`Invalid corpus line ${where}: labelSource`);
       }
+      if (
+        !isRecord(r.source) ||
+        typeof r.source.repo !== "string" ||
+        typeof r.source.path !== "string"
+      ) {
+        throw new Error(
+          `Invalid corpus line ${where}: source needs repo and path`
+        );
+      }
+      if (r.split !== undefined && r.split !== "dev" && r.split !== "holdout") {
+        throw new Error(
+          `Invalid corpus line ${where}: split must be dev or holdout`
+        );
+      }
+      if (
+        r.classes !== undefined &&
+        (!Array.isArray(r.classes) ||
+          r.classes.some((c) => typeof c !== "string"))
+      ) {
+        throw new Error(
+          `Invalid corpus line ${where}: classes must be strings`
+        );
+      }
+      if (r.context !== undefined) {
+        if (!isRecord(r.context)) {
+          throw new Error(
+            `Invalid corpus line ${where}: context must be an object`
+          );
+        }
+        const { docType, role } = r.context;
+        if (
+          (docType !== undefined &&
+            !DOC_TYPES.includes(docType as (typeof DOC_TYPES)[number])) ||
+          (role !== undefined &&
+            !ROLES.includes(role as (typeof ROLES)[number]))
+        ) {
+          throw new Error(
+            `Invalid corpus line ${where}: unknown context docType or role`
+          );
+        }
+      }
+      if (r.neighbours !== undefined) {
+        const n = r.neighbours;
+        const ok =
+          isRecord(n) &&
+          (["prev", "next"] as const).every(
+            (k) =>
+              n[k] === undefined ||
+              (isRecord(n[k]) &&
+                typeof (n[k] as Record<string, unknown>).text === "string")
+          );
+        if (!ok) {
+          throw new Error(
+            `Invalid corpus line ${where}: neighbours must carry text`
+          );
+        }
+      }
+      // Rows outside the evaluation are dropped only after they validated.
       if (labelSource === "manifest-weak" && !options.includeWeak) {
         continue;
       }
-      if (typeof r.source !== "object" || r.source === null) {
-        throw new Error(`Invalid corpus line ${where}: source required`);
+      if (Object.keys(labels).length === 0) {
+        continue;
       }
-      const split =
-        r.split === "dev" || r.split === "holdout" ? r.split : splitFor(r.id);
       items.push({
         categoryId: r.categoryId,
-        classes: Array.isArray(r.classes) ? (r.classes as string[]) : undefined,
+        classes: r.classes as string[] | undefined,
         context: (r.context as CorpusItem["context"]) ?? {},
         id: r.id,
         kind: r.kind as CorpusItem["kind"],
         labelSource: labelSource as CorpusItem["labelSource"],
-        labels: r.labels as Record<string, boolean>,
+        labels,
         neighbours: r.neighbours as CorpusItem["neighbours"],
         source: r.source as CorpusItem["source"],
-        split,
+        split: (r.split as CorpusItem["split"] | undefined) ?? splitFor(r.id),
         text: r.text,
       });
     }
   }
   if (items.length === 0) {
-    throw new Error(`Corpus is empty under ${corpusDir}`);
+    throw new Error(
+      `Corpus under ${corpusDir} has no items labelled for the rules under evaluation`
+    );
   }
   return items;
 };

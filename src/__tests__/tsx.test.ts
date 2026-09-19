@@ -17,9 +17,11 @@ const units = () => {
 it("extracts jsx text with roles, elements and exact lines", () => {
   const all = units();
   const button = all.find((u) => u.kind === "jsx-text" && u.text === "Submit");
+  // The unit starts at the word, not the newline after the opening tag.
   expect(button).toMatchObject({
+    column: 9,
     context: { element: "button", role: "button" },
-    line: 25,
+    line: 26,
   });
   const quoted = all.find((u) => u.text.startsWith("It's a"));
   expect(quoted?.text).toBe('It\'s a "quoted" line with an expression string.');
@@ -45,6 +47,19 @@ it("extracts attribute strings and copy maps but skips console, throw and t()", 
   expect(all.some((u) => u.text.includes("in the card"))).toBe(false);
   expect(all.some((u) => u.text.includes("try again"))).toBe(false);
   expect(all.some((u) => u.text.includes("some.key"))).toBe(false);
+});
+
+it("visits JSX passed through props and decodes character references once", () => {
+  const all = extractTsx(
+    "x.tsx",
+    'export const X = () => (\n  <Dialog footer={<p>Copy in a "prop" element</p>} render={() => <span aria-label="Inside render">x</span>}>\n    <p>Entities: &amp;lt; and it&#8217;s and it&rsquo;s</p>\n  </Dialog>\n);\n',
+    { config: config(FIXTURES), docType: "ui" }
+  );
+  expect(all.some((u) => u.text === 'Copy in a "prop" element')).toBe(true);
+  expect(all.some((u) => u.text === "Inside render")).toBe(true);
+  expect(all.find((u) => u.text.startsWith("Entities"))?.text).toBe(
+    "Entities: &lt; and it\u2019s and it\u2019s"
+  );
 });
 
 it("resolves class lists, flags dynamic className and pairs neighbours", () => {

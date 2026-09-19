@@ -13,7 +13,7 @@ export function registerRulesCommand(program: Command): void {
     .option("--allow-draft", "Include draft rules")
     .action((options: { rules?: string; allowDraft?: boolean }) => {
       const list = loadRules(resolveRulesDir(options.rules), {
-        allowDraft: options.allowDraft ?? true,
+        allowDraft: options.allowDraft ?? false,
       });
       for (const r of list) {
         process.stdout.write(

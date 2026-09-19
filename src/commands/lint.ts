@@ -5,7 +5,8 @@ import type { Command } from "commander";
 
 import { extractCapture, runStyleCapture } from "../extract/rendered.js";
 import { parseCaptureInput } from "../extract/style-capture-text.js";
-import { runLint } from "../lint.js";
+import { defaultResultsDir, runLint } from "../lint.js";
+import { DEFAULT_MODEL } from "../map/jev.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
 import { renderTty } from "../report/tty.js";
@@ -29,7 +30,10 @@ export function registerLintCommand(program: Command): void {
       "With --dry-run, print request payloads as JSONL"
     )
     .option("--mechanical-only", "Skip every Jev-backed rule")
-    .option("--no-cache", "Ignore cached answers")
+    .option(
+      "--no-cache",
+      "Ignore cached answers (new answers are still recorded)"
+    )
     .option("--limit-units <n>", "Only consider the first n units")
     .option(
       "--fail-on <severity>",
@@ -41,9 +45,9 @@ export function registerLintCommand(program: Command): void {
     .option(
       "--results-dir <path>",
       "Where logs and cache live",
-      path.join(process.cwd(), "results")
+      defaultResultsDir()
     )
-    .option("--model <id>", "Jev model id", "jev-latest")
+    .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .option("--verbose", "Show suppressed findings and unknowns")
     .option("--url <url>", "Lint a rendered page through style-capture")
     .option("--selector <css>", "Root selector for --url", "body")
@@ -81,6 +85,16 @@ export function registerLintCommand(program: Command): void {
         if (paths.length === 0 && !options.url && !options.capture) {
           throw new Error("Pass at least one path, --url or --capture");
         }
+        const limitUnits =
+          options.limitUnits === undefined
+            ? undefined
+            : Number(options.limitUnits);
+        if (
+          limitUnits !== undefined &&
+          (!Number.isInteger(limitUnits) || limitUnits < 0)
+        ) {
+          throw new Error("--limit-units must be a non-negative integer");
+        }
         let extraUnits;
         if (options.capture) {
           extraUnits = extractCapture(
@@ -94,7 +108,6 @@ export function registerLintCommand(program: Command): void {
           );
         }
         const result = await runLint({
-          apiKey: process.env.TYPESAFE_API_KEY,
           dryRun: options.dryRun,
           exclude: options.exclude
             ?.split(",")
@@ -103,10 +116,7 @@ export function registerLintCommand(program: Command): void {
           extraUnits,
           failOn: options.failOn as Severity,
           fix: options.fix,
-          limitUnits:
-            options.limitUnits === undefined
-              ? undefined
-              : Number(options.limitUnits),
+          limitUnits,
           mechanicalOnly: options.mechanicalOnly,
           model: options.model,
           noCache: !options.cache,

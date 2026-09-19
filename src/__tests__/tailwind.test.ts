@@ -30,6 +30,18 @@ it("resolves the default scale, arbitrary values and shorthand leading", () => {
   ).toMatchObject({ letterSpacingEm: 0.16, lineHeight: 1.2, uppercase: true });
 });
 
+it("lets a later size class replace an earlier size's default line height", () => {
+  expect(resolveTypography(["text-sm", "text-lg"])).toMatchObject({
+    fontSizePx: 18,
+    lineHeight: 1.556,
+    lineHeightPx: 28,
+  });
+  expect(resolveTypography(["leading-tight", "text-lg"])).toMatchObject({
+    fontSizePx: 18,
+    lineHeight: 1.25,
+  });
+});
+
 it("separates colours from sizes, strips variants and lists unknown tokens", () => {
   const t = resolveTypography([
     "text-muted-foreground",

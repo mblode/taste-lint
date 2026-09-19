@@ -15,5 +15,6 @@ export { renderSarif } from "./report/sarif.js";
 export { renderTty } from "./report/tty.js";
 export { loadConfig } from "./lib/config.js";
 export { runEval } from "./eval/metrics.js";
+export { splitFor } from "./eval/corpus.js";
 export { runTune, runTuneAb } from "./eval/tune.js";
 export type * from "./types.js";
