@@ -52,8 +52,8 @@ export const renderSarif = (
           })),
         tool: {
           driver: {
-            informationUri: "https://github.com/mblode/slop-cop",
-            name: "slop-cop",
+            informationUri: "https://github.com/mblode/taste-lint",
+            name: "taste-lint",
             rules: ruleList.map((r) => ({
               fullDescription: { text: r.question?.instructions ?? r.fix.hint },
               helpUri: `https://github.com/${r.source.repo}/blob/main/${r.source.path}#L${r.source.line}`,

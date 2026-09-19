@@ -2,7 +2,7 @@
 //
 //   npm run seed-corpus -- --taste-training ../taste-training [--out data/corpus]
 //
-// The registries are TSX, so they are read statically with the slop-cop TSX
+// The registries are TSX, so they are read statically with the taste-lint TSX
 // extractor rather than imported. Each item's options are located by source
 // range; the losing option is labelled true for the rules mapped to the
 // item's category and the winning option false. Categories that map to more
@@ -29,7 +29,7 @@ const tasteDir = path.resolve(values["taste-training"] ?? "../taste-training");
 const outDir = path.resolve(values.out ?? "data/corpus");
 const web = path.join(tasteDir, "apps/web");
 
-// Category -> slop-cop rule ids whose truth the losing option demonstrates.
+// Category -> taste-lint rule ids whose truth the losing option demonstrates.
 const CATEGORY_RULES: Record<string, string[]> = {
   "actionable-cta": [
     "copywriting-cta-names-outcome",

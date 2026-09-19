@@ -26,7 +26,7 @@ export const check = (id: string): ((unit: Unit) => MechanicalHit) => {
 export const FIXTURES = path.join(import.meta.dirname, "fixtures");
 
 export const temporary = (): string =>
-  fs.mkdtempSync(path.join(os.tmpdir(), "slop-cop-test-"));
+  fs.mkdtempSync(path.join(os.tmpdir(), "taste-lint-test-"));
 
 export const config = (
   root: string,

@@ -173,12 +173,12 @@ it("prints request payloads with sorted keys and renders SARIF", async () => {
 it("honours smartQuotesAtBuild and suppression comments", async () => {
   const { root, rulesDir, resultsDir } = setup();
   fs.writeFileSync(
-    path.join(root, "slop-cop.config.json"),
+    path.join(root, "taste-lint.config.json"),
     JSON.stringify({ smartQuotesAtBuild: true })
   );
   fs.writeFileSync(
     path.join(root, "note.tsx"),
-    'export const N = () => (\n  <>\n    {/* slop-cop-ignore: typography-straight-quotes */}\n    <p>A "quoted" line</p>\n    <p>Another "quoted" line</p>\n  </>\n);\n'
+    'export const N = () => (\n  <>\n    {/* taste-lint-ignore: typography-straight-quotes */}\n    <p>A "quoted" line</p>\n    <p>Another "quoted" line</p>\n  </>\n);\n'
   );
   const result = await runLint({
     mechanicalOnly: true,

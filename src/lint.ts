@@ -275,7 +275,7 @@ export const applyFixes = (
   }
   if (skipped > 0) {
     stderr(
-      `${skipped} finding${skipped === 1 ? "" : "s"} left for a hand fix: the unit has no prose range slop-cop can rewrite safely\n`
+      `${skipped} finding${skipped === 1 ? "" : "s"} left for a hand fix: the unit has no prose range taste-lint can rewrite safely\n`
     );
   }
 };

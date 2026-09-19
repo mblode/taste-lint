@@ -1,27 +1,27 @@
 ---
-name: slop-cop
+name: taste-lint
 description: >-
-  Runs the slop-cop taste linter (copywriting, typography, interaction and motion rules answered by TypeSafe Jev probabilities plus mechanical checks) and reads its findings, bands and scorecard. Use when asked to "run slop-cop", "lint the copy", "check the typography in these components", "is this finding a blocker", or to measure how a rewrite moved the scorecard. For rewriting the words use docs-writing or ui-design; for a full type system review use typography-audit.
+  Runs the taste-lint taste linter (copywriting, typography, interaction and motion rules answered by TypeSafe Jev probabilities plus mechanical checks) and reads its findings, bands and scorecard. Use when asked to "run taste-lint", "lint the copy", "check the typography in these components", "is this finding a blocker", or to measure how a rewrite moved the scorecard. For rewriting the words use docs-writing or ui-design; for a full type system review use typography-audit.
 ---
 
-# slop-cop
+# taste-lint
 
-Is: the operator's guide to `slop-cop`, an npm CLI that turns copywriting, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training` into checks over Markdown, MDX, TSX and rendered pages. Mechanical where a regex or a real value decides; a calibrated probability from TypeSafe Jev where a judgement is needed.
+Is: the operator's guide to `taste-lint`, an npm CLI that turns copywriting, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training` into checks over Markdown, MDX, TSX and rendered pages. Mechanical where a regex or a real value decides; a calibrated probability from TypeSafe Jev where a judgement is needed.
 
 Is not: the rules themselves (they ship inside the package and trace back to the skill or lesson they came from), a copy rewriter (`docs-writing`, `ui-design`), or a replacement for the `typography-audit` and `ui-design` audits.
 
 ## Commands
 
-`slop-cop schema` prints every command, flag and default as JSON; `--help` is the human form. The ones the workflow turns on:
+`taste-lint schema` prints every command, flag and default as JSON; `--help` is the human form. The ones the workflow turns on:
 
 | Command | Use |
 | --- | --- |
-| `slop-cop lint <paths> --dry-run` | Units, requests and estimated cost, no calls. Always first. |
-| `slop-cop lint <paths>` | The run. Needs `TYPESAFE_API_KEY` or `AI_GATEWAY_API_KEY`. Results land in `results/lint-<timestamp>.jsonl`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
-| `slop-cop lint <paths> --mechanical-only` | Regex and value checks only, no key. |
-| `slop-cop lint <paths> --output json` | For scripts: findings, scorecard and usage on stdout, and an error as a `{ error, code, message }` envelope instead of text. `--output sarif` for code scanning. |
-| `slop-cop lint --url <url>` | Computed styles through style-capture and a local Chromium; `--capture file.json` lints a saved capture. |
-| `slop-cop eval` and `slop-cop tune` | Precision, recall and calibration per rule on the labelled corpus; `tune --write` is the only thing that promotes a rule. |
+| `taste-lint lint <paths> --dry-run` | Units, requests and estimated cost, no calls. Always first. |
+| `taste-lint lint <paths>` | The run. Needs `TYPESAFE_API_KEY` or `AI_GATEWAY_API_KEY`. Results land in `results/lint-<timestamp>.jsonl`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
+| `taste-lint lint <paths> --mechanical-only` | Regex and value checks only, no key. |
+| `taste-lint lint <paths> --output json` | For scripts: findings, scorecard and usage on stdout, and an error as a `{ error, code, message }` envelope instead of text. `--output sarif` for code scanning. |
+| `taste-lint lint --url <url>` | Computed styles through style-capture and a local Chromium; `--capture file.json` lints a saved capture. |
+| `taste-lint eval` and `taste-lint tune` | Precision, recall and calibration per rule on the labelled corpus; `tune --write` is the only thing that promotes a rule. |
 
 Node 24. Jev input costs $0.042 per million tokens and output is free; the summary line prints the actual cost after every run.
 
@@ -44,8 +44,8 @@ Linting reads files and writes only under `results/`, and a whole repository cos
 
 ## Gotchas
 
-- Projects that curl quotes at build time (remark-smartypants in `next.config.*`) are detected; the straight-quote rule then skips Markdown and still checks JSX. Force it either way with `"smartQuotesAtBuild"` in `slop-cop.config.json`.
-- Deliberately bad copy (course stimuli, `Incorrect` examples, sample text) is corpus, not a lint target. Exclude it with `--exclude` or the config file, or suppress one unit with `slop-cop-ignore: <rule-id>` on the line above; `ui-audit-ignore:<id>` from `ui-design` is honoured for ported rules.
+- Projects that curl quotes at build time (remark-smartypants in `next.config.*`) are detected; the straight-quote rule then skips Markdown and still checks JSX. Force it either way with `"smartQuotesAtBuild"` in `taste-lint.config.json`.
+- Deliberately bad copy (course stimuli, `Incorrect` examples, sample text) is corpus, not a lint target. Exclude it with `--exclude` or the config file, or suppress one unit with `taste-lint-ignore: <rule-id>` on the line above; `ui-audit-ignore:<id>` from `ui-design` is honoured for ported rules.
 - Most of the pack is `review-only` (ported patterns until someone has watched them on a real codebase, Jev rules until `tune --write` promotes them), so a run can print hundreds of `?` notes and still PASS. Read the act band first; treat the notes as a reading list, not a backlog.
 - Class-list rules see only static Tailwind classes. Theme tokens, template expressions and computed values are `unknown` until you run `--url`.
 - Never paste a raw provider response or error body into an issue or a summary; the tool records categories and token counts only, and so should you.

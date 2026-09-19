@@ -22,7 +22,7 @@ export function registerLintCommand(program: Command): void {
     .option("--only <ids>", "Comma-separated rule ids")
     .option(
       "--exclude <globs>",
-      "Comma-separated globs to skip (added to slop-cop.config.json exclude)"
+      "Comma-separated globs to skip (added to taste-lint.config.json exclude)"
     )
     .option("--dry-run", "Plan and estimate cost without calling Jev")
     .option(

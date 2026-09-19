@@ -27,7 +27,7 @@ export const resolveCorpusDir = (explicit?: string): string => {
     dir = path.dirname(dir);
   }
   throw new Error(
-    "Could not locate data/corpus. Reinstall slop-cop or pass --corpus."
+    "Could not locate data/corpus. Reinstall taste-lint or pass --corpus."
   );
 };
 

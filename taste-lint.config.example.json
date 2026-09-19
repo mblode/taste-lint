@@ -1,5 +1,5 @@
 {
-  "$comment": "Copy to slop-cop.config.json at the scan root. Every key is optional.",
+  "$comment": "Copy to taste-lint.config.json at the scan root. Every key is optional.",
   "exclude": [
     "**/content/judgements/**",
     "**/content/exercises/**",

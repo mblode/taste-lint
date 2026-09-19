@@ -7,7 +7,7 @@ import { collectFiles } from "../lib/glob.js";
 export function registerExtractCommand(program: Command): void {
   program
     .command("extract")
-    .description("Print the units slop-cop would lint, as JSONL")
+    .description("Print the units taste-lint would lint, as JSONL")
     .argument("<paths...>", "Files or directories, relative to --root")
     .option("--root <path>", "Project root", process.cwd())
     .option("--kind <kinds>", "Comma-separated unit kinds to keep")

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "slop-cop rule",
+  "title": "taste-lint rule",
   "description": "Editor completion only. The source of truth is src/rules/validate.ts. Tier, domain and (for every unit but source) scope are derived, not written.",
   "type": "object",
   "required": [

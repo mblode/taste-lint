@@ -1,5 +1,5 @@
 # Hand-authored from shadcn-ui/lint (shadcn/no-inline-styles). The rule is re-expressed over
-# slop-cop's extracted class lists; the original runs as an ESLint or oxlint plugin.
+# taste-lint's extracted class lists; the original runs as an ESLint or oxlint plugin.
 id: craft-inline-styles
 title: Inline style object or style element in a component
 categoryId: look-constraints

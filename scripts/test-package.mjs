@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "slop-cop-package-"));
+const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "taste-lint-package-"));
 const run = (command, args, cwd = root, env = process.env) =>
   execFileSync(command, args, {
     cwd,
@@ -47,7 +47,7 @@ try {
   );
   const tarball = `file:${path.join(temporary, packed.filename)}`;
   const consumerManifest = {
-    dependencies: { "slop-cop": tarball },
+    dependencies: { "taste-lint": tarball },
     name: "package-smoke-consumer",
     version: "1.0.0",
   };
@@ -57,7 +57,7 @@ try {
     )
   );
   packages[""] = consumerManifest;
-  packages["node_modules/slop-cop"] = {
+  packages["node_modules/taste-lint"] = {
     bin: manifest.bin,
     dependencies: manifest.dependencies,
     engines: manifest.engines,
@@ -83,7 +83,7 @@ try {
     ["ci", "--offline", "--ignore-scripts", "--no-audit", "--no-fund"],
     consumer
   );
-  const installed = path.join(consumer, "node_modules/slop-cop");
+  const installed = path.join(consumer, "node_modules/taste-lint");
   const cli = path.join(installed, "dist/cli.js");
   assert.match(
     run(process.execPath, [cli, "rules", "check"], consumer),

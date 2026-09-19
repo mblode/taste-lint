@@ -11,7 +11,7 @@ import { ProviderError } from "./map/jev.js";
 const program = new Command();
 
 program
-  .name("slop-cop")
+  .name("taste-lint")
   .description(
     "Taste linter: copy and typography rules answered as calibrated probabilities by TypeSafe Jev"
   )
