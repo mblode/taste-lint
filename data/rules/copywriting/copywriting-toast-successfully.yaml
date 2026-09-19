@@ -3,24 +3,18 @@
 id: copywriting-toast-successfully
 title: Success message padded with "successfully"
 categoryId: actionable-microcopy
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/ui-design/guidelines/copywriting.md,
     line: 15,
   }
-scope:
-  include: ["**/*.tsx", "**/*.jsx", "**/*.ts"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, attr-string]
-tier: mechanical
 mechanical:
   regex: "\\bsuccessfully\\b"
   flags: giu
 severity: minor
 fix:
-  mode: none
   hint: >-
     Name the thing that changed in past tense and stop: "Project deleted", not "Successfully deleted the project."
 preconditions: { notInCode: true, docType: [ui, unknown] }

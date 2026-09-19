@@ -3,7 +3,6 @@
 id: craft-inline-styles
 title: Inline style object or style element in a component
 categoryId: look-constraints
-domain: craft
 source:
   repo: shadcn-ui/lint
   path: README.md
@@ -12,15 +11,13 @@ source:
 scope:
   include: ["**/*.tsx", "**/*.jsx"]
   exclude:
-    ["**/*.test.*", "**/*.spec.*", "**/*.stories.*", "**/components/ui/**"]
+    - "**/components/ui/**"
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gu
   regex: "style=\\{\\{|<style\\b"
 severity: minor
 fix:
-  mode: none
   hint: >-
     Move the styling into utility classes or the theme. Inline styles bypass the design tokens, dark mode and the linter alike.
 status: review-only

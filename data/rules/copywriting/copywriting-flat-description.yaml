@@ -2,24 +2,18 @@
 id: copywriting-flat-description
 title: Information with no reason for the reader to care
 categoryId: reader-first-framing
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/sweep-runner.tsx,
     line: 276,
   }
-scope:
-  include: ["**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text]
-tier: both
 mechanical:
   # Candidate: a sentence that opens on It, This or The and pivots on "is".
   regex: "(?:^|[.!?] )(?:It|This|The) [^.!?]{20,120} is [^.!?]{6,}[.!?]"
   flags: gu
 question:
-  type: noul
   context: [docType, headingAbove]
   instructions: >-
     The TEXT is marketing or product copy. Return true when it only describes what something is (a platform, a feature, a tool) and gives the reader no recognition of their own problem, no outcome for them, and no reason to keep reading. Return false when the TEXT names a problem the reader has, a change in their day, or a concrete scene, or when the DOC TYPE is documentation or a lesson where a neutral description is the point.
@@ -37,7 +31,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: llm
   hint: Lead with the reader's problem or the scene after it is solved, then say what the product is.
 preconditions: { notInCode: true, docType: [marketing, ui, unknown, lesson] }
 status: review-only

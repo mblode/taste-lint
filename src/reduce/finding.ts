@@ -1,17 +1,7 @@
-// Build a Finding from a rule and a unit. Severity comes from the rule and its
-// scope overrides; the band and probability come from the caller.
+// Build a Finding from a rule and a unit. Severity comes from the rule; the
+// band and probability come from the caller.
 
-import { matchesAny } from "../lib/glob.js";
-import type { Band, Finding, Rule, Severity, Unit } from "../types.js";
-
-export const severityFor = (rule: Rule, file: string): Severity => {
-  for (const override of rule.severityOverrides ?? []) {
-    if (matchesAny(file, [override.scope])) {
-      return override.severity;
-    }
-  }
-  return rule.severity;
-};
+import type { Band, Finding, Rule, Unit } from "../types.js";
 
 export const toFinding = (
   rule: Rule,
@@ -31,12 +21,11 @@ export const toFinding = (
     : `p=${probability.toFixed(2)}`,
   file: unit.file,
   fixHint: rule.fix.hint,
-  fixMode: rule.fix.mode,
   line: unit.line,
   message: rule.title,
   probability,
   ruleId: rule.id,
-  severity: severityFor(rule, unit.file),
+  severity: rule.severity,
   suppressed: false,
   tier: rule.tier,
   unitId: unit.id,

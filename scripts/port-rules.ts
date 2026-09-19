@@ -324,17 +324,13 @@ const ORDER = [
   "id",
   "title",
   "categoryId",
-  "domain",
   "source",
-  "related",
   "scope",
   "unit",
-  "tier",
   "mechanical",
   "question",
   "thresholds",
   "severity",
-  "severityOverrides",
   "fix",
   "preconditions",
   "status",
@@ -377,30 +373,21 @@ for (const { skill, folder, dialect } of SKILLS) {
       "-"
     );
     const tier = fm.defaultTier ?? fm.impact ?? "MEDIUM";
+    // Scope is derived from the unit kinds unless the rg command names file
+    // types; a shipped source rule always names them.
     const generated: Record<string, unknown> = {
       categoryId: category,
-      domain,
-      fix: {
-        hint: `TODO: ${firstParagraph(body).slice(0, 200)}`,
-        mode: "none",
-      },
-      handWritten: [],
+      fix: { hint: `TODO: ${firstParagraph(body).slice(0, 200)}` },
       id,
       portNotes: [] as string[],
-      scope: {
-        exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"],
-        include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"],
-      },
       severity: SEVERITY_MAP[tier] ?? "minor",
       source: {
         line: h2Line(source),
         path: relPath,
         repo: "mblode/agent-skills",
         ruleId: sourceId,
-        tier,
       },
       status: "draft",
-      tier: "jev",
       title: (fm.title ?? sourceId).trim(),
       unit:
         domain === "typography" &&
@@ -414,11 +401,12 @@ for (const { skill, folder, dialect } of SKILLS) {
       const rg = firstRgCommand(body);
       const translated = rg ? translateRegex(rg.pattern) : null;
       const absent = rg?.absent ? translateRegex(rg.absent) : null;
-      if (rg && rg.include.length > 0) {
-        (generated.scope as { include: string[] }).include = rg.include;
-      }
-      if (rg && rg.exclude.length > 0) {
-        (generated.scope as { exclude: string[] }).exclude.push(...rg.exclude);
+      if (rg && (rg.include.length > 0 || rg.exclude.length > 0)) {
+        generated.scope = {
+          ...(rg.exclude.length > 0 ? { exclude: rg.exclude } : {}),
+          include:
+            rg.include.length > 0 ? rg.include : ["**/*.tsx", "**/*.jsx"],
+        };
       }
       if (
         fm.detect === "static" &&
@@ -440,13 +428,10 @@ for (const { skill, folder, dialect } of SKILLS) {
           flags,
           regex: translated.pattern,
         };
-        generated.tier = "mechanical";
         generated.unit = ["source"];
+        generated.scope ??= { include: ["**/*.tsx", "**/*.jsx"] };
         generated.status = "review-only";
-        generated.fix = {
-          hint: firstParagraph(body).slice(0, 300),
-          mode: "none",
-        };
+        generated.fix = { hint: firstParagraph(body).slice(0, 300) };
         shippable = true;
       } else if (rg && !translated) {
         notes.push(
@@ -484,7 +469,6 @@ for (const { skill, folder, dialect } of SKILLS) {
             },
           },
           instructions: `TODO: ${firstParagraph(body).slice(0, 400)}`,
-          type: "noul",
         };
       }
     } else {
@@ -495,7 +479,6 @@ for (const { skill, folder, dialect } of SKILLS) {
           true: { examples: fenced(body, /\*\*Incorrect/), what: "TODO" },
         },
         instructions: `TODO: ${firstParagraph(body).slice(0, 400)}`,
-        type: "noul",
       };
     }
     for (const side of ["true", "false"] as const) {
@@ -529,7 +512,9 @@ for (const { skill, folder, dialect } of SKILLS) {
           merged[key] = existing[key];
         }
       }
-      merged.handWritten = [...handWritten];
+      if (handWritten.size > 0) {
+        merged.handWritten = [...handWritten];
+      }
       merged.status = existing.status ?? merged.status;
       if (existing.status !== "draft") {
         delete merged.portNotes;

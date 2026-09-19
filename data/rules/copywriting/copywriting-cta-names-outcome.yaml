@@ -3,19 +3,13 @@
 id: copywriting-cta-names-outcome
 title: Button that names an action, not what the reader gets
 categoryId: actionable-cta
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/cta-grader.tsx,
     line: 37,
   }
-related: [copywriting-bare-confirm-label, copywriting-friction-cta]
-scope:
-  include: ["**/*.tsx", "**/*.jsx", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, attr-string]
-tier: both
 mechanical:
   phrases:
     [
@@ -35,7 +29,6 @@ mechanical:
       see more,
     ]
 question:
-  type: noul
   context: [element]
   instructions: >-
     The TEXT is the label of a button or link. Return true when it would fit on any website unchanged because it names only a generic action (Submit, Click here, Learn more, Proceed, Go) and not the outcome the reader gets. Return false when the label names the object or result (Start free trial, Save changes, Download the report, Delete member), or when it is a conventional flow control such as Continue, Back, Cancel or Close.
@@ -54,7 +47,6 @@ question:
         - "Cancel"
 severity: minor
 fix:
-  mode: llm
   hint: >-
     Verb plus the thing the reader gets: Start free trial, Create account, Save changes. Cover the page and read the button alone; if it fits any site, rewrite it.
 preconditions: { notInCode: true, role: [button, link, aria, label] }

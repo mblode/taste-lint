@@ -3,30 +3,22 @@
 id: interaction-broken-focus-trap
 title: Modal without working focus trap
 categoryId: focus-and-a11y
-domain: interaction
 source:
   repo: mblode/agent-skills
   path: skills/ui-design/rules/focus-broken-focus-trap.md
   line: 10
   ruleId: focus-broken-focus-trap
-  tier: release-blocker
 scope:
   include:
     - "**/*.ts"
     - "**/*.tsx"
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gu
   regex: 'role="(dialog|alertdialog)"'
   absent: "@radix-ui/react-dialog|react-aria|focus-trap-react|@headlessui/react"
 severity: major
 fix:
-  mode: none
   hint: >-
     A hand-rolled dialog: Tab and Shift+Tab must cycle inside it and Esc must close it. Use a primitive that traps focus (Radix Dialog, React Aria, Headless UI, focus-trap-react) or wire the trap yourself.
 status: review-only

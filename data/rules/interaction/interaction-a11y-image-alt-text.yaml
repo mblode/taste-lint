@@ -3,31 +3,22 @@
 id: interaction-a11y-image-alt-text
 title: Give Every Image a Correct Alt Attribute
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/a11y-image-alt-text.md
   repo: mblode/agent-skills
   ruleId: a11y-image-alt-text
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
     - "**/*.html"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <img\b(?![^>]*\balt=)[^>]*>
 severity: major
 fix:
   hint: 'Every `<img>` needs an `alt`: describe the purpose for informative images, use an empty `alt=""` for decorative ones so screen readers skip them. A missing `alt` makes the file name get read aloud. The `alt` is also what renders when the image itself fails to load.'
-  mode: none
 status: review-only
-handWritten: []

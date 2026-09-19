@@ -5,19 +5,13 @@
 id: copywriting-unnatural-polish
 title: Polished in a way that suppresses personal texture
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: unnatural_polish
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing feel polished in a way that suppresses personal texture or irregularity? Ignore reference documentation and UI copy, where a neutral register is the point.
@@ -35,7 +29,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Put one specific, slightly uncomfortable sentence back in: what you thought, what went wrong, what you would not do again.
 status: review-only

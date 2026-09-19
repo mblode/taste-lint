@@ -3,30 +3,21 @@
 id: copywriting-semantic-links
 title: Use Semantic Links for Navigation
 categoryId: page-structure
-domain: copywriting
 source:
   line: 9
   path: skills/ui-design/rules/nav-semantic-links.md
   repo: mblode/agent-skills
   ruleId: nav-semantic-links
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <(div|span|li)\b[^>]*\bonClick=\{[^}]*(router\.push|navigate\(|location\.href)
 severity: minor
 fix:
   hint: Navigation should use `<a>` or framework `<Link>`, not click handlers on generic elements. A click handler on a div loses middle-click, open-in-new-tab, copy-link, and the browser's own back behaviour.
-  mode: none
 status: review-only
-handWritten: []

@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 
 import {
+  evaluateFromEnv,
   makeFetchEvaluate,
   ProviderError,
   validateResponse,
@@ -23,6 +24,19 @@ it("validates responses fail-closed", () => {
   ).toMatchObject({
     answers: { a: { noul: 0.4 } },
     usage: { input_tokens: 5 },
+  });
+  // The gateway's answer shape maps onto the same result.
+  expect(
+    validateResponse(
+      {
+        answers: { a: { probability: 0.7, type: "boolean" } },
+        usage: { inputTokens: 7, outputTokens: 0 },
+      },
+      request
+    )
+  ).toMatchObject({
+    answers: { a: { noul: 0.7 } },
+    usage: { input_tokens: 7 },
   });
   expect(() =>
     validateResponse({ answers: { a: { noul: 1.4 } } }, request)
@@ -79,6 +93,49 @@ it("retries 429 and 5xx, fails fast on 401 and sends the bearer header", async (
   await expect(unauthorized(request)).rejects.toMatchObject({
     category: "auth",
   });
+});
+
+it("speaks the gateway route when told to: header model, boolean questions", async () => {
+  let seen:
+    | { url: string; headers: Record<string, string>; body: string }
+    | undefined;
+  const fetch = ((url: string, init: RequestInit) => {
+    seen = {
+      body: init.body as string,
+      headers: init.headers as Record<string, string>,
+      url,
+    };
+    return Promise.resolve(
+      Response.json({
+        answers: { a: { probability: 0.9, type: "boolean" } },
+        usage: { inputTokens: 3, outputTokens: 0 },
+      })
+    );
+  }) as unknown as typeof globalThis.fetch;
+  const evaluate = makeFetchEvaluate({
+    apiKey: "g",
+    fetch,
+    sleep: () => Promise.resolve(),
+    transport: "gateway",
+  });
+  const response = await evaluate(request);
+  expect(response.answers.a.noul).toBe(0.9);
+  expect(response.usage.input_tokens).toBe(3);
+  expect(seen?.url).toBe("https://ai-gateway.vercel.sh/v4/ai/evaluation-model");
+  expect(seen?.headers).toMatchObject({
+    Authorization: "Bearer g",
+    "ai-evaluation-model-specification-version": "4",
+    "ai-gateway-protocol-version": "0.0.1",
+    "ai-model-id": "typesafe-ai/jev",
+  });
+  expect(JSON.parse(seen?.body ?? "{}")).toEqual({
+    questions: { a: { instructions: "?", type: "boolean" } },
+    state: "TEXT: x",
+  });
+  expect(evaluateFromEnv(undefined, { AI_GATEWAY_API_KEY: "g" })).toBeTypeOf(
+    "function"
+  );
+  expect(evaluateFromEnv(undefined, {})).toBeUndefined();
 });
 
 it("limits concurrency and rate", async () => {

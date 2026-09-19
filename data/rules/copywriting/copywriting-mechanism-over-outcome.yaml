@@ -4,18 +4,12 @@
 id: copywriting-mechanism-over-outcome
 title: Describes the mechanism where the reader needed the outcome
 categoryId: reader-first-framing
-domain: copywriting
 source:
   repo: every.to
   path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
   line: 1
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Read the TEXT. Return true when it answers what something does for the reader by describing how it works internally (the algorithm, the pipeline, the sync process) and never states the result the reader gets. Return false when the outcome is stated and the mechanism follows as support, or when the DOC TYPE is reference or explanation and the mechanism is the subject.
@@ -33,7 +27,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Lead with what the reader gets; keep the mechanism as the second sentence, or move it to the reference page.
 status: review-only

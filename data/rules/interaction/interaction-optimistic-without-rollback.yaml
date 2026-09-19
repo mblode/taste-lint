@@ -3,30 +3,21 @@
 id: interaction-optimistic-without-rollback
 title: Optimistic update without rollback on server reject
 categoryId: state-coverage
-domain: interaction
 source:
   line: 10
   path: skills/ui-design/rules/async-optimistic-without-rollback.md
   repo: mblode/agent-skills
   ruleId: async-optimistic-without-rollback
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.ts"
     - "**/*.tsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gu
   regex: useOptimistic\b
 severity: major
 fix:
   hint: "`useOptimistic` shows the post-action state immediately (liked post, cart item added, renamed file). Contract: on server reject (422, 500, network error) the UI must roll back to real server state, or it lies and a reload reveals the truth, costing trust. Second half of the contract: optimistic upda"
-  mode: none
 status: review-only
-handWritten: []

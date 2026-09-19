@@ -3,24 +3,17 @@
 id: craft-virtualize-large-lists
 title: Virtualize Long Lists
 categoryId: resilience
-domain: craft
 source:
   line: 9
   path: skills/ui-design/rules/perf-virtualize-large-lists.md
   repo: mblode/agent-skills
   ruleId: perf-virtualize-large-lists
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   absent: react-window|@tanstack/react-virtual|react-virtuoso|virtua
   flags: gus
@@ -28,6 +21,4 @@ mechanical:
 severity: minor
 fix:
   hint: Large lists (roughly >50 visible items) should use virtualization/windowing. Rendering the whole dataset stalls scrolling and grows memory with the list.
-  mode: none
 status: review-only
-handWritten: []

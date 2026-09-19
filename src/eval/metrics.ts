@@ -8,7 +8,7 @@ import { makeRecorder } from "../lib/record.js";
 import { binaryMetrics, calibrationTable } from "../lib/stats.js";
 import type { BinaryMetrics } from "../lib/stats.js";
 import { AnswerCache } from "../map/cache.js";
-import { DEFAULT_MODEL, makeFetchEvaluate } from "../map/jev.js";
+import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "../map/jev.js";
 import { judge } from "../map/judge.js";
 import type { JevJob } from "../map/plan.js";
 import { band } from "../reduce/bands.js";
@@ -276,11 +276,10 @@ export const runEval = async (
   );
   let evaluate = ctx.evaluate;
   if (!evaluate && !options.dryRun) {
-    const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
-    if (!apiKey) {
-      throw new Error("Set TYPESAFE_API_KEY or pass --dry-run.");
+    evaluate = evaluateFromEnv(options.apiKey);
+    if (!evaluate) {
+      throw new Error(`${KEY_HINT} Or pass --dry-run.`);
     }
-    evaluate = makeFetchEvaluate({ apiKey });
   }
   const recorder = options.dryRun
     ? undefined

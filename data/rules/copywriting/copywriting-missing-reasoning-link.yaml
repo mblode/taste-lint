@@ -4,18 +4,12 @@
 id: copywriting-missing-reasoning-link
 title: A conclusion with no link to what came before
 categoryId: evidence-over-claims
-domain: copywriting
 source:
   repo: every.to
   path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
   line: 1
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Read the TEXT. Return true when a sentence draws a conclusion (so, therefore, which means, this is why) from what came before but the earlier sentences do not supply the step that gets there, so the reader has to guess the missing reasoning. Return false when the conclusion follows from the stated facts, or when the TEXT is openly stating an assumption.
@@ -33,7 +27,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Add the missing step, or mark the conclusion as an assumption and say what would test it.
 status: review-only

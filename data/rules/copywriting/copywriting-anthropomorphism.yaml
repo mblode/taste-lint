@@ -2,24 +2,21 @@
 id: copywriting-anthropomorphism
 title: Software described as thinking, wanting or knowing
 categoryId: machine-prose
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/voice-no-anthropomorphism.md,
     line: 7,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph]
-tier: mechanical
 mechanical:
-  regex: "\\b(?:the |this |our )?(?:system|app|application|api|server|service|tool|library|compiler|browser|database|program|script|function|model)s? (?:thinks?|wants?|knows?|tries|try|remembers?|decides?|believes?|feels?|likes?|hopes?|assumes?)\\b"
+  regex:
+    "\\b(?:the |this |our )?(?:system|app|application|api|server|service|tool|library|compiler|browser|database|program|s\
+    cript|function|model)s? (?:thinks?|wants?|knows?|tries|try|remembers?|decides?|believes?|feels?|likes?|hopes?|assumes?)\
+    \\b"
   flags: giu
 severity: minor
 fix:
-  mode: none
   hint: >-
     Use the precise verb: returns, sends, rejects, creates, deletes, validates, stores, triggers.
 preconditions:

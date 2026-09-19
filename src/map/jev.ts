@@ -1,5 +1,9 @@
-// Fetch client for POST /v1/systemone. Responses are validated fail-closed and
-// never logged; errors surface as a short category plus HTTP status.
+// Fetch client for Jev. Two transports speak the same request: TypeSafe's own
+// POST /v1/systemone, and Vercel AI Gateway's evaluation route (the wire
+// call the AI SDK's experimental_evaluate makes; it is an SDK contract, not a
+// documented API, so it is pinned here in one place). Responses are validated
+// fail-closed and never logged; errors surface as a short category plus HTTP
+// status.
 
 import type {
   Evaluate,
@@ -7,8 +11,14 @@ import type {
   SystemOneResponse,
 } from "../types.js";
 
+export type Transport = "typesafe" | "gateway";
 export const DEFAULT_BASE_URL = "https://api.typesafe.ai";
+export const GATEWAY_BASE_URL = "https://ai-gateway.vercel.sh/v4/ai";
 export const DEFAULT_MODEL = "jev-latest";
+/** The gateway's id for Jev; a `--model` with a slash in it is passed through. */
+export const GATEWAY_MODEL = "typesafe-ai/jev";
+export const KEY_HINT =
+  "Set TYPESAFE_API_KEY (api.typesafe.ai) or AI_GATEWAY_API_KEY (Vercel AI Gateway) for Jev-backed rules.";
 const MAX_RETRY_AFTER_MS = 30_000;
 
 export class ProviderError extends Error {
@@ -22,7 +32,7 @@ export class ProviderError extends Error {
   ) {
     super(
       category === "auth"
-        ? `TypeSafe rejected the API key (HTTP ${status ?? 401}). Check TYPESAFE_API_KEY.`
+        ? `The provider rejected the API key (HTTP ${status ?? 401}). Check TYPESAFE_API_KEY or AI_GATEWAY_API_KEY.`
         : `Jev request failed: ${category}${status ? ` (HTTP ${status})` : ""}`
     );
     this.name = "ProviderError";
@@ -47,7 +57,9 @@ export const validateResponse = (
     if (typeof a !== "object" || a === null) {
       throw new ProviderError("invalid_response");
     }
-    const noul = (a as Record<string, unknown>).noul;
+    // TypeSafe answers `noul`; the gateway answers `probability`.
+    const answer = a as Record<string, unknown>;
+    const noul = answer.noul ?? answer.probability;
     if (
       typeof noul !== "number" ||
       !Number.isFinite(noul) ||
@@ -59,10 +71,12 @@ export const validateResponse = (
     out[id] = { noul, type: "noul" };
   }
   const usage = (r.usage as Record<string, unknown> | undefined) ?? {};
-  const inputTokens =
-    typeof usage.input_tokens === "number" ? usage.input_tokens : 0;
-  const outputTokens =
-    typeof usage.output_tokens === "number" ? usage.output_tokens : 0;
+  const count = (snake: string, camel: string): number => {
+    const v = usage[snake] ?? usage[camel];
+    return typeof v === "number" ? v : 0;
+  };
+  const inputTokens = count("input_tokens", "inputTokens");
+  const outputTokens = count("output_tokens", "outputTokens");
   return {
     answers: out,
     model: typeof r.model === "string" ? r.model : request.model,
@@ -72,6 +86,7 @@ export const validateResponse = (
 
 export interface FetchEvaluateOptions {
   apiKey: string;
+  transport?: Transport;
   baseUrl?: string;
   fetch?: typeof globalThis.fetch;
   timeoutMs?: number;
@@ -85,27 +100,73 @@ const defaultSleep = (ms: number): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
+// Pick the transport from the environment: TypeSafe's own key first, then the
+// gateway key. Undefined means neither is set; the caller says what to do.
+export const evaluateFromEnv = (
+  apiKey?: string,
+  env: NodeJS.ProcessEnv = process.env
+): Evaluate | undefined => {
+  const typesafe = apiKey ?? env.TYPESAFE_API_KEY;
+  if (typesafe) {
+    return makeFetchEvaluate({ apiKey: typesafe });
+  }
+  if (env.AI_GATEWAY_API_KEY) {
+    return makeFetchEvaluate({
+      apiKey: env.AI_GATEWAY_API_KEY,
+      transport: "gateway",
+    });
+  }
+  return undefined;
+};
+
+// The gateway takes the model in a header and calls the noul primitive
+// `boolean`; everything else in the request is the same.
+const gatewayCall = (
+  request: SystemOneRequest
+): { body: string; headers: Record<string, string> } => ({
+  body: JSON.stringify({
+    questions: Object.fromEntries(
+      Object.entries(request.questions).map(([id, q]) => [
+        id,
+        { ...q, type: "boolean" },
+      ])
+    ),
+    state: request.state,
+  }),
+  headers: {
+    "ai-evaluation-model-specification-version": "4",
+    "ai-gateway-protocol-version": "0.0.1",
+    "ai-model-id": request.model.includes("/") ? request.model : GATEWAY_MODEL,
+  },
+});
+
 export const makeFetchEvaluate = (options: FetchEvaluateOptions): Evaluate => {
   const {
     apiKey,
-    baseUrl = DEFAULT_BASE_URL,
+    transport = "typesafe",
+    baseUrl = transport === "gateway" ? GATEWAY_BASE_URL : DEFAULT_BASE_URL,
     fetch: doFetch = globalThis.fetch,
     timeoutMs = 10_000,
     retries = 3,
     sleep = defaultSleep,
   } = options;
-  const url = `${baseUrl.replace(/\/$/, "")}/v1/systemone`;
+  const url = `${baseUrl.replace(/\/$/, "")}${transport === "gateway" ? "/evaluation-model" : "/v1/systemone"}`;
   return async (request) => {
+    const call =
+      transport === "gateway"
+        ? gatewayCall(request)
+        : { body: JSON.stringify(request), headers: {} };
     let attempt = 0;
     for (;;) {
       attempt += 1;
       let response: Response;
       try {
         response = await doFetch(url, {
-          body: JSON.stringify(request),
+          body: call.body,
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
+            ...call.headers,
           },
           method: "POST",
           signal: AbortSignal.timeout(timeoutMs),

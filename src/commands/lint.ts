@@ -37,7 +37,7 @@ export function registerLintCommand(program: Command): void {
     .option("--limit-units <n>", "Only consider the first n units")
     .option(
       "--fail-on <severity>",
-      "Lowest severity that fails the run: critical, major or minor",
+      "Lowest severity that fails the run: major or minor",
       "minor"
     )
     .option("--fix", "Apply deterministic fixes for act-band findings")
@@ -76,8 +76,8 @@ export function registerLintCommand(program: Command): void {
           capture?: string;
         }
       ) => {
-        if (!["critical", "major", "minor"].includes(options.failOn)) {
-          throw new Error("--fail-on must be critical, major or minor");
+        if (!["major", "minor"].includes(options.failOn)) {
+          throw new Error("--fail-on must be major or minor");
         }
         if (!["tty", "json", "sarif"].includes(options.output)) {
           throw new Error("--output must be tty, json or sarif");

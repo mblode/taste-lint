@@ -8,15 +8,6 @@ import { codeRule } from "./rule.js";
 
 const MODULE = "src/rules/code/classes.ts";
 const ANIMATION = "skills/ui-animation/references";
-const SHADCN_SCOPE: Rule["scope"] = {
-  exclude: [
-    "**/*.test.*",
-    "**/*.spec.*",
-    "**/*.stories.*",
-    "**/components/ui/**",
-  ],
-  include: ["**/*.tsx", "**/*.jsx"],
-};
 
 const bases = (unit: Unit): string[] => (unit.classes ?? []).map(baseClass);
 
@@ -47,29 +38,28 @@ const rule = (spec: Parameters<typeof codeRule>[0]): Rule =>
   codeRule(spec, MODULE);
 
 const motion = (
-  spec: Omit<Parameters<typeof codeRule>[0], "domain" | "unit" | "source"> & {
+  spec: Omit<Parameters<typeof codeRule>[0], "unit" | "source"> & {
     source: { path: string; line: number };
   }
 ): Rule =>
   rule({
     ...spec,
-    domain: "motion",
     source: { ...spec.source, repo: "mblode/agent-skills" },
     unit: ["class-list"],
   });
 
+// The registry's own components are exempt: they are the design system.
 const shadcn = (
   spec: Omit<
     Parameters<typeof codeRule>[0],
-    "domain" | "unit" | "source" | "scope" | "status"
+    "unit" | "source" | "scope" | "status"
   > & {
     ruleId: string;
   }
 ): Rule =>
   rule({
     ...spec,
-    domain: "craft",
-    scope: SHADCN_SCOPE,
+    scope: { exclude: ["**/components/ui/**"] },
     source: {
       line: 1,
       path: "README.md",

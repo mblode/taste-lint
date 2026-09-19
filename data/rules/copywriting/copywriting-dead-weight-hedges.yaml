@@ -3,19 +3,13 @@
 id: copywriting-dead-weight-hedges
 title: Hedge or throat-clearing phrase the sentence does not need
 categoryId: machine-prose
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/sweep-runner.tsx,
     line: 131,
   }
-related: [copywriting-filler-words]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text]
-tier: both
 mechanical:
   phrases:
     [
@@ -35,7 +29,6 @@ mechanical:
       as you may know,
     ]
 question:
-  type: noul
   context: []
   instructions: >-
     Read the TEXT. Return true when it contains a hedge or throat-clearing phrase (for example we believe that, it is important to note that, in order to, designed to be, our mission is to) that could be deleted with the rest of the sentence meaning exactly the same thing. Return false when the phrase carries a real qualification the reader needs, or when the TEXT quotes or teaches about such phrases rather than using them.
@@ -54,7 +47,6 @@ question:
         - "We recommend the default unless your team spans time zones."
 severity: minor
 fix:
-  mode: llm
   hint: Delete the phrase and reread. If the meaning survives, it was padding.
 preconditions:
   {

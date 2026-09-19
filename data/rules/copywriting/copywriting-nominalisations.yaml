@@ -2,18 +2,13 @@
 id: copywriting-nominalisations
 title: Verb buried in a noun
 categoryId: reader-first-framing
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/clarity-no-nominalizations.md,
     line: 7,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text]
-tier: mechanical
 mechanical:
   phrases:
     [
@@ -38,7 +33,6 @@ mechanical:
     ]
 severity: minor
 fix:
-  mode: none
   hint: >-
     Use the verb: decide, analyse, review, help, consider, conclude, assess, evaluate, select, describe.
 preconditions:

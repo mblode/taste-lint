@@ -5,19 +5,13 @@
 id: copywriting-generic-framing
 title: Relies on generic framing instead of concrete context
 categoryId: reader-first-framing
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: generic_framing
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing rely on generic framing instead of concrete context? Ignore a first sentence that names a specific product, person, number, place or date.
@@ -35,7 +29,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Open with the specific case: the product, the number, the person, the date.
 status: review-only

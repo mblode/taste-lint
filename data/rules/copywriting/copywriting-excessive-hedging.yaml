@@ -5,17 +5,12 @@
 id: copywriting-excessive-hedging
 title: Hedges claims more than the subject requires
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: excessive_hedging
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: both
 mechanical:
   phrases:
     - might
@@ -30,7 +25,6 @@ mechanical:
     - in some cases
   minMatches: 3
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing hedge claims more than the subject requires? Ignore a hedge that names a real uncertainty and says what would resolve it.
@@ -48,7 +42,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Make the claim, or name the one uncertainty and what would settle it.
 status: review-only

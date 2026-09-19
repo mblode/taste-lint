@@ -5,29 +5,24 @@
 id: craft-near-duplicate-scale
 title: Arbitrary pixel value one step off the scale
 categoryId: look-constraints
-domain: craft
 source:
   repo: mblode/agent-skills
   path: skills/ui-design/rules/slop-near-duplicate-scale.md
   line: 10
   ruleId: slop-near-duplicate-scale
-  tier: backlog
 scope:
   include:
     - "**/*.tsx"
     - "**/*.jsx"
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gu
-  regex: "\\b(?:text|p|px|py|pt|pb|pl|pr|m|mt|mb|ml|mr|mx|my|gap|gap-[xy]|space-[xy]|rounded(?:-[a-z]+)?|leading|w|h|size|inset|top|bottom|left|right)-\\[(?!-?(?:[01](?:\\.\\d+)?|2(?:\\.0+)?)px\\])-?\\d+(?:\\.\\d+)?px\\](?!:)"
+  regex:
+    "\\b(?:text|p|px|py|pt|pb|pl|pr|m|mt|mb|ml|mr|mx|my|gap|gap-[xy]|space-[xy]|rounded(?:-[a-z]\
+    +)?|leading|w|h|size|inset|top|bottom|left|right)-\\[(?!-?(?:[01](?:\\.\\d+)?|2(?:\\.0+)?)px\\]\
+    )-?\\d+(?:\\.\\d+)?px\\](?!:)"
 severity: minor
 fix:
-  mode: none
   hint: >-
     text-[15px] beside text-sm and text-base is a third size that reads as a mistake, not a level. Step the scale, or register the value in the theme when it recurs. Check the theme first: with no scale defined there is nothing to be a near-duplicate of.
 status: review-only

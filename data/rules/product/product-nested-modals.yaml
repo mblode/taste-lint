@@ -3,7 +3,6 @@
 id: product-nested-modals
 title: A modal that opens inside another modal
 categoryId: control-choice
-domain: product
 source:
   repo: mblode/agent-skills
   path: skills/product-design/references/rules.md
@@ -11,15 +10,14 @@ source:
   ruleId: rule/no-nested-modals
 scope:
   include: ["**/*.tsx", "**/*.jsx"]
-  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gu
-  regex: "<(Dialog|AlertDialog|Modal|Sheet|Drawer)\\b[^>]*>(?:(?!</\\1>)[\\s\\S])*?<(?:Dialog|AlertDialog|Modal|Sheet|Drawer)\\b[^>]*>"
+  regex:
+    "<(Dialog|AlertDialog|Modal|Sheet|Drawer)\\b[^>]*>(?:(?!</\\1>)[\\s\\S])*?<(?:Dialog|AlertDi\
+    alog|Modal|Sheet|Drawer)\\b[^>]*>"
 severity: minor
 fix:
-  mode: none
   hint: >-
     Resolve the first modal, use one multi-step surface, or move the second step inline. Stacked modals break focus trapping, escape order and layering.
 # review-only: a regex over markup cannot see dynamically rendered children or

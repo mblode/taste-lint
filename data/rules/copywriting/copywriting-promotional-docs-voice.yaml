@@ -2,19 +2,13 @@
 id: copywriting-promotional-docs-voice
 title: Marketing voice inside documentation
 categoryId: evidence-over-claims
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/voice-defaults.md,
     line: 14,
   }
-related: [copywriting-claim-without-evidence]
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading]
-tier: both
 mechanical:
   phrases:
     [
@@ -37,7 +31,6 @@ mechanical:
       unlock,
     ]
 question:
-  type: noul
   context: [docType]
   instructions: >-
     The TEXT is from documentation or instructions. Return true when it promotes rather than instructs: superlatives, "simply", "easy", "powerful", "seamless", or claims of speed and quality with no measure. Return false when the TEXT states a fact, a step or a measured number, or when it quotes or warns against promotional words.
@@ -54,7 +47,6 @@ question:
         - "Replace superlatives with measurable facts. No marketing hype, no simply or easy."
 severity: minor
 fix:
-  mode: llm
   hint: >-
     Replace the superlative with the fact: the number, the step or the mechanism.
 preconditions:

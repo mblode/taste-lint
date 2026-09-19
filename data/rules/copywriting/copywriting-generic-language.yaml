@@ -5,19 +5,13 @@
 id: copywriting-generic-language
 title: Relies on generic or interchangeable language
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: generic_language
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing rely on generic or interchangeable language? Ignore a passage where the nouns and verbs name specific things, even if a few common words appear.
@@ -35,7 +29,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Replace each abstract noun with the concrete one it stands for; delete the adjective if nothing is left.
 status: review-only

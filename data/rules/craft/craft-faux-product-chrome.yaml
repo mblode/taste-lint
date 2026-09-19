@@ -3,29 +3,20 @@
 id: craft-faux-product-chrome
 title: Faux product chrome wrapping nothing
 categoryId: generic-decoration
-domain: craft
 source:
   line: 10
   path: skills/ui-design/rules/slop-faux-product-chrome.md
   repo: mblode/agent-skills
   ruleId: slop-faux-product-chrome
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gu
   regex: rounded-full[^"`]*\bbg-(red|rose|yellow|amber|green|emerald)-[45]00
 severity: minor
 fix:
   hint: "Three coloured dots in a row, a rounded bar with a URL typed into it, a laptop outline around an empty gradient panel: this is a drawing of a product where the product should be. A visitor reads it as a screenshot, leans in to see what the app actually looks like, and finds there is nothing to see. "
-  mode: none
 status: review-only
-handWritten: []

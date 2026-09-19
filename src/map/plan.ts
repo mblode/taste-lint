@@ -29,7 +29,7 @@ export interface Plan {
 const inScope = (rule: Rule, unit: Unit): boolean =>
   unit.kind === "element" ||
   (matchesAny(unit.file, rule.scope.include) &&
-    !matchesAny(unit.file, rule.scope.exclude ?? []));
+    !matchesAny(unit.file, rule.scope.exclude));
 
 const passesPreconditions = (
   rule: Rule,
@@ -47,12 +47,6 @@ const passesPreconditions = (
     return false;
   }
   if (p.role && !p.role.includes(unit.context.role)) {
-    return false;
-  }
-  if (
-    p.element &&
-    (!unit.context.element || !p.element.includes(unit.context.element))
-  ) {
     return false;
   }
   if (

@@ -9,6 +9,8 @@ import type {
   Mechanical,
   Preconditions,
   Question,
+  Rule,
+  UnitKind,
 } from "../types.js";
 
 const EM_DASH = String.fromCodePoint(0x20_14);
@@ -116,13 +118,7 @@ export const question = (file: string, v: unknown): Question => {
     fail(file, "question must be an object");
   }
   const raw = v as Raw;
-  knownKeys(file, "question", raw, [
-    "type",
-    "instructions",
-    "criteria",
-    "context",
-  ]);
-  const type = oneOf(file, "question.type", raw.type, ["noul"] as const);
+  knownKeys(file, "question", raw, ["instructions", "criteria", "context"]);
   const instructions = str(file, raw, "instructions");
   noEmDash(file, "question.instructions", instructions);
   let criteria: Question["criteria"];
@@ -141,7 +137,7 @@ export const question = (file: string, v: unknown): Question => {
   for (const key of context ?? []) {
     oneOf(file, "question.context", key, CONTEXT_KEYS);
   }
-  return { context, criteria, instructions, type };
+  return { context, criteria, instructions };
 };
 
 export const mechanical = (file: string, v: unknown): Mechanical => {
@@ -218,7 +214,6 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
     "notInCode",
     "docType",
     "role",
-    "element",
     "smartQuotesAtBuild",
   ]);
   const out: Preconditions = {};
@@ -238,9 +233,6 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
       oneOf(file, "preconditions.role", r, ROLES)
     );
   }
-  if (raw.element !== undefined) {
-    out.element = optStrList(file, raw, "element");
-  }
   if (raw.smartQuotesAtBuild !== undefined) {
     if (raw.smartQuotesAtBuild !== false) {
       fail(file, "preconditions.smartQuotesAtBuild may only be false");
@@ -250,20 +242,64 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
   return out;
 };
 
+// Which files a unit kind can come from. A rule names `scope.include` only
+// when the unit alone does not say (a `source` rule over .ts, .css or .html).
+const INCLUDE_BY_KIND: Record<UnitKind, string[]> = {
+  "attr-string": ["**/*.tsx", "**/*.jsx", "**/*.mdx"],
+  "class-list": ["**/*.tsx", "**/*.jsx"],
+  element: ["**/*.tsx", "**/*.jsx"],
+  file: [],
+  heading: ["**/*.md", "**/*.mdx"],
+  "jsx-text": ["**/*.tsx", "**/*.jsx"],
+  paragraph: ["**/*.md", "**/*.mdx"],
+  source: [],
+};
+
+// Every rule skips tests, stories and changelogs; a rule adds to this list,
+// never repeats it.
+export const RULE_EXCLUDE = [
+  "**/*.test.*",
+  "**/*.spec.*",
+  "**/*.stories.*",
+  "**/CHANGELOG.md",
+];
+
+export const scopeFor = (
+  file: string,
+  unit: UnitKind[],
+  v: unknown
+): Rule["scope"] => {
+  let include: string[] | undefined;
+  let exclude: string[] = [];
+  if (v !== undefined) {
+    if (!isRecord(v)) {
+      fail(file, "scope must be an object");
+    }
+    knownKeys(file, "scope", v as Raw, ["include", "exclude"]);
+    include = optStrList(file, v as Raw, "include");
+    exclude = optStrList(file, v as Raw, "exclude") ?? [];
+  }
+  if (!include) {
+    if (unit.includes("source")) {
+      fail(file, "a source rule needs scope.include (which file types)");
+    }
+    include = [...new Set(unit.flatMap((kind) => INCLUDE_BY_KIND[kind]))];
+  }
+  if (include.length === 0) {
+    fail(file, "scope.include needs at least one glob");
+  }
+  return { exclude: [...new Set([...RULE_EXCLUDE, ...exclude])], include };
+};
+
 export const fix = (file: string, v: unknown): Fix => {
   if (!isRecord(v)) {
     fail(file, "fix must be an object");
   }
   const raw = v as Raw;
-  knownKeys(file, "fix", raw, ["mode", "hint", "function"]);
-  const mode = oneOf(file, "fix.mode", raw.mode, [
-    "deterministic",
-    "llm",
-    "none",
-  ] as const);
+  knownKeys(file, "fix", raw, ["hint", "function"]);
   const hint = str(file, raw, "hint");
   noEmDash(file, "fix.hint", hint);
-  const out: Fix = { hint, mode };
+  const out: Fix = { hint };
   if (raw.function !== undefined) {
     out.function = str(file, raw, "function");
     if (!(out.function in FIXES)) {
@@ -272,9 +308,6 @@ export const fix = (file: string, v: unknown): Fix => {
         `fix.function ${out.function} is not registered in src/reduce/fixes.ts`
       );
     }
-  }
-  if (mode === "deterministic" && !out.function) {
-    fail(file, "fix.mode deterministic needs fix.function");
   }
   return out;
 };

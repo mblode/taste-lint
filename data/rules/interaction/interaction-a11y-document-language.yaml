@@ -3,31 +3,22 @@
 id: interaction-a11y-document-language
 title: Declare Document and Inline Language
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/a11y-document-language.md
   repo: mblode/agent-skills
   ruleId: a11y-document-language
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
     - "**/*.html"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <html(?![^>]*\blang=)[^>]*>
 severity: major
 fix:
   hint: Set the primary language on `<html lang>` with a valid BCP 47 tag, and mark any inline passage in another language with its own `lang`. Without it, a screen reader reads everything with one pronunciation engine.
-  mode: none
 status: review-only
-handWritten: []

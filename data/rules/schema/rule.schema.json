@@ -1,17 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "slop-cop rule",
-  "description": "Editor completion only. The source of truth is src/rules/validate.ts.",
+  "description": "Editor completion only. The source of truth is src/rules/validate.ts. Tier, domain and (for every unit but source) scope are derived, not written.",
   "type": "object",
   "required": [
     "id",
     "title",
     "categoryId",
-    "domain",
     "source",
-    "scope",
     "unit",
-    "tier",
     "severity",
     "fix"
   ],
@@ -19,31 +16,20 @@
     "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
     "title": { "type": "string" },
     "categoryId": { "type": "string" },
-    "domain": {
-      "enum": [
-        "typography",
-        "craft",
-        "copywriting",
-        "interaction",
-        "motion",
-        "product"
-      ]
-    },
     "source": {
       "type": "object",
       "required": ["repo", "path"],
+      "additionalProperties": false,
       "properties": {
         "repo": { "type": "string" },
         "path": { "type": "string" },
         "line": { "type": "integer" },
-        "ruleId": { "type": "string" },
-        "tier": { "type": "string" }
+        "ruleId": { "type": "string" }
       }
     },
-    "related": { "type": "array", "items": { "type": "string" } },
     "scope": {
       "type": "object",
-      "required": ["include"],
+      "additionalProperties": false,
       "properties": {
         "include": { "type": "array", "items": { "type": "string" } },
         "exclude": { "type": "array", "items": { "type": "string" } }
@@ -59,11 +45,10 @@
           "attr-string",
           "class-list",
           "element",
-          "file"
+          "source"
         ]
       }
     },
-    "tier": { "enum": ["mechanical", "jev", "both"] },
     "mechanical": {
       "type": "object",
       "additionalProperties": false,
@@ -78,9 +63,9 @@
     },
     "question": {
       "type": "object",
-      "required": ["type", "instructions"],
+      "required": ["instructions"],
+      "additionalProperties": false,
       "properties": {
-        "type": { "const": "noul" },
         "instructions": { "type": "string" },
         "context": {
           "type": "array",
@@ -106,29 +91,19 @@
         "act": { "type": "number", "minimum": 0, "maximum": 1 }
       }
     },
-    "severity": { "enum": ["critical", "major", "minor"] },
-    "severityOverrides": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["scope", "severity"],
-        "properties": {
-          "scope": { "type": "string" },
-          "severity": { "enum": ["critical", "major", "minor"] }
-        }
-      }
-    },
+    "severity": { "enum": ["major", "minor"] },
     "fix": {
       "type": "object",
-      "required": ["mode", "hint"],
+      "required": ["hint"],
+      "additionalProperties": false,
       "properties": {
-        "mode": { "enum": ["deterministic", "llm", "none"] },
         "hint": { "type": "string" },
         "function": { "type": "string" }
       }
     },
     "preconditions": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "notInCode": { "const": true },
         "docType": {
@@ -166,13 +141,11 @@
             ]
           }
         },
-        "element": { "type": "array", "items": { "type": "string" } },
         "smartQuotesAtBuild": { "const": false }
       }
     },
     "status": { "enum": ["active", "draft", "review-only"] },
-    "handWritten": { "type": "array", "items": { "type": "string" } },
-    "portNotes": { "type": "array", "items": { "type": "string" } }
+    "handWritten": { "type": "array", "items": { "type": "string" } }
   },
   "additionalProperties": false,
   "$defs": {

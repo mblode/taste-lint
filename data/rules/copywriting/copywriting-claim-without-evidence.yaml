@@ -3,17 +3,11 @@
 id: copywriting-claim-without-evidence
 title: Quality claimed, nothing the reader could check
 categoryId: evidence-over-claims
-domain: copywriting
 source:
   repo: mblode/taste-training
   path: apps/web/components/demos/copywriting/sweep-runner.tsx
   line: 188
-related: [copywriting-generic-audience]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading, jsx-text]
-tier: both
 mechanical:
   # Candidate generator only. Jev decides.
   phrases:
@@ -37,7 +31,6 @@ mechanical:
     - enterprise-grade
     - blazing
 question:
-  type: noul
   context: [headingAbove, docType]
   instructions: >-
     Read the TEXT. Return true when the TEXT describes a product, feature, service or company with an evaluative adjective or adverb (for example powerful, seamless, fast, intuitive, robust, best-in-class, simple) and the same TEXT gives the reader nothing they could check: no number with a unit or scope, no named mechanism that explains how, no named standard, customer or third party. Return false when the TEXT contains such a checkable fact, when the adjective names a category a reader can verify (open source, end-to-end encrypted, GDPR compliant), or when the TEXT is not describing a product at all (instructions, narrative, a lesson explaining the rule). Ignore code, URLs and the HEADING line; judge only the TEXT.
@@ -58,11 +51,7 @@ question:
         - "Replace each adjective with a number, a name or a scenario, or cut it."
 thresholds: { review: 0.35, act: 0.7 }
 severity: minor
-severityOverrides:
-  - { scope: "**/landing/**", severity: major }
-  - { scope: "**/(marketing)/**", severity: major }
 fix:
-  mode: llm
   hint: Replace the adjective with the mechanism, the number or the standard it stands for. If none exists, cut the sentence.
 preconditions:
   notInCode: true

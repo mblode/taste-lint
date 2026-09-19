@@ -3,18 +3,13 @@
 id: copywriting-temporal-words
 title: Wording anchored to the time of writing
 categoryId: reference-reading
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/hygiene-no-temporal.md,
     line: 7,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading]
-tier: both
 mechanical:
   phrases:
     [
@@ -33,7 +28,6 @@ mechanical:
       soon,
     ]
 question:
-  type: noul
   context: [docType]
   instructions: >-
     The TEXT is from documentation. Return true when it will read as wrong or stale once time passes because it anchors to the moment of writing ("currently", "recently added", "coming soon", "the new dashboard", "as of today") without a version or date the reader can check. Return false when the TEXT carries a version marker or date, when the temporal word describes the reader's own action ("Now open the file"), or when the TEXT is not documentation.
@@ -51,7 +45,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: llm
   hint: Replace the time word with a version or date the reader can check, or delete it.
 preconditions:
   {

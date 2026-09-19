@@ -5,17 +5,12 @@
 id: copywriting-repetitive-transitions
 title: Repeatedly uses formal or formulaic transitions
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: repetitive_transitions
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: both
 mechanical:
   phrases:
     - moreover
@@ -30,7 +25,6 @@ mechanical:
     - ultimately
   minMatches: 2
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing repeatedly use formal or formulaic transitions? Ignore a single transition, and a passage whose sentences follow from each other without the connective.
@@ -48,7 +42,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Cut the connective and let the order of the sentences carry the logic.
 status: review-only

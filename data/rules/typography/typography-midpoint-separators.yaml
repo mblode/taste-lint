@@ -2,25 +2,18 @@
 id: typography-midpoint-separators
 title: Pipe or bullet used as an inline separator
 categoryId: typographic-detail
-domain: typography
 source:
   {
     repo: mblode/agent-skills,
     path: skills/typography-audit/rules/punct-midpoints.md,
     line: 7,
-    tier: LOW-MEDIUM,
   }
-scope:
-  include: ["**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, attr-string, paragraph]
-tier: mechanical
 mechanical:
   regex: "\\S \\| \\S|\\S • \\S"
   flags: gu
 severity: minor
 fix:
-  mode: none
   hint: Separate inline metadata with a midpoint (·) flanked by thin spaces, not a pipe or a bullet.
 preconditions:
   { notInCode: true, role: [body, caption, label, list-item, cell, unknown] }

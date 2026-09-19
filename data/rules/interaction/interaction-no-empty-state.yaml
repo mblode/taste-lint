@@ -3,24 +3,17 @@
 id: interaction-no-empty-state
 title: Empty state has no call to action
 categoryId: state-coverage
-domain: interaction
 source:
   line: 10
   path: skills/ui-design/rules/states-no-empty-state.md
   repo: mblode/agent-skills
   ruleId: states-no-empty-state
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.ts"
     - "**/*.tsx"
 unit:
   - source
-tier: mechanical
 # The source's real check is its loop: an empty branch with no action element.
 mechanical:
   flags: gu
@@ -29,6 +22,5 @@ mechanical:
 severity: minor
 fix:
   hint: 'When a list, table, or feed is empty, "No items" alone is a dead end: the user can''t tell whether nothing exists, the filter is too narrow, or they must act to populate it. A good empty state names the situation, explains why, and offers exactly one primary action. Onboarding empty states (first-run'
-  mode: none
 status: review-only
 handWritten: [mechanical]

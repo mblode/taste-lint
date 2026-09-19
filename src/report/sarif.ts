@@ -39,7 +39,7 @@ export const renderSarif = (
               },
             ],
             message: {
-              text: `${f.message}. ${f.evidence}${f.fixMode === "none" ? "" : ` Fix: ${f.fixHint}`}`,
+              text: `${f.message}. ${f.evidence} Fix: ${f.fixHint}`,
             },
             partialFingerprints: { unitId: f.unitId },
             properties: {
