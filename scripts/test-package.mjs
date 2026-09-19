@@ -92,7 +92,7 @@ try {
   fs.mkdirSync(project);
   fs.writeFileSync(
     path.join(project, "copy.md"),
-    '# Hi\n\nA "powerful" tool.\n'
+    "# Hi\n\nA powerful tool for teams.\n"
   );
   const env = { ...process.env };
   delete env.TYPESAFE_API_KEY;
