@@ -67,6 +67,14 @@ slop-cop lint --url https://example.com/pricing --selector main
 
 Runs [style-capture](https://www.npmjs.com/package/style-capture) in headless Chromium and lints computed styles: real pixel sizes, line heights, weights and letter-spacing, so the typography rules judge what the reader sees rather than what the class list implies. `--capture file.json` lints a saved capture.
 
+## Agent skill
+
+```bash
+npx skills add mblode/slop-cop
+```
+
+Installs the `slop-cop` skill for Claude Code, Codex, Cursor and OpenCode: how to read a finding, the dry-run-first workflow, and the gotchas. It lives in `skills/slop-cop/` in this repository.
+
 ## Options
 
 | Flag | Default | Description |
