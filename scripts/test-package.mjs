@@ -15,15 +15,16 @@ const run = (command, args, cwd = root, env = process.env) =>
     timeout: 180_000,
   });
 try {
-  const [packed] = JSON.parse(
-    run("npm", [
-      "pack",
-      "--json",
-      "--ignore-scripts",
-      "--pack-destination",
-      temporary,
-    ])
-  );
+  // npm runs `prepare` even with --ignore-scripts, and lefthook's hook sync
+  // prints to stdout ahead of the JSON, so parse from the first bracket.
+  const packOutput = run("npm", [
+    "pack",
+    "--json",
+    "--ignore-scripts",
+    "--pack-destination",
+    temporary,
+  ]);
+  const [packed] = JSON.parse(packOutput.slice(packOutput.indexOf("[")));
   assert.ok(
     packed.files.some(
       (file) =>

@@ -9,6 +9,7 @@ import type {
 
 export const DEFAULT_BASE_URL = "https://api.typesafe.ai";
 export const DEFAULT_MODEL = "jev-latest";
+const MAX_RETRY_AFTER_MS = 30_000;
 
 export class ProviderError extends Error {
   constructor(
@@ -21,7 +22,7 @@ export class ProviderError extends Error {
   ) {
     super(
       category === "auth"
-        ? "TypeSafe rejected the API key (HTTP 401). Check TYPESAFE_API_KEY."
+        ? `TypeSafe rejected the API key (HTTP ${status ?? 401}). Check TYPESAFE_API_KEY.`
         : `Jev request failed: ${category}${status ? ` (HTTP ${status})` : ""}`
     );
     this.name = "ProviderError";
@@ -124,10 +125,11 @@ export const makeFetchEvaluate = (options: FetchEvaluateOptions): Evaluate => {
       }
       if (response.status === 429 || response.status >= 500) {
         if (attempt <= retries) {
+          // Honour Retry-After up to a ceiling so one header cannot park a run.
           const retryAfter = Number(response.headers.get("retry-after"));
           await sleep(
             Number.isFinite(retryAfter) && retryAfter > 0
-              ? retryAfter * 1000
+              ? Math.min(retryAfter * 1000, MAX_RETRY_AFTER_MS)
               : backoff(attempt)
           );
           continue;

@@ -19,7 +19,7 @@ node dist/cli.js rules check                     # validate data/rules
 
 - `src/cli.ts`: Commander entry point. Explicit flags win over environment defaults.
 - `src/rules/`: fail-closed rule loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the Jev wire format.
-- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, and style-capture output (the CLI text block or `CaptureResult` JSON). Every unit carries file, line, column and byte offsets.
+- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, and style-capture output (the CLI text block or `CaptureResult` JSON). Every unit carries file, line, column, UTF-16 source offsets and, where a fix may rewrite it, the prose ranges inside that slice.
 - `src/map/`: plan (which rules apply to which unit), one Jev request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, fetch client.
 - `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes.
 - `src/report/`: tty, JSON, SARIF.
@@ -35,12 +35,12 @@ Read `docs/DESIGN.md` for contracts.
 | --- | --- | --- |
 | check | `npm run check && npm run typecheck` | during an edit loop |
 | verify | `npm run verify` | before a commit (lint, types, tests, build, packed smoke test) |
-| verify:full | `npm run verify:full` | before a push; CI runs exactly this plus `changeset status` and `port-rules --check` |
+| verify:full | `npm run verify:full` | before a push; CI runs exactly this plus `port-rules --check`, and on pull requests `changeset status` once `origin/main` exists |
 
 Commands that pass while proving less than they look:
 
 - `slop-cop rules check` prints `N active rules`; active here means not draft. A Jev-backed rule can be `review-only` and still count.
-- `slop-cop lint --dry-run` exits 1 on any act-band mechanical finding. `verify:full` runs it with `--fail-on critical` so the fixtures, which contain deliberate straight quotes, do not fail the umbrella.
+- `slop-cop lint --dry-run` exits 1 on any act-band mechanical finding. `verify:full` runs it with `--fail-on critical` so the fixtures, which contain deliberate straight quotes, do not fail the umbrella. No shipped rule is critical, so that step only proves the CLI runs end to end; the fixture finding counts are asserted in `src/__tests__/lint.test.ts`.
 - `slop-cop eval` without `--include-weak` skips every item whose category maps to more than one rule, which today is every typography rule.
 
 ## Invariants

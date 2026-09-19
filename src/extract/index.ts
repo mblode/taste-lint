@@ -13,7 +13,7 @@ export const extractFile = (config: Config, relativeFile: string): Unit[] => {
   if (/\.(md|mdx)$/.test(relativeFile)) {
     return extractMarkdown(relativeFile, source, { config, docType });
   }
-  if (/\.(tsx|jsx|ts|js)$/.test(relativeFile)) {
+  if (/\.(tsx|jsx)$/.test(relativeFile)) {
     return extractTsx(relativeFile, source, { config, docType });
   }
   return [];

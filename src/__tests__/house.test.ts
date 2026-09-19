@@ -4,9 +4,11 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { docTypeFor, loadConfig } from "../lib/config.js";
 import { FIXES } from "../reduce/fixes.js";
 import { FUNCTIONS } from "../reduce/mechanical.js";
 import { loadRules } from "../rules/load.js";
+import { DOC_TYPES, ROLES } from "../types.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const EM_DASH = String.fromCodePoint(0x20_14);
@@ -72,6 +74,36 @@ describe("house rules", () => {
         tuning[r.id]?.status !== "active"
     );
     expect(unproven.map((r) => r.id)).toEqual([]);
+  });
+
+  it("keeps the editor schema's enums equal to the validator's", () => {
+    const schema = JSON.parse(
+      fs.readFileSync(
+        path.join(root, "data/rules/schema/rule.schema.json"),
+        "utf-8"
+      )
+    ) as {
+      properties: {
+        preconditions: {
+          properties: {
+            docType: { items: { enum: string[] } };
+            role: { items: { enum: string[] } };
+          };
+        };
+      };
+    };
+    expect(
+      schema.properties.preconditions.properties.docType.items.enum
+    ).toEqual([...DOC_TYPES]);
+    expect(schema.properties.preconditions.properties.role.items.enum).toEqual([
+      ...ROLES,
+    ]);
+  });
+
+  it("classifies marketing routes before the tsx catch-all", () => {
+    const config = loadConfig(root);
+    expect(docTypeFor(config, "app/(marketing)/page.tsx")).toBe("marketing");
+    expect(docTypeFor(config, "app/settings/page.tsx")).toBe("ui");
   });
 
   it("names only existing paths in AGENTS.md and docs/DESIGN.md", () => {

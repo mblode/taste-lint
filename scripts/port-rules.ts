@@ -11,6 +11,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "node:util";
 
 import { parse, stringify } from "yaml";
 
@@ -25,21 +26,25 @@ interface Args {
 }
 
 const args = ((): Args => {
-  const a = process.argv.slice(2);
-  const get = (flag: string): string | undefined => {
-    const i = a.indexOf(flag);
-    return i === -1 ? undefined : a[i + 1];
-  };
+  const { values } = parseArgs({
+    options: {
+      check: { type: "boolean" },
+      only: { type: "string" },
+      out: { type: "string" },
+      "skills-dir": { type: "string" },
+      "write-drafts": { type: "boolean" },
+    },
+  });
   const skillsDir =
-    get("--skills-dir") ??
+    values["skills-dir"] ??
     process.env.AGENT_SKILLS_DIR ??
     path.resolve("../agent-skills");
   return {
-    check: a.includes("--check"),
-    only: get("--only")?.split(",") ?? null,
-    out: get("--out") ?? path.resolve("data/rules"),
+    check: values.check ?? false,
+    only: values.only?.split(",") ?? null,
+    out: values.out ?? path.resolve("data/rules"),
     skillsDir: path.resolve(skillsDir),
-    writeDrafts: a.includes("--write-drafts"),
+    writeDrafts: values["write-drafts"] ?? false,
   };
 })();
 
@@ -431,12 +436,83 @@ for (const { skill, folder, dialect } of SKILLS) {
   }
 }
 
+// Check mode also walks every shipped rule, whatever its file name, and
+// re-derives the traced keys from its own `source.path`. A rule ported one to
+// one (source.ruleId equals the source file's id) must still cite the H2 line;
+// a rule hand-cut from a guideline or a multi-check source file must cite a
+// line that still exists and carries text. A ui-design rule whose mechanical
+// part is not hand-written must still carry the source rg pattern.
+let checked = 0;
+if (args.check) {
+  const yamlFiles: string[] = [];
+  for (const domain of fs.readdirSync(args.out, { withFileTypes: true })) {
+    if (!domain.isDirectory() || domain.name === "schema") {
+      continue;
+    }
+    for (const name of fs.readdirSync(path.join(args.out, domain.name))) {
+      if (name.endsWith(".yaml")) {
+        yamlFiles.push(path.join(args.out, domain.name, name));
+      }
+    }
+  }
+  for (const file of yamlFiles.toSorted()) {
+    const rule = parse(fs.readFileSync(file, "utf-8")) as {
+      id: string;
+      handWritten?: string[];
+      mechanical?: { regex?: string };
+      source: { repo: string; path: string; line: number; ruleId?: string };
+    };
+    if (rule.source.repo !== "mblode/agent-skills") {
+      continue;
+    }
+    const rel = path.relative(process.cwd(), file);
+    const sourceFile = path.join(args.skillsDir, rule.source.path);
+    if (!fs.existsSync(sourceFile)) {
+      problems.push(`${rel}: source ${rule.source.path} is missing`);
+      continue;
+    }
+    checked += 1;
+    const sourceText = fs.readFileSync(sourceFile, "utf-8");
+    const { fm } = parseFrontmatter(sourceText);
+    const cited = sourceText.split("\n")[rule.source.line - 1];
+    if (cited === undefined || cited.trim() === "") {
+      changed += 1;
+      problems.push(
+        `${rel}: source.line ${rule.source.line} is blank or past the end of ${rule.source.path}`
+      );
+    } else if (rule.source.ruleId && fm.id === rule.source.ruleId) {
+      const line = h2Line(sourceText);
+      if (line !== rule.source.line) {
+        changed += 1;
+        problems.push(
+          `${rel}: source.line is ${rule.source.line} but the H2 is now on line ${line}`
+        );
+      }
+    }
+    const handWritten = new Set(rule.handWritten);
+    if (
+      rule.source.path.includes("/ui-design/") &&
+      !handWritten.has("mechanical") &&
+      rule.mechanical?.regex
+    ) {
+      const rg = firstRgPattern(parseFrontmatter(sourceText).body);
+      const translated = rg ? translateRegex(rg.pattern) : null;
+      if (translated !== rule.mechanical.regex) {
+        changed += 1;
+        problems.push(
+          `${rel}: mechanical.regex no longer matches the source rg pattern`
+        );
+      }
+    }
+  }
+}
+
 if (problems.length > 0) {
   process.stderr.write(`${problems.join("\n")}\n`);
 }
 process.stdout.write(
-  `${args.check ? `${changed} rule file${changed === 1 ? "" : "s"} drifted from the source` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${available} draft${available === 1 ? "" : "s"} available (pass --write-drafts to generate); ${unmapped} source rules have no category mapping\n`
+  `${args.check ? `${checked} shipped rules checked against the source; ${changed} drifted` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${available} draft${available === 1 ? "" : "s"} available (pass --write-drafts to generate); ${unmapped} source rules have no category mapping\n`
 );
-if (args.check && changed > 0) {
+if (args.check && (changed > 0 || problems.length > 0)) {
   process.exit(1);
 }

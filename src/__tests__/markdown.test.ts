@@ -56,6 +56,37 @@ it("never renders fenced code, skips configured components and masks inline code
   expect(expression?.text).toBe("Text with an inside it.");
 });
 
+it("keeps code span offsets in UTF-16 units past an astral character", () => {
+  const units = extractMarkdown(
+    "x.md",
+    'Smile \u{1F600} then use `"straight"` quotes here.\n',
+    { config: config(FIXTURES), docType: "lesson" }
+  );
+  const [span] = units[0].codeSpans;
+  expect(units[0].text.slice(span[0], span[1])).toBe('"straight"');
+});
+
+it("extracts attribute strings from inline MDX elements inside a paragraph", () => {
+  const units = extractMarkdown(
+    "x.mdx",
+    "Inline <Kbd label=\"Press 'Ctrl'\" /> element with an attribute.\n",
+    { config: config(FIXTURES), docType: "lesson" }
+  );
+  expect(units.map((u) => u.kind)).toEqual(["attr-string", "paragraph"]);
+  expect(units[0].text).toBe("Press 'Ctrl'");
+});
+
+it("keeps offsets aligned when the file starts with a BOM", () => {
+  const source = '\uFEFFA "bom" line here.\n';
+  const [unit] = extractMarkdown("x.md", source, {
+    config: config(FIXTURES),
+    docType: "lesson",
+  });
+  expect(source.slice(unit.sourceStart, unit.sourceEnd)).toBe(
+    'A "bom" line here.'
+  );
+});
+
 it("falls back to plain markdown when MDX does not parse", () => {
   const units = load("broken.mdx");
   expect(units.some((u) => u.kind === "file")).toBe(false);

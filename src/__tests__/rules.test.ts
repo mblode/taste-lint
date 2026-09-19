@@ -36,7 +36,7 @@ const base = () => ({
   unit: ["paragraph"],
 });
 
-it("loads the shipped rules and applies a tuning overlay", () => {
+it("loads the fixture rules and applies a tuning overlay", () => {
   const rules = loadRules(path.join(FIXTURES, "rules"));
   expect(rules.map((r) => r.id)).toEqual([
     "copywriting-claim-without-evidence",
@@ -64,6 +64,16 @@ it("loads the shipped rules and applies a tuning overlay", () => {
     JSON.stringify({ nope: { act: 0.9 } })
   );
   expect(() => loadRules(root)).toThrow(/unknown rule nope/);
+  fs.writeFileSync(
+    path.join(root, "tuning.json"),
+    JSON.stringify({ "typography-hierarchy-size-only": { status: "activ" } })
+  );
+  expect(() => loadRules(root)).toThrow(/status must be one of/);
+  fs.writeFileSync(
+    path.join(root, "tuning.json"),
+    JSON.stringify({ "typography-hierarchy-size-only": { act: "0.9" } })
+  );
+  expect(() => loadRules(root)).toThrow(/act must be a number/);
 });
 
 it.each([
@@ -95,6 +105,43 @@ it.each([
     "mechanical with question",
     { mechanical: { regex: "x" }, tier: "mechanical" },
     /must not carry a question/,
+  ],
+  [
+    "unknown top-level key",
+    { threshold: { act: 0.9 } },
+    /unknown key threshold/,
+  ],
+  [
+    "string threshold",
+    { thresholds: { act: "0.95", review: 0.5 } },
+    /act must be a number/,
+  ],
+  [
+    "typo in preconditions",
+    { preconditions: { notInCod: true } },
+    /unknown key notInCod/,
+  ],
+  [
+    "fractional minMatches",
+    { mechanical: { minMatches: 1.5, regex: "x" }, tier: "both" },
+    /positive integer/,
+  ],
+  [
+    "em dash in an example",
+    {
+      question: {
+        criteria: {
+          false: { examples: ["b"], what: "b" },
+          true: {
+            examples: [`a ${String.fromCodePoint(0x20_14)} b`],
+            what: "a",
+          },
+        },
+        instructions: "Is it?",
+        type: "noul",
+      },
+    },
+    /em dash/,
   ],
 ])("rejects %s before any request", (_name, overrides, pattern) => {
   expect(() =>

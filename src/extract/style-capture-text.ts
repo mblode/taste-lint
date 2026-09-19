@@ -4,7 +4,9 @@
 // block per element in document order, and html_capture gives the subtree
 // whose text we walk by nth-child position.
 
-import type { CaptureResult, ElementSnapshot } from "./rendered.js";
+import { assertCapture } from "./capture.js";
+import type { CaptureResult, ElementSnapshot } from "./capture.js";
+import { decodeEntities } from "./units.js";
 
 const VOID = new Set([
   "area",
@@ -29,14 +31,7 @@ interface HtmlNode {
   attributes: Record<string, string>;
 }
 
-const decode = (s: string): string =>
-  s
-    .replaceAll("&nbsp;", " ")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'")
-    .replaceAll("&amp;", "&");
+const decode = decodeEntities;
 
 const parseAttributes = (raw: string): Record<string, string> => {
   const out: Record<string, string> = {};
@@ -49,9 +44,10 @@ const parseAttributes = (raw: string): Record<string, string> => {
 };
 
 // SIMPLIFIED: a tolerant tag/text tokenizer, not an HTML5 parser. Fine for
-// the cleaned subtree style-capture emits (no scripts, no raw text elements);
-// swap for parse5 if captures start carrying <template> or <textarea>.
-export const parseHtmlTree = (html: string): HtmlNode => {
+// the cleaned subtree style-capture emits (no scripts, no raw text elements).
+// Quoted attribute values may contain `>`; an unquoted `>` inside a value or
+// a <template>/<textarea> subtree means it is time to swap in parse5.
+const parseHtmlTree = (html: string): HtmlNode => {
   const root: HtmlNode = {
     attributes: {},
     children: [],
@@ -60,7 +56,7 @@ export const parseHtmlTree = (html: string): HtmlNode => {
   };
   const stack: HtmlNode[] = [root];
   const re =
-    /<!--[\s\S]*?-->|<\/([a-zA-Z][^\s>]*)\s*>|<([a-zA-Z][^\s/>]*)([^>]*?)(\/?)>|([^<]+)/g;
+    /<!--[\s\S]*?-->|<\/([a-zA-Z][^\s>]*)\s*>|<([a-zA-Z][^\s/>]*)((?:"[^"]*"|'[^']*'|[^>])*?)(\/?)>|([^<]+)/g;
   for (const m of html.matchAll(re)) {
     const [, close, open, attrs, selfClose, text] = m;
     const top = stack.at(-1) as HtmlNode;
@@ -98,8 +94,9 @@ export const parseHtmlTree = (html: string): HtmlNode => {
   return root;
 };
 
-const lastSegment = (selector: string): string =>
-  selector.split(">").at(-1) ?? selector;
+// Selectors split on `>`; the CLI writes them with or without spaces.
+const segmentsOf = (selector: string): string[] =>
+  selector.split(">").map((s) => s.trim());
 
 const tagOf = (segment: string): string =>
   segment.match(/^[a-zA-Z][a-zA-Z0-9-]*/)?.[0] ?? "div";
@@ -124,7 +121,8 @@ export const parseStyleCaptureText = (text: string): CaptureResult => {
   let rootSelector: string | null = null;
   let index = 0;
   for (const block of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
-    const selector = block[1].trim();
+    const segments = segmentsOf(block[1]);
+    const selector = segments.join(">");
     const styles: Record<string, string> = {};
     for (const decl of block[2].split(";")) {
       const colon = decl.indexOf(":");
@@ -135,8 +133,7 @@ export const parseStyleCaptureText = (text: string): CaptureResult => {
     const id = `e${index}`;
     index += 1;
     rootSelector ??= selector;
-    const segments = selector.split(">");
-    const rootDepth = rootSelector.split(">").length;
+    const rootDepth = segmentsOf(rootSelector).length;
     // Walk the HTML tree by nth-child positions below the root.
     let node: HtmlNode | undefined = rootHtmlNode;
     for (const segment of segments.slice(rootDepth)) {
@@ -147,7 +144,7 @@ export const parseStyleCaptureText = (text: string): CaptureResult => {
     const parentId = parentSelector
       ? (bySelector.get(parentSelector) ?? null)
       : null;
-    const segment = lastSegment(selector);
+    const segment = segments.at(-1) ?? selector;
     elements[id] = {
       attributes: node?.attributes ?? {},
       boundingBox: {
@@ -192,7 +189,7 @@ export const parseStyleCaptureText = (text: string): CaptureResult => {
 export const parseCaptureInput = (raw: string): CaptureResult => {
   const trimmed = raw.trimStart();
   if (trimmed.startsWith("{")) {
-    return JSON.parse(trimmed) as CaptureResult;
+    return assertCapture(JSON.parse(trimmed));
   }
   return parseStyleCaptureText(trimmed);
 };

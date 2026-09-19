@@ -10,20 +10,23 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "node:util";
 
 import { parseSync } from "oxc-parser";
 
-// Import from the built package so `.js` specifiers resolve; run `npm run build` first.
-import { extractTsx } from "../dist/index.js";
+// Import from the built package so `.js` specifiers resolve; `npm run
+// seed-corpus` builds first.
+import { extractTsx, splitFor } from "../dist/index.js";
 import type { Config, CorpusItem, Unit, UnitKind } from "../src/types.ts";
 
-const a = process.argv.slice(2);
-const get = (flag: string): string | undefined => {
-  const i = a.indexOf(flag);
-  return i === -1 ? undefined : a[i + 1];
-};
-const tasteDir = path.resolve(get("--taste-training") ?? "../taste-training");
-const outDir = path.resolve(get("--out") ?? "data/corpus");
+const { values } = parseArgs({
+  options: {
+    out: { type: "string" },
+    "taste-training": { type: "string" },
+  },
+});
+const tasteDir = path.resolve(values["taste-training"] ?? "../taste-training");
+const outDir = path.resolve(values.out ?? "data/corpus");
 const web = path.join(tasteDir, "apps/web");
 
 // Category -> slop-cop rule ids whose truth the losing option demonstrates.
@@ -475,15 +478,8 @@ for (const [i, paragraph] of sample
   });
 }
 
-// Deterministic 80/20 split by id hash (same function as the loader).
-const splitFor = (id: string): "dev" | "holdout" => {
-  let h = 2_166_136_261;
-  for (const ch of id) {
-    h ^= ch.codePointAt(0) ?? 0;
-    h = Math.imul(h, 16_777_619) >>> 0;
-  }
-  return h % 5 === 0 ? "holdout" : "dev";
-};
+// The loader's own split, so hand-added rows without `split` land where a
+// re-seed would put them.
 for (const item of items) {
   item.split = splitFor(item.id);
 }

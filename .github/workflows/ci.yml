@@ -24,11 +24,16 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Lists pending changesets. The repository has no main branch yet, so
-      # `--since origin/main` cannot run; switch to it once main exists.
+      # Lists pending changesets against origin/main. Skipped while the
+      # repository has no main branch, since changesets needs that ref.
       - name: Changeset Status
         if: github.event_name == 'pull_request'
-        run: npx changeset status
+        run: |
+          if git rev-parse --verify --quiet origin/main >/dev/null; then
+            npx changeset status --since origin/main
+          else
+            echo "origin/main does not exist yet; skipping changeset status"
+          fi
 
       # The same umbrella a developer runs locally: check, typecheck, test,
       # build, packed smoke test, rules check, fixture dry run.

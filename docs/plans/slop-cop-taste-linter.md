@@ -82,3 +82,15 @@ Keep `docs/plans/slop-cop-taste-linter.notes.md` with two headings, Deviations a
 - Plan named `capture.json` as the rendered input; both the JSON shape and the CLI text block are accepted.
 - Plan claimed the CI fixture dry run and `changeset status --since origin/main` as green; both failed and were replaced by `verify:full` and `changeset status`.
 - Plan said `--strict` controls exit 2; `INCOMPLETE` always exits 2.
+
+## Review log
+
+2026-09-19, pr-reviewer (Standard mode with context-errors) then tidy, over the whole branch (b461fcb..9c02f43, no base branch exists). Confirmed and fixed:
+
+- `--fix` rewrote whole source slices, so attribute delimiters, `{"..."}` braces, string quotes and inline code were curled along with the prose. Units now carry `fixRanges` (the prose only) and `applyFixes` edits nothing else; a unit without ranges is reported and left for a hand fix. Fix regexes mirror their rule regexes.
+- Code-span offsets mixed UTF-16 and code-point indexing, so an emoji before inline code unmasked the code. Everything indexes UTF-16 now.
+- The corpus loader validated labels against the caller's rule subset before the weak-row skip, so `eval --only`, `tune` and `tune ab` aborted on the shipped corpus. Labels validate against the full catalogue and rows outside the evaluation are dropped.
+- A suppressed finding could head a category merge and hide a live one; an auth failure did not stop the remaining requests; failed requests vanished instead of becoming unknowns; tuning.json and rule keys were accepted without validation; `port-rules --check` compared only 2 of 38 shipped rules and exited 0 on a missing skills directory; the packed smoke test parsed stdout that lefthook had written to.
+- Smaller: JSX passed through props was never visited, character references double-decoded, a later Tailwind size kept an earlier size's line height, McNemar reported a difference for equal discordant counts, Wilson at n = 0 read as a confident zero, marketing routes classified as `ui`, several dead fields and duplicate helpers.
+
+Deferred, with reasons: `agent-evals` carries the same McNemar expression and is not this repository's to change; the token estimate keeps 3.5 chars per token with the headroom documented instead of a per-kind ratio; `path.matchesGlob` stays unused until it is stable on Node 24.

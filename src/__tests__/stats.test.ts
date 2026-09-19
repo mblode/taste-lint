@@ -17,6 +17,13 @@ it("computes Wilson intervals and McNemar like agent-evals", () => {
     [true, false, true, true, true]
   );
   expect(test).toMatchObject({ discordant: 3, n01: 1, n10: 2 });
+  // Equal discordant counts mean no difference: statistic 0, p 1.
+  expect(mcnemar([true, false], [false, true])).toMatchObject({
+    pValue: 1,
+    statistic: 0,
+  });
+  // No trials is the uninformative interval, never a confident zero.
+  expect(wilson(0, 0)).toEqual([0, 1]);
 });
 
 it("computes precision, recall and a calibration table", () => {

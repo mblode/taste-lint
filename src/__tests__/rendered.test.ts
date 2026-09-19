@@ -44,6 +44,21 @@ it("turns a style-capture result into element units with real values", () => {
   expect(FUNCTIONS.bodyBelow15px(body).fired).toBe(true);
 });
 
+it("fails closed on a malformed capture and ignores orphaned siblings", () => {
+  expect(() =>
+    parseCaptureInput(JSON.stringify({ elements: null, version: 1 }))
+  ).toThrow(/Unsupported capture/);
+  const capture = JSON.parse(
+    fs.readFileSync(path.join(FIXTURES, "capture.json"), "utf-8")
+  );
+  // Detach the heading from its parent's child list: it must get no neighbours.
+  const heading = capture.order[1];
+  const parent = capture.elements[capture.elements[heading].parentId];
+  parent.children = parent.children.filter((id: string) => id !== heading);
+  const units = extractCapture(capture, "orphan");
+  expect(units[0].neighbours).toEqual({ next: undefined, prev: undefined });
+});
+
 it("parses the style-capture CLI text block into elements with text and styles", () => {
   const capture = parseCaptureInput(
     fs.readFileSync(path.join(FIXTURES, "capture.txt"), "utf-8")

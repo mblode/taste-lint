@@ -1,5 +1,7 @@
 // Statistics helpers copied from agent-evals routing.ts so the two tools
-// report the same numbers for the same inputs.
+// report the same numbers for the same inputs, with one correction: McNemar's
+// continuity correction is clamped at zero, so equal discordant counts give
+// p = 1 rather than a spurious difference.
 
 // Deterministic PRNG (mulberry32).
 export const makePRNG = (seed: number): (() => number) => {
@@ -20,7 +22,8 @@ export const wilson = (
   z = 1.96
 ): [number, number] => {
   if (n === 0) {
-    return [0, 0];
+    // No trials: the uninformative interval, never a confident zero.
+    return [0, 1];
   }
   const phat = successes / n;
   const denom = 1 + (z * z) / n;
@@ -74,9 +77,13 @@ export const mcnemar = (
     }
   }
   const discordant = n01 + n10;
+  // Continuity-corrected; equal discordant counts give 0, not (-1)^2.
   const statistic =
-    discordant === 0 ? 0 : (Math.abs(n01 - n10) - 1) ** 2 / discordant;
-  const pValue = discordant === 0 ? 1 : erfc(Math.sqrt(statistic / 2));
+    discordant === 0
+      ? 0
+      : Math.max(0, Math.abs(n01 - n10) - 1) ** 2 / discordant;
+  const pValue =
+    statistic === 0 ? 1 : Math.min(1, erfc(Math.sqrt(statistic / 2)));
   return { discordant, n01, n10, pValue, statistic };
 };
 

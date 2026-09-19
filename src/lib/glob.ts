@@ -11,7 +11,7 @@ const DEFAULT_EXCLUDE = [
 ];
 
 // Convert a glob to a RegExp over a forward-slash relative path.
-export const globToRegExp = (glob: string): RegExp => {
+const globToRegExp = (glob: string): RegExp => {
   let out = "^";
   for (let i = 0; i < glob.length; i += 1) {
     const ch = glob[i];
@@ -38,7 +38,12 @@ export const globToRegExp = (glob: string): RegExp => {
         const alts = glob
           .slice(i + 1, close)
           .split(",")
-          .map((a) => a.replaceAll(/[.+^$()|[\]\\]/g, "\\$&"));
+          .map((a) =>
+            a
+              .replaceAll(/[.+^$()|[\]\\]/g, "\\$&")
+              .replaceAll("*", "[^/]*")
+              .replaceAll("?", "[^/]")
+          );
         out += `(?:${alts.join("|")})`;
         i = close;
       }

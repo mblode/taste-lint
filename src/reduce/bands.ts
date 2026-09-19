@@ -1,6 +1,6 @@
 import type { JevJob } from "../map/plan.js";
-import { severityFor } from "../map/plan.js";
-import type { Band, Finding, Rule, Unit } from "../types.js";
+import type { Band, Finding, Rule } from "../types.js";
+import { toFinding } from "./finding.js";
 
 export const band = (
   probability: number,
@@ -42,32 +42,3 @@ export const jevFindings = (
   }
   return { findings, silent };
 };
-
-export const toFinding = (
-  rule: Rule,
-  unit: Unit,
-  probability: number,
-  b: Band,
-  candidateEvidence?: string
-): Finding => ({
-  band: b,
-  categoryId: rule.categoryId,
-  column: unit.column,
-  domain: rule.domain,
-  endColumn: unit.endColumn,
-  endLine: unit.endLine,
-  evidence: candidateEvidence
-    ? `${candidateEvidence}; p=${probability.toFixed(2)}`
-    : `p=${probability.toFixed(2)}`,
-  file: unit.file,
-  fixHint: rule.fix.hint,
-  fixMode: rule.fix.mode,
-  line: unit.line,
-  message: rule.title,
-  probability,
-  ruleId: rule.id,
-  severity: severityFor(rule, unit.file),
-  suppressed: false,
-  tier: rule.tier,
-  unitId: unit.id,
-});

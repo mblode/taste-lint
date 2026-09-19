@@ -11,12 +11,14 @@ import { collectFiles } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
 import { chunkQuestions, prepareRequests, runRequests } from "./map/batch.js";
+import type { RunOutcome } from "./map/batch.js";
 import { AnswerCache } from "./map/cache.js";
-import { DEFAULT_MODEL, makeFetchEvaluate, ProviderError } from "./map/jev.js";
+import { DEFAULT_MODEL, makeFetchEvaluate } from "./map/jev.js";
 import { planRequests } from "./map/plan.js";
 import { jevFindings } from "./reduce/bands.js";
 import { dedupe } from "./reduce/dedupe.js";
 import { FIXES } from "./reduce/fixes.js";
+import type { FixFunction } from "./reduce/fixes.js";
 import { buildScorecard } from "./reduce/scorecard.js";
 import { applySuppressions } from "./reduce/suppress.js";
 import { loadRules, resolveRulesDir } from "./rules/load.js";
@@ -27,7 +29,9 @@ import type {
   Rule,
   Severity,
   Unit,
+  Unknown,
 } from "./types.js";
+import { SEVERITY_RANK } from "./types.js";
 
 export interface LintOptions {
   root: string;
@@ -55,11 +59,8 @@ export interface LintContext {
   stderr?: (text: string) => void;
 }
 
-const SEVERITY_RANK: Record<Severity, number> = {
-  critical: 0,
-  major: 1,
-  minor: 2,
-};
+export const defaultResultsDir = (): string =>
+  path.join(process.cwd(), "results");
 
 export const runLint = async (
   options: LintOptions,
@@ -77,7 +78,7 @@ export const runLint = async (
   const rulesDir = resolveRulesDir(options.rulesDir);
   const rules = loadRules(rulesDir, { only: options.only });
   const model = options.model ?? DEFAULT_MODEL;
-  const resultsDir = options.resultsDir ?? path.join(process.cwd(), "results");
+  const resultsDir = options.resultsDir ?? defaultResultsDir();
 
   const files =
     options.targets.length > 0
@@ -125,7 +126,8 @@ export const runLint = async (
   };
 
   let findings: Finding[] = [...plan.mechanical];
-  let status: LintResult["status"] = "complete";
+  const unknowns: Unknown[] = [...plan.unknowns];
+  let status: LintResult["status"] = options.dryRun ? "dry-run" : "complete";
   const usage = {
     cached: 0,
     costUsd: 0,
@@ -150,18 +152,7 @@ export const runLint = async (
     }
   }
 
-  if (options.dryRun) {
-    status = "dry-run";
-    // Cached answers still contribute findings in a dry run.
-    const answers = new Map(prepared.map((p) => [p.job.unit.id, p.cached]));
-    const jf = jevFindings(jobs, answers);
-    findings.push(...jf.findings);
-    silent = jf.silent;
-    usage.cached = prepared.reduce(
-      (s, p) => s + Object.keys(p.cached).length,
-      0
-    );
-  } else if (jobs.length > 0 && pending.length > 0) {
+  if (!options.dryRun && pending.length > 0) {
     let evaluate = ctx.evaluate;
     if (!evaluate) {
       const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
@@ -177,21 +168,13 @@ export const runLint = async (
       skillsDir: config.root,
     });
     recorder.append({ kind: "manifest", ...manifest });
-    let outcome;
-    try {
-      outcome = await runRequests(prepared, {
-        cache,
-        evaluate,
-        model,
-        onProgress: (mark) => stderr(mark),
-        recorder,
-      });
-    } catch (error) {
-      if (error instanceof ProviderError && error.category === "auth") {
-        throw error;
-      }
-      throw error;
-    }
+    const outcome: RunOutcome = await runRequests(prepared, {
+      cache,
+      evaluate,
+      model,
+      onProgress: (mark) => stderr(mark),
+      recorder,
+    });
     stderr("\n");
     usage.requests = outcome.requests;
     usage.cached = outcome.cached;
@@ -201,12 +184,27 @@ export const runLint = async (
     if (outcome.errors > 0) {
       status = "incomplete";
     }
+    // A question the provider never answered is an abstention with a reason,
+    // not a silent pass.
+    const unitById = new Map(units.map((u) => [u.id, u]));
+    for (const failed of outcome.failed) {
+      const unit = unitById.get(failed.unitId);
+      for (const ruleId of failed.ruleIds) {
+        unknowns.push({
+          file: unit?.file ?? "",
+          line: unit?.line ?? 0,
+          reason: failed.category,
+          ruleId,
+          unitId: failed.unitId,
+        });
+      }
+    }
     const jf = jevFindings(jobs, outcome.answers);
     findings.push(...jf.findings);
     silent = jf.silent;
     recorder.summary({ findings: findings.length, status, usage });
   } else if (jobs.length > 0) {
-    // Everything came from cache.
+    // Dry run, or everything came from cache: cached answers still band.
     const answers = new Map(prepared.map((p) => [p.job.unit.id, p.cached]));
     const jf = jevFindings(jobs, answers);
     findings.push(...jf.findings);
@@ -223,13 +221,7 @@ export const runLint = async (
     applyFixes(config.root, findings, rules, units, stderr);
   }
 
-  const scorecard = buildScorecard(
-    units,
-    rules,
-    findings,
-    plan.unknowns,
-    silent
-  );
+  const scorecard = buildScorecard(units, rules, findings, unknowns, silent);
   const failOn = options.failOn ?? "minor";
   const failing = findings.filter(
     (f) =>
@@ -259,13 +251,22 @@ export const runLint = async (
     scorecard,
     status,
     units: units.filter((u) => u.kind !== "file").length,
-    unknowns: plan.unknowns,
+    unknowns,
     usage,
   };
 };
 
-// Apply deterministic fixes to the source slice of each act-band finding.
-const applyFixes = (
+interface Edit {
+  start: number;
+  end: number;
+  fns: FixFunction[];
+}
+
+// Apply deterministic fixes to the prose ranges of each act-band finding.
+// Only `unit.fixRanges` is ever rewritten, so quotes, braces, expressions and
+// inline code around the prose are untouched. Fixes landing on the same range
+// compose; ranges are otherwise disjoint by construction.
+export const applyFixes = (
   root: string,
   findings: Finding[],
   rules: Rule[],
@@ -274,42 +275,56 @@ const applyFixes = (
 ): void => {
   const ruleById = new Map(rules.map((r) => [r.id, r]));
   const unitById = new Map(units.map((u) => [u.id, u]));
-  const byFile = new Map<
-    string,
-    { start: number; end: number; fn: (s: string) => string }[]
-  >();
+  const byFile = new Map<string, Map<string, Edit>>();
+  let skipped = 0;
   for (const f of findings) {
     const rule = ruleById.get(f.ruleId);
     const unit = unitById.get(f.unitId);
+    const fn = rule?.fix.function ? FIXES[rule.fix.function] : undefined;
     if (
       !rule ||
       !unit ||
+      !fn ||
       f.suppressed ||
       f.band !== "act" ||
-      rule.fix.mode !== "deterministic" ||
-      !rule.fix.function
+      rule.fix.mode !== "deterministic"
     ) {
       continue;
     }
-    const fn = FIXES[rule.fix.function];
-    if (!fn) {
+    if (!unit.fixRanges || unit.fixRanges.length === 0) {
+      skipped += 1;
       continue;
     }
-    const list = byFile.get(f.file) ?? [];
-    list.push({ end: unit.sourceEnd, fn, start: unit.sourceStart });
-    byFile.set(f.file, list);
+    const edits = byFile.get(f.file) ?? new Map<string, Edit>();
+    for (const [start, end] of unit.fixRanges) {
+      const key = `${start}:${end}`;
+      const edit = edits.get(key) ?? { end, fns: [], start };
+      if (!edit.fns.includes(fn)) {
+        edit.fns.push(fn);
+      }
+      edits.set(key, edit);
+    }
+    byFile.set(f.file, edits);
   }
   for (const [file, edits] of byFile) {
     const abs = path.join(root, file);
     let source = fs.readFileSync(abs, "utf-8");
-    for (const edit of edits.toSorted((a, b) => b.start - a.start)) {
-      const slice = source.slice(edit.start, edit.end);
-      source =
-        source.slice(0, edit.start) + edit.fn(slice) + source.slice(edit.end);
+    const ordered = [...edits.values()].toSorted((a, b) => b.start - a.start);
+    for (const edit of ordered) {
+      let after = source.slice(edit.start, edit.end);
+      for (const fn of edit.fns) {
+        after = fn(after);
+      }
+      source = source.slice(0, edit.start) + after + source.slice(edit.end);
     }
     fs.writeFileSync(abs, source);
     stderr(
-      `fixed ${edits.length} range${edits.length === 1 ? "" : "s"} in ${file}\n`
+      `fixed ${ordered.length} range${ordered.length === 1 ? "" : "s"} in ${file}\n`
+    );
+  }
+  if (skipped > 0) {
+    stderr(
+      `${skipped} finding${skipped === 1 ? "" : "s"} left for a hand fix: the unit has no prose range slop-cop can rewrite safely\n`
     );
   }
 };
