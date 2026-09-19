@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Command } from "commander";
 
 import { extractCapture, runStyleCapture } from "../extract/rendered.js";
+import { parseCaptureInput } from "../extract/style-capture-text.js";
 import { runLint } from "../lint.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
@@ -83,7 +84,7 @@ export function registerLintCommand(program: Command): void {
         let extraUnits;
         if (options.capture) {
           extraUnits = extractCapture(
-            JSON.parse(fs.readFileSync(options.capture, "utf-8")),
+            parseCaptureInput(fs.readFileSync(options.capture, "utf-8")),
             options.capture
           );
         } else if (options.url) {

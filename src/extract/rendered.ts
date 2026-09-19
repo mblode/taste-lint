@@ -10,6 +10,7 @@ import type {
   Role,
   Unit,
 } from "../types.js";
+import { parseCaptureInput } from "./style-capture-text.js";
 import { LineIndex, makeUnit, normaliseText } from "./units.js";
 
 export interface BoundingBox {
@@ -230,31 +231,16 @@ export const extractCapture = (
   return units;
 };
 
-// Drive the style-capture CLI and parse its JSON output. Requires the
-// `style-capture` package (npx) and a local Chromium via Playwright.
+// Drive the style-capture CLI and parse its text block. Requires the
+// `style-capture` package (via npx) and a local Chromium for Playwright.
 export const runStyleCapture = async (
   url: string,
   selector: string
 ): Promise<CaptureResult> => {
   const { stdout } = await spawnCapture(
     "npx",
-    [
-      "--yes",
-      "style-capture",
-      url,
-      selector,
-      "--mode",
-      "full",
-      "--format",
-      "json",
-    ],
-    { timeoutMs: 120_000 }
+    ["--yes", "style-capture", url, selector, "--mode", "full"],
+    { timeoutMs: 180_000 }
   );
-  const start = stdout.indexOf("{");
-  if (start === -1) {
-    throw new Error(
-      "style-capture returned no JSON. Update style-capture or pass --capture with a saved CaptureResult."
-    );
-  }
-  return JSON.parse(stdout.slice(start)) as CaptureResult;
+  return parseCaptureInput(stdout);
 };

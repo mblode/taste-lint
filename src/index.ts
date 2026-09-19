@@ -9,7 +9,11 @@ export { extractFile } from "./extract/index.js";
 export { extractMarkdown } from "./extract/markdown.js";
 export { extractTsx } from "./extract/tsx.js";
 export { resolveTypography, splitClasses } from "./extract/tailwind.js";
-export { extractCapture } from "./extract/rendered.js";
+export { extractCapture, runStyleCapture } from "./extract/rendered.js";
+export {
+  parseCaptureInput,
+  parseStyleCaptureText,
+} from "./extract/style-capture-text.js";
 export { planRequests } from "./map/plan.js";
 export { buildState } from "./map/state.js";
 export {
