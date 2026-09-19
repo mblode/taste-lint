@@ -1,0 +1,21 @@
+<style_capture url="http://127.0.0.1:8765/" mode="full" root_ref="0" root_selector="html:nth-child(1) &gt; body:nth-child(2) &gt; main:nth-child(1)" elements="6" pseudos="0">
+Recreate or refactor this UI faithfully. html_capture + css_capture are ground truth. Preserve structure unless simplifying is clearly better. Tailwind hints are hints. Use the smallest codebase-ready change and state ambiguities instead of inventing details.
+<html_capture><main><h2>Notification rules</h2><p class="lead">Choose which sync events reach your inbox and which stay in the feed.</p><p class="small">Body copy that is set small and spaced out for no reason at all here, running on for a while.</p><p class="caps">Section label</p><button type="button">Submit</button></main></html_capture>
+<css_capture>html:nth-child(1)>body:nth-child(2)>main:nth-child(1){background-color:rgba(0, 0, 0, 0);color:rgb(0, 0, 0);font-family:Inter, system-ui, sans-serif;font-size:16px;font-style:normal;font-variant-numeric:normal;font-weight:400;letter-spacing:normal;line-height:normal;text-transform:none}html:nth-child(1)>body:nth-child(2)>main:nth-child(1)>h2:nth-child(1){background-color:rgba(0, 0, 0, 0);font-size:17px;font-variant-numeric:normal;font-weight:600;line-height:24px}html:nth-child(1)>body:nth-child(2)>main:nth-child(1)>p.lead:nth-child(2){background-color:rgba(0, 0, 0, 0);font-size:15px;font-variant-numeric:normal;font-weight:600;line-height:22px}html:nth-child(1)>body:nth-child(2)>main:nth-child(1)>p.small:nth-child(3){background-color:rgba(0, 0, 0, 0);font-size:13px;font-variant-numeric:normal;letter-spacing:0.65px;line-height:18px}html:nth-child(1)>body:nth-child(2)>main:nth-child(1)>p.caps:nth-child(4){background-color:rgba(0, 0, 0, 0);font-size:12px;font-variant-numeric:normal;text-transform:uppercase}html:nth-child(1)>body:nth-child(2)>main:nth-child(1)>button:nth-child(5){background-color:rgb(239, 239, 239);font-family:Arial;font-size:14px;font-variant-numeric:normal;font-weight:500}</css_capture>
+<tailwind_hints>
+root=text-black text-base
+1=mb-1 font-semibold leading-6
+2=mb-4 font-semibold
+3=my-[13px] mt-[13px] mb-[13px] w-[600px] h-9 text-[13px] leading-[18px] tracking-[0.65px] origin-[300px_18px]
+4=my-3 mt-3 mb-3 text-xs uppercase
+5=inline-block py-1.5 px-3 pt-1.5 pr-3 pb-1.5 pl-3 text-sm font-medium text-center bg-[#efefef] border-2 border-black
+</tailwind_hints>
+<open_questions>
+3:my-[13px]: Spacing required an arbitrary value.; mt-[13px]: Spacing required an arbitrary value.; mb-[13px]: Spacing required an arbitrary value.; w-[600px]: Computed size values are often layout-dependent.; h-9: Computed size values are often layout-dependent.; text-[13px]: Font size required an arbitrary value.
+5:border-style: Border style needs manual review.; w-[71.5781px]: Computed size values are often layout-dependent.; h-8: Computed size values are often layout-dependent.; [font-family:Arial]: Font family required an arbitrary property utility.; origin-[35.7891px_16px]: transform-origin required an arbitrary value.
+0:max-w-[600px]: Length required an arbitrary value.; w-[600px]: Computed size values are often layout-dependent.; h-[195px]: Computed size values are often layout-dependent.; font-sans: Mapped to the nearest generic Tailwind family.; origin-[300px_97.5px]: transform-origin required an arbitrary value.
+2:w-[600px]: Computed size values are often layout-dependent.; h-11: Computed size values are often layout-dependent.; text-[15px]: Font size required an arbitrary value.; leading-[22px]: Line height required an arbitrary value.; origin-[300px_22px]: transform-origin required an arbitrary value.
+1:w-[600px]: Computed size values are often layout-dependent.; h-6: Computed size values are often layout-dependent.; text-[17px]: Font size required an arbitrary value.; origin-[300px_12px]: transform-origin required an arbitrary value.
+4:w-[600px]: Computed size values are often layout-dependent.; h-3.5: Computed size values are often layout-dependent.; origin-[300px_7px]: transform-origin required an arbitrary value.
+</open_questions>
+</style_capture>

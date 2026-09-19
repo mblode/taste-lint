@@ -19,7 +19,7 @@ node dist/cli.js rules check                     # validate data/rules
 
 - `src/cli.ts`: Commander entry point. Explicit flags win over environment defaults.
 - `src/rules/`: fail-closed rule loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the Jev wire format.
-- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, and style-capture `CaptureResult` JSON. Every unit carries file, line, column and byte offsets.
+- `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, and style-capture output (the CLI text block or `CaptureResult` JSON). Every unit carries file, line, column and byte offsets.
 - `src/map/`: plan (which rules apply to which unit), one Jev request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, fetch client.
 - `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes.
 - `src/report/`: tty, JSON, SARIF.
