@@ -1,5 +1,6 @@
-// Rough token estimate for budgeting. Jev bills input tokens; 3.5 characters
-// per token is conservative for English prose and Tailwind class lists.
+// SIMPLIFIED: 3.5 characters per token, conservative for English prose and
+// Tailwind class lists. Used only for budgeting and dry-run estimates; the
+// summary line reports the provider's real usage.input_tokens after a run.
 export const estimateTokens = (text: string): number =>
   Math.ceil(text.length / 3.5);
 

@@ -54,5 +54,5 @@ preconditions:
         unknown,
       ],
   }
-status: active
+status: review-only
 handWritten: [mechanical, question, fix, thresholds, preconditions]

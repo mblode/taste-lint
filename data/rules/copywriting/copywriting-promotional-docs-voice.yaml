@@ -62,5 +62,5 @@ preconditions:
     notInCode: true,
     docType: [tutorial, howto, reference, explanation, agent-instructions],
   }
-status: active
+status: review-only
 handWritten: [mechanical, question, fix, preconditions]

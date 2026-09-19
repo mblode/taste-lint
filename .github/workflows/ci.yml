@@ -24,30 +24,16 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Lists pending changesets. The repository has no main branch yet, so
+      # `--since origin/main` cannot run; switch to it once main exists.
       - name: Changeset Status
         if: github.event_name == 'pull_request'
-        run: npx changeset status --since origin/main
+        run: npx changeset status
 
-      - name: Lint
-        run: npm run check
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Test
-        run: npm run test
-
-      - name: Build
-        run: npm run build
-
-      - name: Verify published artifact
-        run: npm run test:package
-
-      - name: Validate the shipped rule files
-        run: node dist/cli.js rules check
-
-      - name: Dry-run lint over the fixtures
-        run: node dist/cli.js lint --dry-run src/__tests__/fixtures
+      # The same umbrella a developer runs locally: check, typecheck, test,
+      # build, packed smoke test, rules check, fixture dry run.
+      - name: Verify
+        run: npm run verify:full
 
       - name: Checkout current agent-skills catalogue
         uses: actions/checkout@v6

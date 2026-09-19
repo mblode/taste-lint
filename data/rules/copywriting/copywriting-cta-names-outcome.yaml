@@ -58,5 +58,5 @@ fix:
   hint: >-
     Verb plus the thing the reader gets: Start free trial, Create account, Save changes. Cover the page and read the button alone; if it fits any site, rewrite it.
 preconditions: { notInCode: true, role: [button, link, aria, label] }
-status: active
+status: review-only
 handWritten: [mechanical, question, fix, preconditions]

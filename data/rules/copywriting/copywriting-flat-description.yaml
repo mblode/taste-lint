@@ -40,5 +40,5 @@ fix:
   mode: llm
   hint: Lead with the reader's problem or the scene after it is solved, then say what the product is.
 preconditions: { notInCode: true, docType: [marketing, ui, unknown, lesson] }
-status: active
+status: review-only
 handWritten: [mechanical, question, fix, thresholds, preconditions]

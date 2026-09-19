@@ -55,7 +55,8 @@
     "test:package": "node scripts/test-package.mjs",
     "port-rules": "node --experimental-strip-types scripts/port-rules.ts",
     "seed-corpus": "node --experimental-strip-types scripts/seed-corpus.ts",
-    "verify": "npm run check && npm run typecheck && npm test && npm run build && npm run test:package"
+    "verify": "npm run check && npm run typecheck && npm test && npm run build && npm run test:package",
+    "verify:full": "npm run verify && node dist/cli.js rules check && node dist/cli.js lint --dry-run --fail-on critical --results-dir results src/__tests__/fixtures"
   },
   "dependencies": {
     "commander": "^15.0.0",

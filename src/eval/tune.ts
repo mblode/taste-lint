@@ -169,6 +169,7 @@ export const runTune = async (
               act: d.chosen as number,
               n: d.n,
               precisionLower: d.precisionLower,
+              status: "active",
               ts,
             };
     }

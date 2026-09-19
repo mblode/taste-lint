@@ -1,4 +1,6 @@
-// Token bucket (requests per second) plus a concurrency gate.
+// SIMPLIFIED: single-process token bucket plus a concurrency gate. Fine for
+// one CLI run under the 1,200 requests per minute limit; a shared limiter is
+// needed before several runs share one key in CI.
 
 export class Limiter {
   private tokens: number;
