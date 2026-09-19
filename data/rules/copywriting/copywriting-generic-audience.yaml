@@ -3,19 +3,13 @@
 id: copywriting-generic-audience
 title: Benefit promised to everyone, so it lands on no one
 categoryId: evidence-over-claims
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/sweep-runner.tsx,
     line: 240,
   }
-related: [copywriting-claim-without-evidence]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading, jsx-text]
-tier: both
 mechanical:
   phrases:
     [
@@ -37,7 +31,6 @@ mechanical:
       of all kinds,
     ]
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Read the TEXT. Return true when it promises a benefit or names an audience in words so general that no specific reader, task or measurable change is named: phrases like teams of all sizes, everything you need, be more productive, and more. Return false when the TEXT names a particular person or team, a concrete task, a number, or a scene the reader can picture, or when the TEXT is not promotional at all.
@@ -56,7 +49,6 @@ question:
         - "Cut the weekly report from a day to twenty minutes."
 severity: minor
 fix:
-  mode: llm
   hint: Name the reader, the task and the measure. Turn "be more productive" into the scene where the time comes back.
 preconditions: { notInCode: true }
 status: review-only

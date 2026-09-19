@@ -3,24 +3,18 @@
 id: typography-nbsp-value-unit
 title: Breaking space between a value and its unit
 categoryId: typographic-detail
-domain: typography
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/intersections/full-stack-audit.tsx,
     line: 110,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text, attr-string]
-tier: mechanical
 mechanical:
   regex: "\\d (?:px|pt|em|rem|ms|min|KB|MB|GB|TB|kg|km|cm|mm|fps|%)(?![\\p{L}\\d])"
   flags: gu
 severity: minor
 fix:
-  mode: deterministic
   function: nbspValueUnit
   hint: Put a no-break space (U+00A0) between the number and its unit so "10 MB" never splits across lines.
 preconditions:

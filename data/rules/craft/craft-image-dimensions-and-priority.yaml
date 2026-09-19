@@ -3,30 +3,21 @@
 id: craft-image-dimensions-and-priority
 title: Set Image Dimensions and Priority Intentionally
 categoryId: resilience
-domain: craft
 source:
   line: 9
   path: skills/ui-design/rules/perf-image-dimensions-and-priority.md
   repo: mblode/agent-skills
   ruleId: perf-image-dimensions-and-priority
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <img\b(?![^>]*\bwidth=)[^>]*>
 severity: major
 fix:
   hint: Declare `width`/`height` (or aspect ratio) and prioritize only above-the-fold hero images. Undeclared dimensions shift the page as images arrive, and an unprioritized hero delays the largest paint.
-  mode: none
 status: review-only
-handWritten: []

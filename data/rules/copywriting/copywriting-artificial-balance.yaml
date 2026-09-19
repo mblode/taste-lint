@@ -5,19 +5,13 @@
 id: copywriting-artificial-balance
 title: Forces symmetrical both-sides framing
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: artificial_balance
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing force symmetrical both-sides framing? Ignore a passage that takes a side, weighs the two unequally with a reason, or names the question as genuinely open.
@@ -35,7 +29,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Pick a side and say why, or name the question as open and say what would settle it.
 status: review-only

@@ -3,29 +3,20 @@
 id: craft-token-drift
 title: Arbitrary values drifting off the theme
 categoryId: look-constraints
-domain: craft
 source:
   line: 10
   path: skills/ui-design/rules/slop-token-drift.md
   repo: mblode/agent-skills
   ruleId: slop-token-drift
-  tier: backlog
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.css"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gu
   regex: "@theme"
 severity: minor
 fix:
   hint: "A theme exists so that sizes, colours, and radii repeat across a product and the eye reads them as one system. When a file reaches for five or six one-off bracket values, the surface stops agreeing with the rest of the app: headings land at sizes no other heading uses, a card corner is 3px rounder t"
-  mode: none
 status: review-only
-handWritten: []

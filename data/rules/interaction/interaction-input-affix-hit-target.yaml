@@ -3,30 +3,21 @@
 id: interaction-input-affix-hit-target
 title: Overlay input affixes on the field
 categoryId: form-usability
-domain: interaction
 source:
   line: 10
   path: skills/ui-design/rules/forms-input-affix-hit-target.md
   repo: mblode/agent-skills
   ruleId: forms-input-affix-hit-target
-  tier: backlog
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <div[^>]*(flex|grid)[^>]*>\s*<(svg|Icon|Search|span)[^>]*>[\s\S]{0,400}<input\b
 severity: minor
 fix:
   hint: "A search icon, currency mark, or unit sitting beside the field as a sibling splits the hit target: clicks on the decoration do not focus the input, and the control reads as two widgets. Prefix and suffix decorations belong on top of the text input, with padding so the value does not collide, and the"
-  mode: none
 status: review-only
-handWritten: []

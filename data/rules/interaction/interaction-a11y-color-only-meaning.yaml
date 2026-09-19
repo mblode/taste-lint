@@ -3,30 +3,21 @@
 id: interaction-a11y-color-only-meaning
 title: Avoid Color-Only Meaning
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/a11y-color-only-meaning.md
   repo: mblode/agent-skills
   ruleId: a11y-color-only-meaning
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gu
   regex: \?[^:]*\b(text|bg|border)-(red|green|amber|emerald|rose|yellow)-\d
 severity: major
 fix:
   hint: State carried by hue alone (a red row, a green dot, a colored border) is invisible to color-blind users and on washed-out screens. Pair color with text, an icon, or shape. Contrast ratios are axe's job, not this rule's.
-  mode: none
 status: review-only
-handWritten: []

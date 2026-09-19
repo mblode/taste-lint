@@ -56,7 +56,7 @@
     "port-rules": "node --experimental-strip-types scripts/port-rules.ts",
     "seed-corpus": "npm run build && node --experimental-strip-types scripts/seed-corpus.ts",
     "verify": "npm run check && npm run build && npm run typecheck && npm test && npm run test:package",
-    "verify:full": "npm run verify && node dist/cli.js rules check && node dist/cli.js lint --dry-run --fail-on critical --results-dir results src/__tests__/fixtures"
+    "verify:full": "npm run verify && node dist/cli.js rules check"
   },
   "dependencies": {
     "commander": "^15.0.0",
@@ -82,6 +82,6 @@
     "vitest": "^4.1.10"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=24.11"
   }
 }

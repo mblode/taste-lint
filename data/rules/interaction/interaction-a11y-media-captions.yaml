@@ -3,24 +3,17 @@
 id: interaction-a11y-media-captions
 title: Caption Video and Transcribe Audio
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/a11y-media-captions.md
   repo: mblode/agent-skills
   ruleId: a11y-media-captions
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   absent: kind="captions"
   flags: gu
@@ -28,6 +21,4 @@ mechanical:
 severity: major
 fix:
   hint: Deaf and hard-of-hearing users get nothing from uncaptioned media. Video needs synchronised captions via `<track kind="captions">`; audio-only needs a text transcript. Auto-generated captions alone are not sufficient for meaning-critical media.
-  mode: none
 status: review-only
-handWritten: []

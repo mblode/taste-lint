@@ -2,24 +2,18 @@
 id: copywriting-emoji-in-ui
 title: Emoji in interface copy
 categoryId: actionable-microcopy
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/ui-design/guidelines/copywriting.md,
     line: 9,
   }
-scope:
-  include: ["**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, attr-string]
-tier: mechanical
 mechanical:
   regex: "\\p{Extended_Pictographic}"
   flags: gu
 severity: minor
 fix:
-  mode: none
   hint: Remove the emoji. Headings, descriptions, buttons and labels carry their meaning in words.
 preconditions: { notInCode: true, docType: [ui, unknown] }
 status: active

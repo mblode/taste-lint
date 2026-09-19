@@ -3,19 +3,13 @@
 id: copywriting-friction-cta
 title: Call to action that names a commitment without reducing the risk
 categoryId: actionable-cta
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/sweep-runner.tsx,
     line: 318,
   }
-related: [copywriting-cta-names-outcome]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, heading, paragraph]
-tier: both
 mechanical:
   phrases:
     [
@@ -32,7 +26,6 @@ mechanical:
       schedule a call,
     ]
 question:
-  type: noul
   context: [role, docType]
   instructions: >-
     The TEXT is a call to action or the line beside one. Return true when it asks the reader to commit (sign up, buy, subscribe, talk to sales, request a demo, get started) and neither the TEXT nor its immediate wording says what they get or what makes it safe (free, no card, cancel anytime, how long it takes, what the demo shows). Return false when a result or a risk-reducing promise is present, when the action is a low-stakes step inside a flow, or when the TEXT is not a call to action.
@@ -51,11 +44,7 @@ question:
         - "Add a qualifier that removes the risk: free, no install, cancel anytime."
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
-severityOverrides:
-  - { scope: "**/landing/**", severity: major }
-  - { scope: "**/(marketing)/**", severity: major }
 fix:
-  mode: llm
   hint: >-
     Verb, result, qualifier. Name what the reader gets and add one promise you can back: free, no card, cancel anytime.
 preconditions: { notInCode: true, role: [button, link, heading, body, unknown] }

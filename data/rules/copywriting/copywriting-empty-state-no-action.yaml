@@ -3,7 +3,6 @@
 id: copywriting-empty-state-no-action
 title: Empty state that names the void but not the first move
 categoryId: actionable-microcopy
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
@@ -11,11 +10,7 @@ source:
     line: 66,
     ruleId: rule/empty-state-action,
   }
-scope:
-  include: ["**/*.tsx", "**/*.jsx", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text, attr-string]
-tier: both
 mechanical:
   phrases:
     [
@@ -31,7 +26,6 @@ mechanical:
       nothing yet,
     ]
 question:
-  type: noul
   context: [element]
   instructions: >-
     The TEXT is shown when a list, search or page has nothing in it. Return true when it only states that nothing is there ("No results found", "Nothing here yet") and does not name the object or offer a first action the user can take. Return false when it names what would appear here and how to create or find it, or when the TEXT is not an empty state.
@@ -50,7 +44,6 @@ question:
         - "No invoices match this filter. Clear the filter or change the date range."
 severity: minor
 fix:
-  mode: llm
   hint: >-
     Name the object and the first move: "No deployments yet. Push to your repository to create one."
 preconditions: { notInCode: true, docType: [ui, unknown, lesson] }

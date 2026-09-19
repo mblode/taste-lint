@@ -3,30 +3,22 @@
 id: interaction-on-dynamic-content
 title: Route change without focus management or a live region
 categoryId: focus-and-a11y
-domain: interaction
 source:
   repo: mblode/agent-skills
   path: skills/ui-design/rules/focus-on-dynamic-content.md
   line: 10
   ruleId: focus-on-dynamic-content
-  tier: fix-this-sprint
 scope:
   include:
     - "**/*.ts"
     - "**/*.tsx"
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gu
   regex: "router\\.(push|replace)"
   absent: "focus\\(\\)|aria-live"
 severity: minor
 fix:
-  mode: none
   hint: >-
     A client-side navigation never moves focus or announces the new content. After router.push, focus the new page heading or main region, or announce the change in an aria-live region.
 status: review-only

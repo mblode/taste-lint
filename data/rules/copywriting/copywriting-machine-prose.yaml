@@ -3,19 +3,13 @@
 id: copywriting-machine-prose
 title: Sentence shapes that give away generated writing
 categoryId: machine-prose
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/content/keep-your-taste-with-ai/edit-ai-output-in-three-passes.mdx,
     line: 44,
   }
-related: [copywriting-dead-weight-hedges, copywriting-filler-words]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text]
-tier: both
 mechanical:
   phrases:
     [
@@ -50,7 +44,6 @@ mechanical:
       it's important to remember,
     ]
 question:
-  type: noul
   context: []
   instructions: >-
     Read the TEXT. Return true when it reads as generated boilerplate: a chatbot opener ("I'd be happy to", "Let's dive in"), a vague attribution ("experts believe", "studies show") with no source, a stock flourish ("game-changer", "unlock the power of", "in today's fast-paced world", "a testament to"), or a symmetrical both-sides summary that adds no information. Return false when the TEXT makes a specific claim with a named source, gives an instruction, tells a concrete story, or quotes these phrases in order to warn against them.
@@ -69,7 +62,6 @@ question:
         - "Chatbot openers like I'd be happy to are the first tell to cut."
 severity: minor
 fix:
-  mode: llm
   hint: Ask what the sentence means and write that. Replace the abstraction with a fact (a number, a name, an outcome) or cut it. Never a synonym swap; the tell was never the word.
 preconditions:
   {

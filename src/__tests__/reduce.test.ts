@@ -21,7 +21,6 @@ const finding = (overrides: Partial<Finding>): Finding => ({
   evidence: "",
   file: "a.md",
   fixHint: "",
-  fixMode: "none",
   line: 1,
   message: "",
   probability: 1,

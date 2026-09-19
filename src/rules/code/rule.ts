@@ -10,19 +10,20 @@ import type {
   Unit,
   UnitKind,
 } from "../../types.js";
+import { CATEGORY_BY_ID } from "../taxonomy.js";
+import { scopeFor } from "../validate-sections.js";
+import { DEFAULT_THRESHOLDS, tierOf } from "../validate.js";
 
 export interface CodeRuleSpec {
   id: string;
   title: string;
   categoryId: string;
-  domain: Rule["domain"];
   source: RuleSource;
   unit: UnitKind[];
   severity?: Severity;
-  severityOverrides?: Rule["severityOverrides"];
-  scope?: Rule["scope"];
+  /** Only when the unit kinds do not say which files (see scopeFor). */
+  scope?: { include?: string[]; exclude?: string[] };
   preconditions?: Rule["preconditions"];
-  related?: string[];
   status?: Rule["status"];
   hint: string;
   check: (unit: Unit) => MechanicalHit;
@@ -31,29 +32,31 @@ export interface CodeRuleSpec {
   thresholds?: Rule["thresholds"];
 }
 
-const COMPONENT_SCOPE: Rule["scope"] = {
-  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"],
-  include: ["**/*.tsx", "**/*.jsx"],
+export const codeRule = (spec: CodeRuleSpec, module: string): Rule => {
+  const file = `code:${module}`;
+  const category = CATEGORY_BY_ID.get(spec.categoryId);
+  if (!category) {
+    throw new Error(
+      `Invalid rule ${file}: unknown categoryId ${spec.categoryId}`
+    );
+  }
+  return {
+    categoryId: spec.categoryId,
+    check: spec.check,
+    domain: category.domain as Rule["domain"],
+    file,
+    fix: { hint: spec.hint },
+    handWritten: [],
+    id: spec.id,
+    preconditions: spec.preconditions,
+    question: spec.question,
+    scope: scopeFor(file, spec.unit, spec.scope),
+    severity: spec.severity ?? "minor",
+    source: spec.source,
+    status: spec.status ?? (spec.question ? "review-only" : "active"),
+    thresholds: spec.thresholds ?? { ...DEFAULT_THRESHOLDS },
+    tier: tierOf(spec.check, spec.question),
+    title: spec.title,
+    unit: spec.unit,
+  };
 };
-
-export const codeRule = (spec: CodeRuleSpec, module: string): Rule => ({
-  categoryId: spec.categoryId,
-  check: spec.check,
-  domain: spec.domain,
-  file: `code:${module}`,
-  fix: { hint: spec.hint, mode: "none" },
-  handWritten: [],
-  id: spec.id,
-  preconditions: spec.preconditions,
-  question: spec.question,
-  related: spec.related,
-  scope: spec.scope ?? COMPONENT_SCOPE,
-  severity: spec.severity ?? "minor",
-  severityOverrides: spec.severityOverrides,
-  source: spec.source,
-  status: spec.status ?? (spec.question ? "review-only" : "active"),
-  thresholds: spec.thresholds ?? { act: 0.7, review: 0.35 },
-  tier: spec.question ? "both" : "mechanical",
-  title: spec.title,
-  unit: spec.unit,
-});

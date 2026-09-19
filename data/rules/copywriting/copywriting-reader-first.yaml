@@ -3,19 +3,13 @@
 id: copywriting-reader-first
 title: Headline that leads with what the product is
 categoryId: reader-first-framing
-domain: copywriting
 source:
   {
     repo: mblode/taste-training,
     path: apps/web/components/demos/copywriting/headline-analyzer.tsx,
     line: 58,
   }
-related: [copywriting-flat-description]
-scope:
-  include: ["**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [heading, jsx-text]
-tier: both
 mechanical:
   phrases:
     [
@@ -35,7 +29,6 @@ mechanical:
       a tool,
     ]
 question:
-  type: noul
   context: [docType, headingAbove]
   instructions: >-
     The TEXT is a headline or hero line on a page selling or introducing a product. Return true when it opens by naming what the product is (a platform, a tool, a solution, "Introducing X") before saying why that matters to the reader. Return false when it leads with the reader's problem or outcome, when the DOC TYPE is documentation, reference or a lesson where naming the thing first is correct, or when it is not a headline.
@@ -54,7 +47,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: llm
   hint: >-
     Climb the ladder: why this matters to the reader, then how, then what. Let What lead only where the reader already holds the motivation.
 preconditions:

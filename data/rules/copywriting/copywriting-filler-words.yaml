@@ -3,19 +3,13 @@
 id: copywriting-filler-words
 title: Intensifiers and filler that add nothing
 categoryId: machine-prose
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/clarity-defaults.md,
     line: 12,
   }
-related: [copywriting-dead-weight-hedges]
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, jsx-text]
-tier: both
 mechanical:
   phrases:
     [
@@ -34,7 +28,6 @@ mechanical:
     ]
   minMatches: 2
 question:
-  type: noul
   context: []
   instructions: >-
     Read the TEXT. Return true when the intensifiers or filler words in it (very, really, just, basically, actually, simply, quite, extremely) could be deleted without changing what the sentence says. Return false when each such word carries a real distinction ("just one file" meaning only one), or when the TEXT lists or teaches about filler words.
@@ -51,7 +44,6 @@ question:
         - "Cut filler: very, really, just, basically, actually."
 severity: minor
 fix:
-  mode: llm
   hint: Delete the intensifier and reread. Read it aloud and cut what makes you stumble.
 preconditions:
   {

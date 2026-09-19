@@ -5,19 +5,13 @@
 id: copywriting-fabricated-specificity
 title: Suspiciously specific details without grounding or attribution
 categoryId: evidence-over-claims
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: fabricated_specificity
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing include suspiciously specific details without grounding or attribution? Ignore a number, name or date the passage attributes to a source, a test, or the writer\u0027s own measurement.
@@ -35,7 +29,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Name the source or the measurement, or drop the number.
 status: review-only

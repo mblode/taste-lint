@@ -4,19 +4,13 @@
 id: copywriting-over-explanation
 title: Explains straightforward points more than necessary
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: over_explanation
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing explain straightforward points more than necessary? Ignore an explanation that resolves a real ambiguity or teaches a term the audience may not know, and any passage whose DOC TYPE is tutorial.
@@ -34,7 +28,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     State the point once. Keep an explanation only where it draws a distinction the reader could miss.
 status: review-only

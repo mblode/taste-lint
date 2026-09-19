@@ -10,7 +10,7 @@ import { parse } from "yaml";
 import { defaultResultsDir } from "../lib/config.js";
 import { mcnemar, wilson } from "../lib/stats.js";
 import { AnswerCache } from "../map/cache.js";
-import { DEFAULT_MODEL, makeFetchEvaluate } from "../map/jev.js";
+import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "../map/jev.js";
 import { loadRules, readTuning, resolveRulesDir } from "../rules/load.js";
 import { validateRule } from "../rules/validate.js";
 import type { Evaluate, Rule, Tuning } from "../types.js";
@@ -99,14 +99,11 @@ const resolveEvaluate = (
   options: { apiKey?: string },
   ctx: TuneContext
 ): Evaluate => {
-  if (ctx.evaluate) {
-    return ctx.evaluate;
+  const evaluate = ctx.evaluate ?? evaluateFromEnv(options.apiKey);
+  if (!evaluate) {
+    throw new Error(`${KEY_HINT} Tuning needs live answers.`);
   }
-  const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
-  if (!apiKey) {
-    throw new Error("Set TYPESAFE_API_KEY to tune.");
-  }
-  return makeFetchEvaluate({ apiKey });
+  return evaluate;
 };
 
 export const runTune = async (
@@ -249,8 +246,14 @@ export const runTuneAb = async (
 const correctVector = (e: RuleEval, r: Rule): boolean[] =>
   e.pairs.map((p) => p.probability >= r.thresholds.act === p.label);
 
+// Back to the YAML shape: the loader derives tier, domain and scope, and a
+// code rule's check and file are not data.
 const ruleToRaw = (rule: Rule): Record<string, unknown> => {
-  const { file, ...rest } = rule;
+  const { check, domain, file, scope, tier, ...rest } = rule;
+  void check;
+  void domain;
   void file;
+  void scope;
+  void tier;
   return rest as unknown as Record<string, unknown>;
 };

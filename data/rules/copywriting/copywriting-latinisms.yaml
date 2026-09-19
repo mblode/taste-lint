@@ -2,24 +2,18 @@
 id: copywriting-latinisms
 title: Latin abbreviation in running text
 categoryId: reader-first-framing
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/clarity-no-latin.md,
     line: 7,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading]
-tier: mechanical
 mechanical:
   regex: "\\b(?:e\\.g\\.|i\\.e\\.|etc\\.|et al\\.|viz\\.|cf\\.)"
   flags: gu
 severity: minor
 fix:
-  mode: none
   hint: Write "for example", "that is" and "and so on". Latin abbreviations trip screen readers and non-native readers.
 preconditions:
   {
