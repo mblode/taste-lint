@@ -75,7 +75,7 @@ const directTextOf = (el: ElementSnapshot): string => {
   if (typeof el.text === "string") {
     return normaliseText(el.text);
   }
-  const attr = el.attributes["data-slop-cop-text"];
+  const attr = el.attributes["data-taste-lint-text"];
   return attr ? normaliseText(attr) : "";
 };
 

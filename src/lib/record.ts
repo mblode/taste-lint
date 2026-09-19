@@ -27,7 +27,7 @@ export const makeRecorder = (
   layer: string,
   options: { resultsDir?: string; skillsDir?: string } = {}
 ): RecorderHandle => {
-  // Results live under the current working directory (the scanned repo or slop-cop).
+  // Results live under the current working directory (the scanned repo or taste-lint).
   const resultsDir = options.resultsDir ?? path.join(process.cwd(), "results");
   fs.mkdirSync(resultsDir, { recursive: true });
   const file = path.join(resultsDir, `${layer}-${isoStamp()}.jsonl`);

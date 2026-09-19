@@ -27,7 +27,7 @@ export const resolveRulesDir = (explicit?: string): string => {
     dir = path.dirname(dir);
   }
   throw new Error(
-    "Could not locate data/rules. Reinstall slop-cop or pass --rules."
+    "Could not locate data/rules. Reinstall taste-lint or pass --rules."
   );
 };
 

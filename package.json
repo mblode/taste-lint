@@ -1,5 +1,5 @@
 {
-  "name": "slop-cop",
+  "name": "taste-lint",
   "version": "0.0.1",
   "description": "Taste linter: copy and typography rules from agent-skills answered by TypeSafe Jev probabilities, with mechanical checks, calibration and a scorecard",
   "keywords": [
@@ -11,18 +11,18 @@
     "typesafe",
     "typography"
   ],
-  "homepage": "https://github.com/mblode/slop-cop#readme",
+  "homepage": "https://github.com/mblode/taste-lint#readme",
   "bugs": {
-    "url": "https://github.com/mblode/slop-cop/issues"
+    "url": "https://github.com/mblode/taste-lint/issues"
   },
   "license": "MIT",
   "author": "Matthew Blode",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mblode/slop-cop.git"
+    "url": "git+https://github.com/mblode/taste-lint.git"
   },
   "bin": {
-    "slop-cop": "./dist/cli.js"
+    "taste-lint": "dist/cli.js"
   },
   "files": [
     "dist",

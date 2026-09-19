@@ -1,10 +1,10 @@
 {
-  "skill_name": "slop-cop",
+  "skill_name": "taste-lint",
   "evals": [
     {
       "id": 1,
-      "prompt": "Lint the marketing copy under apps/web/app/(marketing) with slop-cop and tell me what it would cost before you run it.",
-      "expected_output": "Runs `slop-cop lint apps/web/app/(marketing) --dry-run` first, quotes the unit count, request count and estimated cost, then runs the lint without asking again, and summarises act and review findings separately with units, cost and the scorecard delta by category.",
+      "prompt": "Lint the marketing copy under apps/web/app/(marketing) with taste-lint and tell me what it would cost before you run it.",
+      "expected_output": "Runs `taste-lint lint apps/web/app/(marketing) --dry-run` first, quotes the unit count, request count and estimated cost, then runs the lint without asking again, and summarises act and review findings separately with units, cost and the scorecard delta by category.",
       "files": [],
       "assertions": [
         "Runs a --dry-run before any live run",
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "slop-cop reported [MAJOR?] copywriting-vague-error (p=0.52) on the checkout error string. Is that a blocker?",
+      "prompt": "taste-lint reported [MAJOR?] copywriting-vague-error (p=0.52) on the checkout error string. Is that a blocker?",
       "expected_output": "Explains that MAJOR is the severity if real and the ? marks the review band, so the run did not fail on it; recommends reading the string and either fixing it or adding it to the corpus with the right label, and does not downgrade the severity because the probability is middling.",
       "files": [],
       "assertions": [
@@ -27,7 +27,7 @@
     {
       "id": 3,
       "prompt": "Fix every typography-straight-quotes finding in docs/, including the ones inside code fences.",
-      "expected_output": "Points out that slop-cop does not report straight quotes inside code fences or inline code because they are correct there, runs --fix (or edits only the reported prose units), shows the diff, leaves code untouched, and re-runs the lint on the changed files.",
+      "expected_output": "Points out that taste-lint does not report straight quotes inside code fences or inline code because they are correct there, runs --fix (or edits only the reported prose units), shows the diff, leaves code untouched, and re-runs the lint on the changed files.",
       "files": [],
       "assertions": [
         "Refuses to curl quotes inside code",
@@ -38,14 +38,14 @@
   ],
   "routing": {
     "should_trigger": [
-      "Run slop-cop over the content folder",
+      "Run taste-lint over the content folder",
       "Lint the copy in this PR for hedges and unsupported claims",
       "Check the typography in these components with the taste linter",
       "How much would it cost to run the taste linter over apps/web?",
       "Is [MINOR?] copywriting-generic-framing something I have to fix before merging?",
-      "Did my rewrite of the pricing page move the slop-cop scorecard?",
+      "Did my rewrite of the pricing page move the taste-lint scorecard?",
       "Lint the rendered pricing page for body text below 15px",
-      "Why does slop-cop say unknown on these class lists?"
+      "Why does taste-lint say unknown on these class lists?"
     ],
     "near_miss": [
       {
@@ -69,7 +69,7 @@
         "expected": "product-design"
       },
       {
-        "prompt": "Write a new rule for slop-cop that flags emoji in headings",
+        "prompt": "Write a new rule for taste-lint that flags emoji in headings",
         "expected": "none"
       }
     ]

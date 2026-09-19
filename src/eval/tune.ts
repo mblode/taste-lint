@@ -1,4 +1,4 @@
-// `slop-cop tune`: pick the lowest act threshold per rule whose act-band
+// `taste-lint tune`: pick the lowest act threshold per rule whose act-band
 // precision lower bound clears the floor. `tune ab`: McNemar between two
 // question wordings over the same dev items.
 

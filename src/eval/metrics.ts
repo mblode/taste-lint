@@ -1,4 +1,4 @@
-// `slop-cop eval`: run each rule over its labelled items and report.
+// `taste-lint eval`: run each rule over its labelled items and report.
 
 import path from "node:path";
 

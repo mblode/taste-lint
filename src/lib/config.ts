@@ -1,4 +1,4 @@
-// Project configuration: slop-cop.config.json at the scan root plus
+// Project configuration: taste-lint.config.json at the scan root plus
 // auto-detection of facts that change how rules apply.
 
 import fs from "node:fs";
@@ -45,7 +45,7 @@ const DEFAULT_DOC_TYPES: { glob: string; type: DocType }[] = [
   { glob: "**/*.{tsx,jsx}", type: "ui" },
 ];
 
-const CONFIG_FILES = ["slop-cop.config.json"];
+const CONFIG_FILES = ["taste-lint.config.json"];
 const SMARTYPANTS_FILES = [
   "next.config.ts",
   "next.config.mjs",
