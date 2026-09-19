@@ -1,14 +1,15 @@
-# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
-# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
-# AI-tell questions and the four passage checks named in the article.
-id: copywriting-overexplains
-title: Overexplains a straightforward point
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+id: copywriting-over-explanation
+title: Explains straightforward points more than necessary
 categoryId: machine-prose
 domain: copywriting
 source:
   repo: every.to
-  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
+  ruleId: over_explanation
 scope:
   include: ["**/*.md", "**/*.mdx"]
   exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
@@ -18,7 +19,7 @@ question:
   type: noul
   context: [docType]
   instructions: >-
-    Read the TEXT. Return true when it explains a point the reader already has (a definition of a common word, a reason nobody would question, a step spelled out three ways) and the extra sentences add no distinction. Return false when the explanation resolves an ambiguity, teaches a term the audience may not know, or when the DOC TYPE is a tutorial for beginners.
+    Does the writing explain straightforward points more than necessary? Ignore an explanation that resolves a real ambiguity or teaches a term the audience may not know, and any passage whose DOC TYPE is tutorial.
   criteria:
     true:
       what: Padding around an obvious point.
@@ -26,7 +27,7 @@ question:
         - "Click the Save button to save your work. Saving stores your changes so they are not lost. Once saved, your work is preserved."
         - "A password is a secret string of characters. It should be kept secret because it is a secret."
     false:
-      what: Explanation that resolves a real ambiguity or teaches the term.
+      what: Explanation that draws a distinction the reader could miss.
       examples:
         - "Click Save. Autosave runs every 30 seconds, so Save only matters right before you close the tab."
         - "A passkey replaces the password with a key pair; the private half never leaves your device, which is why it cannot be phished."

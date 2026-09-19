@@ -1,0 +1,34 @@
+# Hand-ported from mblode/agent-skills skills/ui-design/rules/dark-i18n-untested.md. The detection there is a
+# shell loop or pipeline; regex plus absent is the same check over one file.
+# The source filters matching lines through `rg -v dark:`; the negative lookahead is
+# that filter on the same line.
+id: craft-i18n-untested
+title: Hardcoded light-mode token with no dark variant on the line
+categoryId: resilience
+domain: craft
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/dark-i18n-untested.md
+  line: 10
+  ruleId: dark-i18n-untested
+  tier: backlog
+scope:
+  include:
+    - "**/*.ts"
+    - "**/*.tsx"
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+unit: [source]
+tier: mechanical
+mechanical:
+  flags: gum
+  regex: "^(?!.*dark:).*className=\"[^\"]*\\b(?:bg-white|bg-black|text-black|text-white|bg-gray-\\d{2,3}|text-gray-\\d{2,3}|border-gray-\\d{2,3})\\b[^\"]*\".*$"
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    bg-white, text-black and fixed grays break in dark mode: white surfaces glow, grays lose contrast, borders vanish. Use the semantic tokens (bg-background, text-foreground, border-border) or pair each with a dark: variant.
+status: review-only
+handWritten: [mechanical, fix, status]

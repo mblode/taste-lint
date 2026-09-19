@@ -1,0 +1,45 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 11 (formulaic closers).
+id: copywriting-boilerplate-offer
+title: Ends with a generic offer to help or continue
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: boilerplate_offer
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  flags: gui
+  regex: "let me know|feel free to|happy to help|hope this helps|if you have any (?:other |further )?questions|reach out if"
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing end with a generic offer to help or continue? Ignore a specific next step with a named owner, date or link.
+  criteria:
+    true:
+      what: A closing offer aimed at nobody.
+      examples:
+        - "I hope this helps! Let me know if you have any other questions."
+        - "Feel free to reach out if you would like me to expand on any of these points."
+    false:
+      what: A specific next step, or a plain ending.
+      examples:
+        - "The rollout starts Monday; Priya owns the flag and posts in #launch when it is at 50 percent."
+        - "That is the whole change. The follow-up, tabular figures in the invoice table, is filed as #412."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    End on the last point or a specific next step; cut the offer.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

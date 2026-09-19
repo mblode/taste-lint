@@ -1,0 +1,55 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 7 (formal transitions).
+id: copywriting-repetitive-transitions
+title: Repeatedly uses formal or formulaic transitions
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: repetitive_transitions
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  phrases:
+    - moreover
+    - furthermore
+    - additionally
+    - consequently
+    - thus
+    - hence
+    - in addition
+    - in conclusion
+    - to summarize
+    - ultimately
+  minMatches: 2
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing repeatedly use formal or formulaic transitions? Ignore a single transition, and a passage whose sentences follow from each other without the connective.
+  criteria:
+    true:
+      what: Transitions doing the work the sentences should.
+      examples:
+        - "Moreover, the design is consistent. Furthermore, it is accessible. Additionally, it loads quickly. Consequently, users prefer it."
+        - "Thus the migration succeeded. Hence the team moved on. Moreover, morale improved."
+    false:
+      what: Sentences that connect by their content.
+      examples:
+        - "The design is consistent and loads quickly, which is why users kept choosing it over the old one in the test."
+        - "The migration finished a week early. The team spent that week on the flaky test suite instead."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Cut the connective and let the order of the sentences carry the logic.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

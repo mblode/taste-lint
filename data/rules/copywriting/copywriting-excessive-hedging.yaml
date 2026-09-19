@@ -1,0 +1,55 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 6 (hedging).
+id: copywriting-excessive-hedging
+title: Hedges claims more than the subject requires
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: excessive_hedging
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  phrases:
+    - might
+    - could
+    - perhaps
+    - generally
+    - arguably
+    - potentially
+    - somewhat
+    - may
+    - possibly
+    - in some cases
+  minMatches: 3
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing hedge claims more than the subject requires? Ignore a hedge that names a real uncertainty and says what would resolve it.
+  criteria:
+    true:
+      what: Reflexive hedges stacked on a claim the writer could have made.
+      examples:
+        - "This might potentially help some teams, in certain cases, to arguably move somewhat faster."
+        - "It could perhaps be argued that the feature may generally improve outcomes for many users."
+    false:
+      what: A claim made plainly, or an uncertainty named with its cause.
+      examples:
+        - "The feature cut the median sign-up time from four minutes to ninety seconds in the A/B test."
+        - "We do not know whether it holds for enterprise accounts; the test had eleven of them."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Make the claim, or name the one uncertainty and what would settle it.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

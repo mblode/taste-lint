@@ -1,0 +1,55 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 12 (argument self-commentary).
+id: copywriting-meta-commentary
+title: Comments on how it is presenting or organising the answer
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: meta_commentary
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  phrases:
+    - in this section
+    - as mentioned above
+    - as we will see
+    - let me break this down
+    - to put it simply
+    - in other words
+    - the takeaway here
+    - this section covers
+    - as discussed
+    - let us take a step back
+  minMatches: 2
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing comment on how it is presenting or organizing the answer? Ignore a heading, a table of contents, and a sentence that states the argument rather than describing where it is going.
+  criteria:
+    true:
+      what: Sentences about the text instead of the subject.
+      examples:
+        - "In this section, we will look at three reasons. As mentioned above, the first is cost. To put it simply, the takeaway here is clear."
+        - "Let me break this down. In other words, as we will see, the picture is more nuanced."
+    false:
+      what: Sentences about the subject.
+      examples:
+        - "Cost is the first reason: the old vendor charged per seat and the team doubled."
+        - "The second reason is latency; the vendor had one region and it was not ours."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Delete the sentence. If the argument still stands, it was scaffolding.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

@@ -21,12 +21,14 @@ scope:
 unit:
   - source
 tier: mechanical
+# The source's real check is its loop: an empty branch with no action element.
 mechanical:
   flags: gu
-  regex: \.length === 0|isEmpty|!\w+\.length
+  regex: \.length === 0|isEmpty
+  absent: Button|Link|<a |onClick
 severity: minor
 fix:
   hint: 'When a list, table, or feed is empty, "No items" alone is a dead end: the user can''t tell whether nothing exists, the filter is too narrow, or they must act to populate it. A good empty state names the situation, explains why, and offers exactly one primary action. Onboarding empty states (first-run'
   mode: none
 status: review-only
-handWritten: []
+handWritten: [mechanical]

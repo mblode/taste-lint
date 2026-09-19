@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 1 (generic frames and openers).
+id: copywriting-generic-framing
+title: Relies on generic framing instead of concrete context
+categoryId: reader-first-framing
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: generic_framing
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing rely on generic framing instead of concrete context? Ignore a first sentence that names a specific product, person, number, place or date.
+  criteria:
+    true:
+      what: A frame that would fit any topic.
+      examples:
+        - "In today's fast-paced world, teams need tools that help them move quickly and stay aligned."
+        - "When it comes to onboarding, first impressions matter more than ever."
+    false:
+      what: A frame anchored in the specific situation.
+      examples:
+        - "Our onboarding email had a 9 percent click rate in August; the one paragraph we changed took it to 21."
+        - "Three of the five new hires this quarter could not find the deploy runbook in their first week."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Open with the specific case: the product, the number, the person, the date.
+status: review-only
+handWritten: [question, fix, thresholds]

@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 9 (formulaic structure).
+id: copywriting-structural-symmetry
+title: Excessive structural symmetry or formulaic organisation
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: structural_symmetry
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing exhibit excessive structural symmetry or formulaic organization? Ignore a short list whose items are parallel by nature (steps, options) and any passage under three sentences.
+  criteria:
+    true:
+      what: Sentences or clauses built to the same template, in matched lengths, with a tidy three-part rhythm.
+      examples:
+        - "First, we gathered the data. Second, we cleaned the data. Third, we analysed the data. Each step mattered, each step took time, each step taught us something."
+        - "It is not about speed. It is about trust. It is not about features. It is about outcomes."
+    false:
+      what: Structure that follows the argument, uneven where the material is uneven.
+      examples:
+        - "We spent two days cleaning the export because half the dates were in US format; the analysis itself took an afternoon."
+        - "The rewrite shipped in March. Support tickets about the settings page fell from 40 a week to 6, and stayed there."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Let the shape follow the material: one long sentence where the point needs it, one short one where it does not.
+status: review-only
+handWritten: [question, fix, thresholds]
