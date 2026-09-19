@@ -1,14 +1,16 @@
-# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
-# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
-# AI-tell questions and the four passage checks named in the article.
-id: copywriting-symmetrical-both-sides
-title: Forces a symmetrical both-sides argument
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 6 (perpetual balance).
+id: copywriting-artificial-balance
+title: Forces symmetrical both-sides framing
 categoryId: machine-prose
 domain: copywriting
 source:
   repo: every.to
-  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
+  ruleId: artificial_balance
 scope:
   include: ["**/*.md", "**/*.mdx"]
   exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
@@ -18,7 +20,7 @@ question:
   type: noul
   context: [docType]
   instructions: >-
-    Read the TEXT. Return true when it balances a claim against an opposite claim of equal weight (on one hand, on the other; while X, Y; some say, others say) without choosing, so the reader learns the writer\u0027s position on neither. Return false when the TEXT takes a side, when it weighs the two unequally with a reason, or when the topic is a genuine open question the writer names as open.
+    Does the writing force symmetrical both-sides framing? Ignore a passage that takes a side, weighs the two unequally with a reason, or names the question as genuinely open.
   criteria:
     true:
       what: A forced balance that avoids a position.

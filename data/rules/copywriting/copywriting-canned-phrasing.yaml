@@ -1,0 +1,60 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, categories 1 and 4 (openers, stock templates).
+id: copywriting-canned-phrasing
+title: Uses canned phrases common in assistant responses
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: canned_phrasing
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  phrases:
+    - in today's fast-paced world
+    - in the ever-evolving landscape
+    - let's dive in
+    - let's delve
+    - at its core
+    - it is important to note
+    - it's worth noting
+    - when it comes to
+    - the truth is
+    - now more than ever
+    - stands as a testament
+    - at the end of the day
+    - one thing is clear
+    - the bottom line is
+    - game-changer
+    - in the realm of
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing use canned phrases common in assistant responses? Ignore a stock phrase that is quoted or discussed as a phrase.
+  criteria:
+    true:
+      what: Stock openers and templates.
+      examples:
+        - "In today's fast-paced world, it is important to note that at the end of the day, one thing is clear."
+        - "Let's dive in. When it comes to design, the truth is that it stands as a testament to good process."
+    false:
+      what: Plain sentences that say the thing.
+      examples:
+        - "Design reviews take an hour a week and catch about one shipped defect in three."
+        - "The process worked because the same two people reviewed every screen for a year."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Delete the phrase; the sentence usually survives without it.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

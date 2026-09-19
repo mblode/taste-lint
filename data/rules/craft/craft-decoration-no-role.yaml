@@ -1,0 +1,32 @@
+# Hand-ported from mblode/agent-skills skills/ui-design/rules/slop-decoration-no-role.md. The detection there is a
+# shell loop or pipeline; regex plus absent is the same check over one file.
+id: craft-decoration-no-role
+title: Stacked decorative layers with no role
+categoryId: generic-decoration
+domain: craft
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-decoration-no-role.md
+  line: 10
+  ruleId: slop-decoration-no-role
+  tier: backlog
+scope:
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+unit: [source]
+tier: mechanical
+mechanical:
+  flags: gus
+  regex: "<(?:div|span)\\b(?=[^>]*?(?:\\babsolute\\b|\\bfixed\\b))(?=[^>]*?(?:pointer-events-none|aria-hidden))(?=[^>]*?(?:gradient|bg-linear|bg-radial|\\bblur|backdrop-blur|mix-blend|opacity-))(?![^>]*?(?:size-\\[max\\(100%|pointer-fine:hidden|bg-clip-text|\\bmask-))[^>]*?/>"
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    A blurred blob, a grid overlay, a noise layer and a radial glow behind the heading: absolutely positioned elements that contain nothing and mean nothing. Cut them until each remaining layer has a job a reader could name.
+status: review-only
+handWritten: [mechanical, fix, status]

@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, lexicon rows on sentence patterns.
+id: copywriting-punctuation-tics
+title: Overuses dashes, colons or parenthetical asides in a patterned way
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: punctuation_tics
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing overuse em dashes, colons, or parenthetical asides in a patterned way? Ignore a single aside, and punctuation inside code or quoted material.
+  criteria:
+    true:
+      what: A dash, colon or parenthesis in nearly every sentence, each doing the same job.
+      examples:
+        - "The plan was simple (or so we thought): ship fast, learn faster (and cheaper), then scale: the usual story."
+        - "Design is a conversation: with the user, with the material (and with the budget), with the past."
+    false:
+      what: Punctuation that varies with the sentence.
+      examples:
+        - "We planned to ship fast and learn from the first hundred users. It took three months longer than that."
+        - "Design is a conversation with the user. The budget joins it later, usually uninvited."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Rewrite two of the asides as sentences. Keep the one that earns its place.
+status: review-only
+handWritten: [question, fix, thresholds]

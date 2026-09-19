@@ -291,6 +291,17 @@ const h2Line = (source: string): number => {
   return i === -1 ? 1 : i + 1;
 };
 
+// Keys sorted at every depth, so two blocks with the same content compare
+// equal whatever order a hand wrote them in.
+const canonical = (value: unknown): unknown =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(
+        Object.keys(value as Record<string, unknown>)
+          .toSorted()
+          .map((k) => [k, canonical((value as Record<string, unknown>)[k])])
+      )
+    : value;
+
 const sortKeys = (
   raw: Record<string, unknown>,
   order: string[]
@@ -533,9 +544,10 @@ for (const { skill, folder, dialect } of SKILLS) {
         ...(handWritten.has("mechanical") ? [] : ["mechanical"]),
       ];
       const pick = (obj: Record<string, unknown>): string =>
-        stringify(Object.fromEntries(traced.map((k) => [k, obj[k]])), {
-          lineWidth: 100,
-        });
+        stringify(
+          canonical(Object.fromEntries(traced.map((k) => [k, obj[k]]))),
+          { lineWidth: 100 }
+        );
       if (pick(existing) !== pick(merged)) {
         changed += 1;
         if (args.check) {
@@ -576,7 +588,9 @@ for (const { skill, folder, dialect } of SKILLS) {
       continue;
     }
     available += 1;
-    if (!args.check && args.write) {
+    // A draft someone has finished by hand and moved under data/rules is not
+    // regenerated as a draft.
+    if (!args.check && args.write && !existing) {
       const draft = path.join(args.draftsOut, domain, `${id}.yaml`);
       fs.mkdirSync(path.dirname(draft), { recursive: true });
       fs.writeFileSync(draft, outText);

@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 7 (vague authority) and structural-overcompletion section 9 (decorative research).
+id: copywriting-fabricated-specificity
+title: Suspiciously specific details without grounding or attribution
+categoryId: evidence-over-claims
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: fabricated_specificity
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing include suspiciously specific details without grounding or attribution? Ignore a number, name or date the passage attributes to a source, a test, or the writer\u0027s own measurement.
+  criteria:
+    true:
+      what: Precise-sounding detail with no source in sight.
+      examples:
+        - "Studies show that 73 percent of users abandon a form after 2.4 fields."
+        - "Experts agree that the average attention span is now 8 seconds, down from 12 in 2000."
+    false:
+      what: Detail with its source or its measurement attached.
+      examples:
+        - "In our August funnel, 41 percent of visitors who started the form finished it; the drop was on the address step."
+        - "The Nielsen Norman Group test from 2019 found readers skim in an F pattern; ours did too when we recorded ten sessions."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Name the source or the measurement, or drop the number.
+status: review-only
+handWritten: [question, fix, thresholds]

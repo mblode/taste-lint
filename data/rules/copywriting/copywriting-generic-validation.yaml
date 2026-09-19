@@ -1,0 +1,53 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 6 (false enthusiasm).
+id: copywriting-generic-validation
+title: Uses vague praise or generic validation
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: generic_validation
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: both
+mechanical:
+  phrases:
+    - great question
+    - excellent point
+    - absolutely
+    - certainly
+    - fantastic
+    - wonderful
+    - amazing
+    - you are absolutely right
+    - great job
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing use vague praise or generic validation? Ignore praise attached to a specific, checkable thing.
+  criteria:
+    true:
+      what: Applause with nothing behind it.
+      examples:
+        - "Great question! That's an excellent point and a fantastic idea."
+        - "This is a wonderful approach that really shows great thinking."
+    false:
+      what: A specific compliment, or none.
+      examples:
+        - "Splitting the form into two steps was right: completion went from 61 to 78 percent."
+        - "The naming in the new API is consistent; every list endpoint takes the same three filters."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Delete the praise or attach it to the specific thing that earned it.
+status: review-only
+handWritten: [question, fix, thresholds, mechanical]

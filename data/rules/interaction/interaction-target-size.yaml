@@ -1,0 +1,34 @@
+# Hand-ported from mblode/agent-skills skills/ui-design/rules/interaction-target-size.md. The detection there is a
+# shell loop or pipeline; regex plus absent is the same check over one file.
+# Both halves of the source pipeline apply to one line: a small h-, w- or size- step
+# and a button on the same line.
+id: interaction-target-size
+title: Button sized below the touch target floor
+categoryId: focus-and-a11y
+domain: interaction
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/interaction-target-size.md
+  line: 9
+  ruleId: interaction-target-size
+  tier: fix-this-sprint
+scope:
+  include:
+    - "**/*.tsx"
+    - "**/*.jsx"
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+unit: [source]
+tier: mechanical
+mechanical:
+  flags: gum
+  regex: "^(?=.*\\b(?:h|w|size)-(?:[1-9]|10)\\b).*(?:button|role=\"button\").*$"
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Touch targets need 44 by 44px; 24px is the floor only for dense desktop UI under pointer: fine. Give the button at least size-11, or pad the hit area while keeping the icon small.
+status: review-only
+handWritten: [mechanical, fix, status]

@@ -1,14 +1,15 @@
-# Hand-authored from Every's writing checks (Mike Taylor and Dan Shipper,
-# "Jev judged everything I've written in 0.7 seconds", 15 Sep 2026): the
-# AI-tell questions and the four passage checks named in the article.
-id: copywriting-repeats-without-evidence
-title: Repeats an idea without adding evidence
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+id: copywriting-idea-repetition
+title: Repeats the same idea without adding new evidence
 categoryId: machine-prose
 domain: copywriting
 source:
   repo: every.to
-  path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
+  ruleId: idea_repetition
 scope:
   include: ["**/*.md", "**/*.mdx"]
   exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
@@ -18,7 +19,7 @@ question:
   type: noul
   context: [docType]
   instructions: >-
-    Read the TEXT. Return true when a later sentence restates a point an earlier sentence already made, in different words, and adds no new fact, example, number or consequence. Return false when each sentence adds something the others did not, or when the repetition is a deliberate summary at the end of a long section.
+    Does the writing repeat the same idea without adding new evidence? Ignore a deliberate one-sentence summary at the end of a long section, and a repeated term that is the subject of the passage.
   criteria:
     true:
       what: Restatement with nothing new.
@@ -26,7 +27,7 @@ question:
         - "Speed matters to users. Users care deeply about how fast the product feels. Performance is a priority because people value speed."
         - "The tool saves time. It is a real time-saver that helps teams reclaim hours."
     false:
-      what: Each sentence carries its own fact or example.
+      what: Each sentence carries its own fact, example or consequence.
       examples:
         - "Speed matters to users: a 400ms dropdown loses a click one time in five in our logs. The fix cut it to 180ms."
         - "The tool saves time. Last quarter the team closed 30 percent more tickets with the same headcount."

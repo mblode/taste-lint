@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 12 (argument self-commentary).
+id: copywriting-prompt-restatement
+title: Reads like a restatement of an implied prompt or assignment
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: prompt_restatement
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing read like it is restating an implied prompt or assignment? Ignore a heading or a stated question the passage then answers.
+  criteria:
+    true:
+      what: The passage announces the task it was given instead of doing it.
+      examples:
+        - "In this article, I will explore the benefits and drawbacks of remote work for engineering teams."
+        - "You asked how to reduce churn, so below are several strategies that can help reduce churn."
+    false:
+      what: The passage does the work from the first sentence.
+      examples:
+        - "Remote work cut our meeting hours by a third and doubled the time a bug sat unassigned; here is how we fixed the second without giving up the first."
+        - "Churn concentrates in month two, right after the trial converts. Two changes moved it."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Delete the sentence that describes the assignment and start with the first finding.
+status: review-only
+handWritten: [question, fix, thresholds]

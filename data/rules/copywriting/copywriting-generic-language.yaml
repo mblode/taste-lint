@@ -1,0 +1,42 @@
+# One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
+# published wording; the second sentence says what to ignore.
+# Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, categories 2 and 3 (AI-scent vocabulary, corporate abstraction).
+id: copywriting-generic-language
+title: Relies on generic or interchangeable language
+categoryId: machine-prose
+domain: copywriting
+source:
+  repo: every.to
+  path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
+  line: 1
+  ruleId: generic_language
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
+unit: [paragraph]
+tier: jev
+question:
+  type: noul
+  context: [docType]
+  instructions: >-
+    Does the writing rely on generic or interchangeable language? Ignore a passage where the nouns and verbs name specific things, even if a few common words appear.
+  criteria:
+    true:
+      what: Words that could describe any product or team.
+      examples:
+        - "Our robust, seamless platform empowers teams to unlock powerful insights and drive meaningful outcomes."
+        - "This comprehensive approach leverages best practices to deliver value at scale."
+    false:
+      what: Words that name the thing.
+      examples:
+        - "The sync engine merges edits made offline without overwriting anyone else, so field staff can work in basements and tunnels."
+        - "The audit found 14 buttons labelled Submit; renaming them to the action cut support tickets about forms by a quarter."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: >-
+    Replace each abstract noun with the concrete one it stands for; delete the adjective if nothing is left.
+status: review-only
+handWritten: [question, fix, thresholds]
