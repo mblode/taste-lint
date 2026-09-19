@@ -67,6 +67,17 @@ slop-cop lint --url https://example.com/pricing --selector main
 
 Runs [style-capture](https://www.npmjs.com/package/style-capture) in headless Chromium and lints computed styles: real pixel sizes, line heights, weights and letter-spacing, so the typography rules judge what the reader sees rather than what the class list implies. `--capture file.json` lints a saved capture.
 
+## API
+
+```typescript
+import { runLint } from "slop-cop";
+
+const result = await runLint({ root: process.cwd(), targets: ["content"] });
+console.log(result.scorecard.byDomain, result.usage.costUsd);
+```
+
+`runLint` takes the same options as the `lint` command and returns findings, unknowns, the scorecard and usage. `slop-cop schema` prints every command, flag and default as JSON, and `--output json` turns an error into a `{ error, code, message }` envelope on stdout.
+
 ## Agent skill
 
 ```bash

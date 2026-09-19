@@ -14,6 +14,7 @@ npm run fix                                        # ultracite autofix; scope it
 node dist/cli.js lint <paths> --dry-run            # units, requests, estimated cost; no calls
 node dist/cli.js lint <paths> --mechanical-only    # no key needed
 node dist/cli.js rules check                       # validate data/rules
+node dist/cli.js schema                            # every command, flag and default as JSON
 npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule still matches its source
 ```
 
@@ -22,6 +23,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 - Live Jev calls need `TYPESAFE_API_KEY` (api.typesafe.ai) or `AI_GATEWAY_API_KEY` (Vercel AI Gateway); the first wins when both are set. `--dry-run` and `--mechanical-only` need neither. Tests never call a model: vitest replaces `fetch`, and the fetch client is exercised only against a fake.
 - `scripts/*.ts` run with `node --experimental-strip-types` (the npm scripts do this). Node 22 runs the build and tests but not `fs.globSync` edge cases the package relies on; use Node 24 for anything you will report.
 - `port-rules --check` and the taste-training baseline expect sibling checkouts at `../agent-skills` and `../taste-training`. The baseline command and its expected counts are in the review log of `docs/plans/slop-cop-taste-linter.md`.
+- Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
 - Results and the answer cache write to `results/` (ignored). A rerun over unchanged files reports `0 requests`; delete `results/cache` to force live answers.
 
 ## Gotchas
