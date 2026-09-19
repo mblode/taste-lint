@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 
 import { resolveTypography } from "../extract/tailwind.js";
-import { FUNCTIONS } from "../reduce/mechanical.js";
 import type { Unit } from "../types.js";
+import { check } from "./helpers.js";
 
 it("resolves the default scale, arbitrary values and shorthand leading", () => {
   expect(resolveTypography(["text-sm"])).toMatchObject({
@@ -89,30 +89,31 @@ const unit = (classes: string[], next?: string[], text = "Heading"): Unit => ({
 
 it("fires nearEqualSizeSameWeight only for a small step at equal weight", () => {
   expect(
-    FUNCTIONS.nearEqualSizeSameWeight(
+    check("typography-hierarchy-size-only")(
       unit(["text-[17px]", "font-semibold"], ["text-[15px]", "font-semibold"])
     ).fired
   ).toBe(true);
   expect(
-    FUNCTIONS.nearEqualSizeSameWeight(
+    check("typography-hierarchy-size-only")(
       unit(["text-[26px]", "font-semibold"], ["text-[15px]", "font-semibold"])
     ).fired
   ).toBe(false);
   expect(
-    FUNCTIONS.nearEqualSizeSameWeight(
+    check("typography-hierarchy-size-only")(
       unit(["text-[17px]", "font-semibold"], ["text-[15px]"])
     ).fired
   ).toBe(false);
-  expect(FUNCTIONS.nearEqualSizeSameWeight(unit(["text-[17px]"])).fired).toBe(
-    false
-  );
+  expect(
+    check("typography-hierarchy-size-only")(unit(["text-[17px]"])).fired
+  ).toBe(false);
   expect(() =>
-    FUNCTIONS.nearEqualSizeSameWeight(
+    check("typography-hierarchy-size-only")(
       unit(["text-body", "font-semibold"], ["text-[15px]"])
     )
   ).toThrow(/unresolved/);
   expect(
-    FUNCTIONS.nearEqualSizeSameWeight(unit(["font-semibold"], ["text-[15px]"]))
-      .fired
+    check("typography-hierarchy-size-only")(
+      unit(["font-semibold"], ["text-[15px]"])
+    ).fired
   ).toBe(false);
 });

@@ -8,9 +8,8 @@ import { afterEach, expect, it } from "vitest";
 import { resolveTypography } from "../extract/tailwind.js";
 import { extractTsx } from "../extract/tsx.js";
 import { runLint } from "../lint.js";
-import { FUNCTIONS } from "../reduce/mechanical.js";
 import type { Unit } from "../types.js";
-import { config, copyFixtures, FIXTURES, temporary } from "./helpers.js";
+import { config, copyFixtures, FIXTURES, temporary, check } from "./helpers.js";
 
 const folders: string[] = [];
 afterEach(() => {
@@ -40,42 +39,55 @@ const unit = (classes: string[], extra: Partial<Unit> = {}): Unit => ({
 
 it("judges motion utilities on the element's own classes, variants stripped", () => {
   expect(
-    FUNCTIONS.easeInOnTransition(unit(["transition", "ease-in"])).fired
+    check("motion-ease-in-on-transition")(unit(["transition", "ease-in"])).fired
   ).toBe(true);
   expect(
-    FUNCTIONS.easeInOnTransition(unit(["transition", "ease-in-out"])).fired
-  ).toBe(false);
-  expect(
-    FUNCTIONS.easeInOnTransition(unit(["hover:ease-in", "duration-200"])).fired
-  ).toBe(true);
-  expect(
-    FUNCTIONS.linearEasingOnTransition(unit(["transition", "ease-linear"]))
-      .fired
-  ).toBe(true);
-  expect(
-    FUNCTIONS.linearEasingOnTransition(unit(["animate-spin", "ease-linear"]))
+    check("motion-ease-in-on-transition")(unit(["transition", "ease-in-out"]))
       .fired
   ).toBe(false);
   expect(
-    FUNCTIONS.durationOver300(unit(["transition", "duration-500"])).fired
+    check("motion-ease-in-on-transition")(
+      unit(["hover:ease-in", "duration-200"])
+    ).fired
   ).toBe(true);
   expect(
-    FUNCTIONS.durationOver300(unit(["transition", "duration-[0.4s]"])).fired
+    check("motion-linear-easing-on-transition")(
+      unit(["transition", "ease-linear"])
+    ).fired
   ).toBe(true);
   expect(
-    FUNCTIONS.durationOver300(unit(["transition", "duration-200"])).fired
+    check("motion-linear-easing-on-transition")(
+      unit(["animate-spin", "ease-linear"])
+    ).fired
   ).toBe(false);
-  expect(FUNCTIONS.durationOver300(unit(["duration-500"])).fired).toBe(false);
-  expect(FUNCTIONS.transitionAll(unit(["transition-all"])).fired).toBe(true);
-  expect(FUNCTIONS.scaleFromZero(unit(["transition", "scale-0"])).fired).toBe(
+  expect(
+    check("motion-duration-over-300ms")(unit(["transition", "duration-500"]))
+      .fired
+  ).toBe(true);
+  expect(
+    check("motion-duration-over-300ms")(unit(["transition", "duration-[0.4s]"]))
+      .fired
+  ).toBe(true);
+  expect(
+    check("motion-duration-over-300ms")(unit(["transition", "duration-200"]))
+      .fired
+  ).toBe(false);
+  expect(
+    check("motion-duration-over-300ms")(unit(["duration-500"])).fired
+  ).toBe(false);
+  expect(check("motion-transition-all")(unit(["transition-all"])).fired).toBe(
     true
   );
-  expect(FUNCTIONS.scaleFromZero(unit(["scale-0"])).fired).toBe(false);
   expect(
-    FUNCTIONS.animateWithoutMotionPreference(unit(["animate-bounce"])).fired
+    check("motion-scale-from-zero")(unit(["transition", "scale-0"])).fired
+  ).toBe(true);
+  expect(check("motion-scale-from-zero")(unit(["scale-0"])).fired).toBe(false);
+  expect(
+    check("motion-animate-without-reduced-motion")(unit(["animate-bounce"]))
+      .fired
   ).toBe(true);
   expect(
-    FUNCTIONS.animateWithoutMotionPreference(
+    check("motion-animate-without-reduced-motion")(
       unit(["motion-safe:animate-bounce"])
     ).fired
   ).toBe(false);
@@ -83,19 +95,22 @@ it("judges motion utilities on the element's own classes, variants stripped", ()
 
 it("flags raw palette colours, arbitrary values and interpolated class strings", () => {
   expect(
-    FUNCTIONS.rawColourClass(unit(["bg-pink-500", "text-muted-foreground"]))
+    check("craft-raw-colour-class")(
+      unit(["bg-pink-500", "text-muted-foreground"])
+    )
   ).toMatchObject({ evidence: "bg-pink-500", fired: true });
   expect(
-    FUNCTIONS.rawColourClass(unit(["bg-primary", "dark:text-white"])).fired
+    check("craft-raw-colour-class")(unit(["bg-primary", "dark:text-white"]))
+      .fired
   ).toBe(false);
   expect(
-    FUNCTIONS.arbitraryValueClass(unit(["p-[13px]", "[&>svg]:size-4"]))
+    check("craft-arbitrary-value-class")(unit(["p-[13px]", "[&>svg]:size-4"]))
   ).toMatchObject({
     evidence: "p-[13px]",
     fired: true,
   });
   expect(
-    FUNCTIONS.interpolatedClassString(
+    check("craft-interpolated-class-string")(
       unit([], { context: { docType: "ui", interpolated: true, role: "body" } })
     ).fired
   ).toBe(true);
@@ -113,12 +128,13 @@ it("flags raw palette colours, arbitrary values and interpolated class strings",
 });
 
 it("typography functions decline a class-list unit with no text of its own", () => {
-  expect(FUNCTIONS.uppercaseWithoutTracking(unit(["uppercase"])).fired).toBe(
-    false
-  );
   expect(
-    FUNCTIONS.uppercaseWithoutTracking(unit(["uppercase"], { text: "Label" }))
-      .fired
+    check("typography-uppercase-without-tracking")(unit(["uppercase"])).fired
+  ).toBe(false);
+  expect(
+    check("typography-uppercase-without-tracking")(
+      unit(["uppercase"], { text: "Label" })
+    ).fired
   ).toBe(true);
 });
 

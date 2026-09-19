@@ -9,6 +9,7 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 - `tier: mechanical` decides in code and never calls Jev.
 - `tier: jev` sends one question per matching unit.
 - `tier: both` uses the mechanical part as a candidate filter; only units it fires on are sent to Jev, and the mechanical hit never surfaces alone.
+- A rule is YAML data (`data/rules/<domain>/<id>.yaml`: regex, phrases, `absent`, a Jev question) or a code object (`src/rules/code/*.ts`: the same fields with `check(unit)` in place of `mechanical`). Anything that counts, compares or measures is a code rule; the loader returns both kinds in one list.
 - `mechanical.absent` pairs with `regex`: the rule fires only when `regex` matches and `absent` matches nowhere in the unit (a file with a `<form>` and no focus call). It is how rg's `--files-without-match` pipelines port.
 - `thresholds.act` and `thresholds.review` are per rule. Findings at or above `act` fail the run, between the two print as review notes, below are silent.
 - `severity` is independent of probability.

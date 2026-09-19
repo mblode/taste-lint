@@ -83,10 +83,13 @@ it("bands Jev answers, keeps severity independent of the band and caches answers
   const hierarchy = first.findings.find(
     (f) => f.ruleId === "typography-hierarchy-size-only"
   );
+  // The code rule ships review-only until tune promotes it, so 0.86 is a
+  // review note; the severity stays what the rule says.
   expect(hierarchy).toMatchObject({
-    band: "act",
+    band: "review",
     file: "card.tsx",
     probability: 0.86,
+    severity: "minor",
   });
   expect(hierarchy?.evidence).toMatch(/ratio 1\.13/);
   expect(first.exitCode).toBe(1);

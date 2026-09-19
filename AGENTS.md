@@ -18,10 +18,10 @@ node dist/cli.js rules check                     # validate data/rules
 ## Architecture
 
 - `src/cli.ts`: Commander entry point. Explicit flags win over environment defaults.
-- `src/rules/`: fail-closed rule loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the Jev wire format.
+- `src/rules/`: fail-closed rule loader and validator, taxonomy copied from taste-training `content/categories.ts`, question builder for the Jev wire format. `src/rules/code/`: rules that count, compare or measure, written as `Rule` objects with a `check` attached (`typography.ts`, `classes.ts`); `loadRules` returns them beside the YAML rules, under the same tuning overlay.
 - `src/extract/`: units from Markdown/MDX (mdast), TSX (oxc-parser), Tailwind class lists, style-capture output (the CLI text block or `CaptureResult` JSON), and one `source` unit per TSX, JSX or CSS file for mechanical rules that pattern-match raw markup. Every unit carries file, line, column, UTF-16 source offsets and, where a fix may rewrite it, the prose ranges inside that slice.
-- `src/map/`: plan (which rules apply to which unit), one Jev request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, fetch client.
-- `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes, the named mechanical functions (`mechanical.ts` for typography over text and resolved values, `mechanical-classes.ts` for motion and design-system checks over class lists).
+- `src/map/`: plan (which rules apply to which unit), `judge.ts` (the one stage lint and eval share: plan, run checks, answer questions from cache or live, report abstentions), one Jev request per unit with every matching question, sha256 cache under `results/cache`, token bucket limiter, fetch client.
+- `src/reduce/`: bands (act, review, silent), dedupe, scorecard, deterministic fixes, and `mechanical.ts` (regex and phrase matching for data rules plus the helpers code rules share).
 - `src/report/`: tty, JSON, SARIF.
 - `src/eval/`: corpus loader, precision/recall/Wilson, calibration table, threshold tuning, McNemar A/B.
 - `data/rules/<domain>/<id>.yaml`: shipped rules. `data/rules/tuning.json`: threshold overlay written only by `tune --write`. `data/corpus/*.jsonl`: labelled units. `data/rule-drafts/`: source rules the port script could not ship (a shell pipeline, PCRE-only syntax, a rendered check, or a question nobody has written); never loaded.

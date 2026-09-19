@@ -95,8 +95,6 @@ export interface Mechanical {
   flags?: string;
   /** Case-insensitive whole-phrase list. Word-boundary checked. */
   phrases?: string[];
-  /** Named function in src/reduce/mechanical.ts. */
-  function?: string;
   /** Minimum matches before the rule fires (default 1). */
   minMatches?: number;
   /** The rule fires only when this regex matches nowhere in the unit. */
@@ -156,8 +154,13 @@ export interface Rule {
   preconditions?: Preconditions;
   status: RuleStatus;
   handWritten: string[];
-  /** Absolute path of the YAML file the rule was loaded from. */
+  /** Absolute path of the YAML file the rule was loaded from, or `code:<module>`. */
   file: string;
+  /**
+   * A code rule's check, in place of `mechanical`. Counts, compares and
+   * measures; throws UnresolvedError to abstain. Data rules never set it.
+   */
+  check?: (unit: Unit) => MechanicalHit;
 }
 
 export interface TuningEntry {

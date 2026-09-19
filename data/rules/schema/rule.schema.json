@@ -67,16 +67,11 @@
     "mechanical": {
       "type": "object",
       "additionalProperties": false,
-      "anyOf": [
-        { "required": ["regex"] },
-        { "required": ["phrases"] },
-        { "required": ["function"] }
-      ],
+      "anyOf": [{ "required": ["regex"] }, { "required": ["phrases"] }],
       "properties": {
         "regex": { "type": "string" },
         "flags": { "type": "string" },
         "phrases": { "type": "array", "items": { "type": "string" } },
-        "function": { "type": "string" },
         "minMatches": { "type": "integer", "minimum": 1 },
         "absent": { "type": "string" }
       }

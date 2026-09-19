@@ -5,8 +5,7 @@ import { expect, it } from "vitest";
 
 import { extractCapture } from "../extract/rendered.js";
 import { parseCaptureInput } from "../extract/style-capture-text.js";
-import { FUNCTIONS } from "../reduce/mechanical.js";
-import { FIXTURES } from "./helpers.js";
+import { FIXTURES, check } from "./helpers.js";
 
 it("turns a style-capture result into element units with real values", () => {
   const capture = JSON.parse(
@@ -34,14 +33,14 @@ it("turns a style-capture result into element units with real values", () => {
     fontSizePx: 15,
     fontWeight: 600,
   });
-  expect(FUNCTIONS.nearEqualSizeSameWeight(heading).fired).toBe(true);
+  expect(check("typography-hierarchy-size-only")(heading).fired).toBe(true);
   const body = units[2];
   expect(body.typography).toMatchObject({
     fontSizePx: 13,
     letterSpacingEm: 0.05,
   });
-  expect(FUNCTIONS.letterSpacedLowercaseBody(body).fired).toBe(true);
-  expect(FUNCTIONS.bodyBelow15px(body).fired).toBe(true);
+  expect(check("typography-letterspaced-body")(body).fired).toBe(true);
+  expect(check("typography-body-below-15px")(body).fired).toBe(true);
 });
 
 it("fails closed on a malformed capture and ignores orphaned siblings", () => {
@@ -80,7 +79,9 @@ it("parses the style-capture CLI text block into elements with text and styles",
     fontSizePx: 15,
     fontWeight: 600,
   });
-  expect(FUNCTIONS.nearEqualSizeSameWeight(heading).fired).toBe(true);
+  expect(check("typography-hierarchy-size-only")(heading).fired).toBe(true);
   expect(units[3].typography?.uppercase).toBe(true);
-  expect(FUNCTIONS.uppercaseWithoutTracking(units[3]).fired).toBe(true);
+  expect(check("typography-uppercase-without-tracking")(units[3]).fired).toBe(
+    true
+  );
 });
