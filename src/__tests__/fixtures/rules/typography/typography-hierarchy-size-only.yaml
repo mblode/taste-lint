@@ -1,0 +1,46 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/hierarchy-size-contrast.md
+# and the lesson build-a-clear-hierarchy.mdx ("identical or clearly different, never nearly the same").
+id: typography-hierarchy-size-only
+title: Two roles told apart by a small size step alone
+categoryId: type-hierarchy
+domain: typography
+source:
+  repo: mblode/agent-skills
+  path: skills/typography-audit/rules/hierarchy-size-contrast.md
+  line: 7
+  tier: MEDIUM-HIGH
+related: [typography-hierarchy-weight-contrast]
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list, element]
+tier: both
+mechanical:
+  # Named function: this element and its next text-bearing sibling both
+  # resolve a font size, weights match (or both are unset), and the size
+  # ratio is above 1.0 and at most 1.2. The arithmetic stays here; Jev never
+  # sees the numbers.
+  function: nearEqualSizeSameWeight
+question:
+  type: noul
+  context: [neighbours]
+  instructions: >-
+    You are given FIRST and SECOND, two short texts that sit one above the other on a screen. Return true when FIRST introduces, names or summarises SECOND, so a reader would expect FIRST to look like a heading or label and SECOND to look like body text. Return false when FIRST and SECOND are peers (two list items, two sentences of one paragraph, two options, two buttons) or when either is a control label. Judge only the words; no layout information is provided.
+  criteria:
+    true:
+      what: FIRST is a title or label for SECOND.
+      examples:
+        - "FIRST: Notification rules. SECOND: Choose which sync events reach your inbox and which stay in the activity feed."
+        - "FIRST: Billing. SECOND: Invoices, payment method and tax details for this workspace."
+    false:
+      what: The two texts have the same role.
+      examples:
+        - "FIRST: Start free trial. SECOND: See how it works."
+        - "FIRST: Every file change, in order. SECOND: Restored versions keep their history."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  mode: none
+  hint: Make the sizes clearly different (a step of 20 to 25 percent or more) or add a second cue such as weight or colour. Two roles two pixels apart read as a mistake.
+status: active
+handWritten: [question, fix, thresholds, mechanical]

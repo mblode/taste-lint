@@ -1,0 +1,45 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/punct-dashes.md.
+id: typography-dashes
+title: Double hyphen or spaced hyphen standing in for a dash
+categoryId: typographic-detail
+domain: typography
+source:
+  line: 7
+  path: skills/typography-audit/rules/punct-dashes.md
+  repo: mblode/agent-skills
+  ruleId: punct-dashes
+  tier: CRITICAL
+related:
+  - typography-straight-quotes
+scope:
+  include:
+    - "**/*.md"
+    - "**/*.mdx"
+    - "**/*.tsx"
+    - "**/*.jsx"
+  exclude:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "**/*.stories.*"
+    - "**/CHANGELOG.md"
+unit:
+  - paragraph
+  - heading
+  - jsx-text
+  - attr-string
+tier: mechanical
+mechanical:
+  regex: (?<=\S)--(?=\S)|(?<=\p{L}) - (?=\p{L})
+  flags: gu
+severity: minor
+fix:
+  mode: none
+  hint: Use the real character. Pick spaced en dashes or unspaced em dashes for asides and keep one style across the project, or restructure with a comma, colon or period where the project bans dashes.
+preconditions:
+  notInCode: true
+  docType:
+    [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown]
+status: active
+handWritten:
+  - mechanical
+  - fix

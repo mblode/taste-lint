@@ -1,0 +1,24 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/spacing-letterspacing-body.md.
+id: typography-letterspaced-body
+title: Positive letter-spacing on lowercase body text
+categoryId: reading-comfort
+domain: typography
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/typography-audit/rules/spacing-letterspacing-body.md,
+    line: 7,
+    tier: HIGH,
+  }
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list, element]
+tier: mechanical
+mechanical: { function: letterSpacedLowercaseBody }
+severity: minor
+fix:
+  mode: none
+  hint: Remove the tracking from body text. Letter-spacing belongs to uppercase and small caps; if small text is hard to read, make it bigger.
+status: active
+handWritten: [mechanical, fix]

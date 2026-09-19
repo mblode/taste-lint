@@ -1,0 +1,27 @@
+# Ported from mblode/agent-skills skills/typography-audit/rules/size-body-text.md and the lesson
+# make-text-comfortable-to-read.mdx (15 to 19px on phones, 18 to 24px on desktop).
+id: typography-body-below-15px
+title: Running text set below 15px
+categoryId: reading-comfort
+domain: typography
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/typography-audit/rules/size-body-text.md,
+    line: 7,
+    tier: CRITICAL,
+  }
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [class-list, element]
+tier: mechanical
+mechanical: { function: bodyBelow15px }
+severity: minor
+severityOverrides:
+  - { scope: "**/content/**", severity: major }
+fix:
+  mode: none
+  hint: Body text reads at 15 to 19px on a phone and 18 to 24px on desktop. Keep 12 and 13px for captions and metadata nobody has to act on.
+status: active
+handWritten: [mechanical, fix, severityOverrides]

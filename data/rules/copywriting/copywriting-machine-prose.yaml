@@ -1,0 +1,81 @@
+# Sourced from mblode/taste-training lesson edit-ai-output-in-three-passes.mdx (machine-prose tells) and
+# the every.to Jev writing-judge experiment.
+id: copywriting-machine-prose
+title: Sentence shapes that give away generated writing
+categoryId: machine-prose
+domain: copywriting
+source:
+  {
+    repo: mblode/taste-training,
+    path: apps/web/content/keep-your-taste-with-ai/edit-ai-output-in-three-passes.mdx,
+    line: 44,
+  }
+related: [copywriting-dead-weight-hedges, copywriting-filler-words]
+scope:
+  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [paragraph, jsx-text]
+tier: both
+mechanical:
+  phrases:
+    [
+      I'd be happy to,
+      happy to help,
+      let's dive in,
+      dive into,
+      delve,
+      in today's fast-paced,
+      in today's world,
+      experts believe,
+      studies show,
+      it's no secret,
+      game-changer,
+      game changer,
+      revolutionize,
+      revolutionise,
+      unlock the power,
+      elevate your,
+      take your,
+      to the next level,
+      in conclusion,
+      as an AI,
+      seamlessly integrate,
+      robust and scalable,
+      whether you're,
+      look no further,
+      the landscape of,
+      navigate the,
+      tapestry,
+      testament to,
+      it's important to remember,
+    ]
+question:
+  type: noul
+  context: []
+  instructions: >-
+    Read the TEXT. Return true when it reads as generated boilerplate: a chatbot opener ("I'd be happy to", "Let's dive in"), a vague attribution ("experts believe", "studies show") with no source, a stock flourish ("game-changer", "unlock the power of", "in today's fast-paced world", "a testament to"), or a symmetrical both-sides summary that adds no information. Return false when the TEXT makes a specific claim with a named source, gives an instruction, tells a concrete story, or quotes these phrases in order to warn against them.
+  criteria:
+    true:
+      what: Generated boilerplate.
+      examples:
+        - "In today's fast-paced world, experts believe seamless collaboration is a game-changer."
+        - "I'd be happy to help! Let's dive into how you can unlock the power of your data."
+        - "This tool is a testament to the evolving landscape of modern software."
+    false:
+      what: Specific, sourced, instructional or quoting the tell.
+      examples:
+        - "Mike Taylor ran 27 articles through Jev in 0.7 seconds for a quarter of a cent."
+        - "Run the migration, then restart the worker."
+        - "Chatbot openers like I'd be happy to are the first tell to cut."
+severity: minor
+fix:
+  mode: llm
+  hint: Ask what the sentence means and write that. Replace the abstraction with a fact (a number, a name, an outcome) or cut it. Never a synonym swap; the tell was never the word.
+preconditions:
+  {
+    notInCode: true,
+    docType:
+      [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown],
+  }
+status: active
+handWritten: [mechanical, question, fix]

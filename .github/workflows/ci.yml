@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Changeset Status
+        if: github.event_name == 'pull_request'
+        run: npx changeset status --since origin/main
+
+      - name: Lint
+        run: npm run check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify published artifact
+        run: npm run test:package
+
+      - name: Validate the shipped rule files
+        run: node dist/cli.js rules check
+
+      - name: Dry-run lint over the fixtures
+        run: node dist/cli.js lint --dry-run src/__tests__/fixtures
+
+      - name: Checkout current agent-skills catalogue
+        uses: actions/checkout@v6
+        with:
+          repository: mblode/agent-skills
+          path: .work/agent-skills
+
+      - name: Check ported rules against the current catalogue
+        run: npm run port-rules -- --skills-dir .work/agent-skills --check

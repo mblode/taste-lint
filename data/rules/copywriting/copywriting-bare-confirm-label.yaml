@@ -1,0 +1,30 @@
+# Ported from mblode/agent-skills skills/product-design/references/rules.md (rule/no-confirm-ok-labels)
+# and skills/ui-design/guidelines/copywriting.md.
+id: copywriting-bare-confirm-label
+title: Bare Confirm, OK, Yes or Submit on a button
+categoryId: actionable-microcopy
+domain: copywriting
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/product-design/references/rules.md,
+    line: 62,
+    ruleId: rule/no-confirm-ok-labels,
+  }
+related: [copywriting-cta-names-outcome]
+scope:
+  include: ["**/*.tsx", "**/*.jsx", "**/*.mdx"]
+  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
+unit: [jsx-text, attr-string]
+tier: mechanical
+mechanical:
+  regex: "^(?:Confirm|OK|Okay|Yes|Submit|Proceed)[.!]?$"
+  flags: giu
+severity: major
+fix:
+  mode: none
+  hint: >-
+    Name the action and its object: Delete member, Send invitation, Save changes. Save, Cancel and Close are the only labels that name their own outcome.
+preconditions: { notInCode: true, role: [button, aria, label] }
+status: active
+handWritten: [mechanical, fix, preconditions]
