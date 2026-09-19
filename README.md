@@ -84,7 +84,7 @@ console.log(result.scorecard.byDomain, result.usage.costUsd);
 npx skills add mblode/slop-cop
 ```
 
-Installs the `slop-cop` skill for Claude Code, Codex, Cursor and OpenCode: how to read a finding, the dry-run-first workflow, and the gotchas. It lives in `skills/slop-cop/` in this repository.
+Installs the `slop-cop` skill for Claude Code, Codex, Cursor and OpenCode: how to read a finding, the dry-run-first workflow, and the gotchas. Source: [skills/slop-cop/SKILL.md](skills/slop-cop/SKILL.md).
 
 ## Options
 
