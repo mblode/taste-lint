@@ -5,17 +5,12 @@
 id: copywriting-canned-phrasing
 title: Uses canned phrases common in assistant responses
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: canned_phrasing
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: both
 mechanical:
   phrases:
     - in today's fast-paced world
@@ -35,7 +30,6 @@ mechanical:
     - game-changer
     - in the realm of
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing use canned phrases common in assistant responses? Ignore a stock phrase that is quoted or discussed as a phrase.
@@ -53,7 +47,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Delete the phrase; the sentence usually survives without it.
 status: review-only

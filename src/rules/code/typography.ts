@@ -44,15 +44,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         ? hit(`${describe(t)} on ${words} words of body text`)
         : none;
     },
-    domain: "typography",
     hint: "Body text reads at 15 to 19px on a phone and 18 to 24px on desktop. Keep 12 and 13px for captions and metadata nobody has to act on.",
     id: "typography-body-below-15px",
-    severityOverrides: [{ scope: "**/content/**", severity: "major" }],
     source: {
       line: 7,
       path: `${AUDIT}/size-body-text.md`,
       repo: "mblode/agent-skills",
-      tier: "CRITICAL",
     },
     title: "Running text set below 15px",
     unit: ["class-list", "element"],
@@ -72,14 +69,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         ? hit(describe(t))
         : none;
     },
-    domain: "typography",
     hint: "Remove the tracking from body text. Letter-spacing belongs to uppercase and small caps; if small text is hard to read, make it bigger.",
     id: "typography-letterspaced-body",
     source: {
       line: 7,
       path: `${AUDIT}/spacing-letterspacing-body.md`,
       repo: "mblode/agent-skills",
-      tier: "HIGH",
     },
     title: "Positive letter-spacing on lowercase body text",
     unit: ["class-list", "element"],
@@ -97,14 +92,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         ? hit(describe(t))
         : none;
     },
-    domain: "typography",
     hint: "Set body text at regular (400) or medium (500). Light weights lose contrast at text sizes; use them only at display sizes.",
     id: "typography-light-weight-small-body",
     source: {
       line: 7,
       path: `${AUDIT}/font-weight-body.md`,
       repo: "mblode/agent-skills",
-      tier: "HIGH",
     },
     title: "Thin or light weight on text-sized copy",
     unit: ["class-list", "element"],
@@ -134,14 +127,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         ? hit(`${describe(t)} on running text`)
         : none;
     },
-    domain: "typography",
     hint: "Body reads at 1.4 to 1.6, wider columns a little more. Display type over 32px wants 1.1 to 1.2 so a headline reads as one object.",
     id: "typography-line-height-out-of-band",
     source: {
       line: 7,
       path: `${AUDIT}/size-line-height.md`,
       repo: "mblode/agent-skills",
-      tier: "CRITICAL",
     },
     title: "Line height outside the comfortable band for its size",
     unit: ["class-list", "element"],
@@ -179,7 +170,6 @@ export const TYPOGRAPHY_RULES: Rule[] = [
           )
         : none;
     },
-    domain: "typography",
     hint: "Make the sizes clearly different (a step of 20 to 25 percent or more) or add a second cue such as weight or colour. Two roles two pixels apart read as a mistake.",
     id: "typography-hierarchy-size-only",
     question: {
@@ -202,14 +192,11 @@ export const TYPOGRAPHY_RULES: Rule[] = [
       },
       instructions:
         "You are given FIRST and SECOND, two short texts that sit one above the other on a screen. Return true when FIRST introduces, names or summarises SECOND, so a reader would expect FIRST to look like a heading or label and SECOND to look like body text. Return false when FIRST and SECOND are peers (two list items, two sentences of one paragraph, two options, two buttons) or when either is a control label. Judge only the words; no layout information is provided.",
-      type: "noul",
     },
-    related: ["typography-hierarchy-weight-contrast"],
     source: {
       line: 7,
       path: `${AUDIT}/hierarchy-size-contrast.md`,
       repo: "mblode/agent-skills",
-      tier: "MEDIUM-HIGH",
     },
     thresholds: { act: 0.75, review: 0.4 },
     title: "Two roles told apart by a small size step alone",
@@ -230,14 +217,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         ? none
         : hit(`numeric cell "${unit.text}" without tabular-nums`);
     },
-    domain: "typography",
     hint: "Add tabular-nums (font-variant-numeric) to numeric columns so digits share one width and align.",
     id: "typography-numeric-cell-proportional-figures",
     source: {
       line: 7,
       path: `${AUDIT}/opentype-tabular-figures.md`,
       repo: "mblode/agent-skills",
-      tier: "HIGH",
     },
     status: "review-only",
     title: "Numbers in a table cell without tabular figures",
@@ -265,15 +250,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
           )
         : none;
     },
-    domain: "typography",
     hint: "Change one axis at a time. Emphasis is relative, so quieten the competition before making the winner louder.",
     id: "typography-stacked-emphasis",
-    related: ["typography-hierarchy-size-only"],
     source: {
       line: 7,
       path: `${AUDIT}/hierarchy-weight-contrast.md`,
       repo: "mblode/agent-skills",
-      tier: "MEDIUM",
     },
     title: "Bold, caps, colour and size stacked on one element",
     unit: ["class-list", "element"],
@@ -287,14 +269,12 @@ export const TYPOGRAPHY_RULES: Rule[] = [
       }
       return (t.letterSpacingEm ?? 0) <= 0 ? hit(describe(t)) : none;
     },
-    domain: "typography",
     hint: "Add 0.05 to 0.2em of tracking to uppercase text (tracking-wide or tracking-wider), more when it is small.",
     id: "typography-uppercase-without-tracking",
     source: {
       line: 7,
       path: `${AUDIT}/spacing-letterspacing-uppercase.md`,
       repo: "mblode/agent-skills",
-      tier: "MEDIUM-HIGH",
     },
     title: "Uppercase text with no added letter-spacing",
     unit: ["class-list", "element"],
@@ -315,7 +295,6 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         `${n} words: "${sentence.slice(0, 80)}${sentence.length > 80 ? "..." : ""}"`
       );
     },
-    domain: "copywriting",
     hint: 'Break at the strongest claim. More than one "and" or "but" usually marks the split.',
     id: "copywriting-long-sentence",
     preconditions: {
@@ -330,15 +309,6 @@ export const TYPOGRAPHY_RULES: Rule[] = [
         "unknown",
       ],
       notInCode: true,
-    },
-    scope: {
-      exclude: [
-        "**/CHANGELOG.md",
-        "**/*.test.*",
-        "**/*.spec.*",
-        "**/*.stories.*",
-      ],
-      include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"],
     },
     source: {
       line: 7,

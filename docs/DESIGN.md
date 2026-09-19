@@ -4,15 +4,15 @@
 
 ### Rule
 
-One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filename. Fields and their meaning live in `src/types.ts` (`Rule`) and are validated fail-closed by `src/rules/validate.ts`; an invalid rule aborts before any request is made.
+One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filename. Fields and their meaning live in `src/types.ts` (`Rule`) and are validated fail-closed by `src/rules/validate.ts`; an invalid rule aborts before any request is made. A rule writes only what cannot be derived: the loader fills in `domain` (from the category), `tier` (from which of `mechanical` and `question` are present) and, for every unit kind but `source`, `scope.include` (from the unit kinds: paragraph and heading come from Markdown, jsx-text and class lists from TSX and JSX, attribute strings from both). Every rule skips tests, stories and changelogs; `scope.exclude` adds to that list.
 
-- `tier: mechanical` decides in code and never calls Jev.
-- `tier: jev` sends one question per matching unit.
-- `tier: both` uses the mechanical part as a candidate filter; only units it fires on are sent to Jev, and the mechanical hit never surfaces alone.
+- A mechanical section alone decides in code and never calls Jev (`tier: mechanical`).
+- A question alone sends one question per matching unit (`tier: jev`).
+- Both together make the mechanical part a candidate filter (`tier: both`); only units it fires on are sent to Jev, and the mechanical hit never surfaces alone.
 - A rule is YAML data (`data/rules/<domain>/<id>.yaml`: regex, phrases, `absent`, a Jev question) or a code object (`src/rules/code/*.ts`: the same fields with `check(unit)` in place of `mechanical`). Anything that counts, compares or measures is a code rule; the loader returns both kinds in one list.
 - `mechanical.absent` pairs with `regex`: the rule fires only when `regex` matches and `absent` matches nowhere in the unit (a file with a `<form>` and no focus call). It is how rg's `--files-without-match` pipelines port.
 - `thresholds.act` and `thresholds.review` are per rule. Findings at or above `act` fail the run, between the two print as review notes, below are silent.
-- `severity` is independent of probability.
+- `severity` (`major` or `minor`) says how bad a finding is if real; it is independent of probability.
 - `source` points at the exact file and line the rule was harvested from. `handWritten` lists the keys `scripts/port-rules.ts` must not overwrite.
 - `data/rules/tuning.json` overlays `thresholds.act` and `status` per rule and is written only by `tune --write`.
 
@@ -36,16 +36,15 @@ One name per concept. Substituting a synonym splits the concept across the code.
 - **Unresolved**: a value the extractor could not resolve (a Tailwind theme token, a missing class list). Lives on `ResolvedTypography.unresolved` and in `UnresolvedError`.
 - **Unknown**: the finding-level outcome when a rule cannot decide for a unit, usually because a value was unresolved or a precondition was unmet. Reported, never counted as pass or fail.
 - **Band**: how sure a finding is: `act`, `review` or `silent`. The eval reports the share of labelled items in the review band as the review rate.
-- **Severity**: how bad a finding is if real: `critical`, `major`, `minor`. Set by the rule, independent of the band.
+- **Severity**: how bad a finding is if real: `major` or `minor`. Set by the rule, independent of the band.
 - **Mechanical / Jev / both**: the rule tiers. `both` means the mechanical part filters candidates and Jev decides.
 
-## fix.mode
+## fix
 
-`deterministic` names a function in `src/reduce/fixes.ts` that `--fix` applies to each of the unit's `fixRanges`, never to quotes, braces, expressions or inline code around them; a unit without ranges is reported and left for a hand fix. Each fix function matches exactly what its rule's `mechanical.regex` flags. `llm` and `none` print the hint under the finding for a person or an agent; nothing in this package calls a text model. An executor that hands the unit and hint to an agent and re-asks the same Jev question as the acceptance test is a candidate for a later version, not a present capability.
+Every rule carries `fix.hint`, printed under the finding for a person or an agent; nothing in this package calls a text model. `fix.function` names a function in `src/reduce/fixes.ts` that `--fix` applies to each of the unit's `fixRanges`, never to quotes, braces, expressions or inline code around them; a unit without ranges is reported and left for a hand fix. Each fix function matches exactly what its rule's `mechanical.regex` flags.
 
 ## Non-goals for v1
 
-- No Vercel AI Gateway transport (one-file addition later).
 - No `choice` or `score` rules; the schema reserves the field.
 - No Tailwind `@theme` parsing; unknown tokens are `unresolved`, never guessed.
 - No composite taste score; the scorecard is counts by category and domain.

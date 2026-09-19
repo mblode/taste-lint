@@ -242,14 +242,7 @@ export const applyFixes = (
     const rule = ruleById.get(f.ruleId);
     const unit = unitById.get(f.unitId);
     const fn = rule?.fix.function ? FIXES[rule.fix.function] : undefined;
-    if (
-      !rule ||
-      !unit ||
-      !fn ||
-      f.suppressed ||
-      f.band !== "act" ||
-      rule.fix.mode !== "deterministic"
-    ) {
+    if (!(rule && unit && fn) || f.suppressed || f.band !== "act") {
       continue;
     }
     if (!unit.fixRanges || unit.fixRanges.length === 0) {

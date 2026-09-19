@@ -29,14 +29,10 @@ export type UnitKind = (typeof UNIT_KINDS)[number];
 export const TIERS = ["mechanical", "jev", "both"] as const;
 export type Tier = (typeof TIERS)[number];
 
-export const SEVERITIES = ["critical", "major", "minor"] as const;
+export const SEVERITIES = ["major", "minor"] as const;
 export type Severity = (typeof SEVERITIES)[number];
 /** Lower is more severe; the single owner of severity ordering. */
-export const SEVERITY_RANK: Record<Severity, number> = {
-  critical: 0,
-  major: 1,
-  minor: 2,
-};
+export const SEVERITY_RANK: Record<Severity, number> = { major: 0, minor: 1 };
 
 export const RULE_STATUSES = ["active", "draft", "review-only"] as const;
 export type RuleStatus = (typeof RULE_STATUSES)[number];
@@ -86,7 +82,6 @@ export interface RuleSource {
   path: string;
   line: number;
   ruleId?: string;
-  tier?: string;
 }
 
 export interface Mechanical {
@@ -107,7 +102,6 @@ export interface CriterionSide {
 }
 
 export interface Question {
-  type: "noul";
   instructions: string;
   criteria?: { true: CriterionSide; false: CriterionSide };
   /** Context keys to include in the state for this question. */
@@ -120,9 +114,8 @@ export interface Thresholds {
 }
 
 export interface Fix {
-  mode: "deterministic" | "llm" | "none";
   hint: string;
-  /** Named function in src/reduce/fixes.ts for deterministic fixes. */
+  /** Named function in src/reduce/fixes.ts; present means `--fix` can apply it. */
   function?: string;
 }
 
@@ -130,7 +123,6 @@ export interface Preconditions {
   notInCode?: boolean;
   docType?: DocType[];
   role?: Role[];
-  element?: string[];
   /** Skip Markdown units when the project curls quotes at build time. */
   smartQuotesAtBuild?: false;
 }
@@ -141,15 +133,15 @@ export interface Rule {
   categoryId: string;
   domain: Domain;
   source: RuleSource;
-  related?: string[];
-  scope: { include: string[]; exclude?: string[] };
+  /** Resolved: include derived from `unit` unless the rule names it. */
+  scope: { include: string[]; exclude: string[] };
   unit: UnitKind[];
+  /** Derived: mechanical only, question only, or both. */
   tier: Tier;
   mechanical?: Mechanical;
   question?: Question;
   thresholds: Thresholds;
   severity: Severity;
-  severityOverrides?: { scope: string; severity: Severity }[];
   fix: Fix;
   preconditions?: Preconditions;
   status: RuleStatus;
@@ -261,7 +253,6 @@ export interface Finding {
   message: string;
   evidence: string;
   fixHint: string;
-  fixMode: Fix["mode"];
   suppressed: boolean;
   also?: string[];
 }

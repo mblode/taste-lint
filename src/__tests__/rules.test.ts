@@ -17,8 +17,7 @@ afterEach(() => {
 
 const base = () => ({
   categoryId: "evidence-over-claims",
-  domain: "copywriting",
-  fix: { hint: "Cut it.", mode: "none" },
+  fix: { hint: "Cut it." },
   id: "copywriting-x",
   question: {
     criteria: {
@@ -26,14 +25,51 @@ const base = () => ({
       true: { examples: ["a"], what: "a" },
     },
     instructions: "Is it?",
-    type: "noul",
   },
-  scope: { include: ["**/*.md"] },
   severity: "minor",
   source: { line: 1, path: "p", repo: "r" },
-  tier: "jev",
   title: "X",
   unit: ["paragraph"],
+});
+
+it("derives tier, domain and scope from the fields a rule does carry", () => {
+  const jev = validateRule(base(), "x.yaml", "copywriting-x");
+  expect(jev).toMatchObject({
+    domain: "copywriting",
+    scope: {
+      exclude: [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/*.stories.*",
+        "**/CHANGELOG.md",
+      ],
+      include: ["**/*.md", "**/*.mdx"],
+    },
+    tier: "jev",
+  });
+  const both = validateRule(
+    { ...base(), mechanical: { regex: "x" } },
+    "x.yaml",
+    "copywriting-x"
+  );
+  expect(both.tier).toBe("both");
+  const mixed = validateRule(
+    {
+      ...base(),
+      scope: { exclude: ["**/README.md"] },
+      unit: ["heading", "jsx-text", "attr-string"],
+    },
+    "x.yaml",
+    "copywriting-x"
+  );
+  expect(mixed.scope.include).toEqual([
+    "**/*.md",
+    "**/*.mdx",
+    "**/*.tsx",
+    "**/*.jsx",
+  ]);
+  expect(mixed.scope.exclude).toContain("**/README.md");
+  expect(mixed.scope.exclude).toContain("**/*.test.*");
 });
 
 it("loads the fixture rules beside the code rules and applies a tuning overlay", () => {
@@ -84,8 +120,25 @@ it("loads the fixture rules beside the code rules and applies a tuning overlay",
 it.each([
   ["id mismatch", { id: "copywriting-y" }, /does not match filename/],
   ["unknown category", { categoryId: "nope" }, /unknown categoryId/],
-  ["domain mismatch", { domain: "typography" }, /does not match category/],
-  ["missing question", { question: undefined }, /needs a question/],
+  [
+    "missing question",
+    { question: undefined },
+    /needs a mechanical section or a question/,
+  ],
+  [
+    "source rule without scope.include",
+    { mechanical: { regex: "x" }, question: undefined, unit: ["source"] },
+    /needs scope.include/,
+  ],
+  [
+    "source rule with a question",
+    {
+      mechanical: { regex: "x" },
+      scope: { include: ["**/*.tsx"] },
+      unit: ["source"],
+    },
+    /no question/,
+  ],
   [
     "thresholds order",
     { thresholds: { act: 0.3, review: 0.5 } },
@@ -96,21 +149,13 @@ it.each([
     { title: `A ${String.fromCodePoint(0x20_14)} B` },
     /em dash/,
   ],
+  ["bad regex", { mechanical: { regex: "(" } }, /does not compile/],
   [
-    "bad regex",
-    { mechanical: { regex: "(" }, tier: "both" },
-    /does not compile/,
+    "unregistered fix function",
+    { fix: { function: "nope", hint: "x" } },
+    /not registered/,
   ],
-  [
-    "deterministic without function",
-    { fix: { hint: "x", mode: "deterministic" } },
-    /fix.function/,
-  ],
-  [
-    "mechanical with question",
-    { mechanical: { regex: "x" }, tier: "mechanical" },
-    /must not carry a question/,
-  ],
+  ["removed field", { tier: "jev" }, /unknown key tier/],
   [
     "unknown top-level key",
     { threshold: { act: 0.9 } },
@@ -128,7 +173,7 @@ it.each([
   ],
   [
     "fractional minMatches",
-    { mechanical: { minMatches: 1.5, regex: "x" }, tier: "both" },
+    { mechanical: { minMatches: 1.5, regex: "x" } },
     /positive integer/,
   ],
   [
@@ -143,7 +188,6 @@ it.each([
           },
         },
         instructions: "Is it?",
-        type: "noul",
       },
     },
     /em dash/,
@@ -152,6 +196,12 @@ it.each([
   expect(() =>
     validateRule({ ...base(), ...overrides }, "x.yaml", "copywriting-x")
   ).toThrow(pattern);
+});
+
+it("rejects an id outside the category's domain", () => {
+  expect(() =>
+    validateRule({ ...base(), id: "typography-x" }, "x.yaml", "typography-x")
+  ).toThrow(/must start with copywriting-/);
 });
 
 it("builds the noul wire format with structured criteria", () => {

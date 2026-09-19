@@ -249,8 +249,14 @@ export const runTuneAb = async (
 const correctVector = (e: RuleEval, r: Rule): boolean[] =>
   e.pairs.map((p) => p.probability >= r.thresholds.act === p.label);
 
+// Back to the YAML shape: the loader derives tier, domain and scope, and a
+// code rule's check and file are not data.
 const ruleToRaw = (rule: Rule): Record<string, unknown> => {
-  const { file, ...rest } = rule;
+  const { check, domain, file, scope, tier, ...rest } = rule;
+  void check;
+  void domain;
   void file;
+  void scope;
+  void tier;
   return rest as unknown as Record<string, unknown>;
 };

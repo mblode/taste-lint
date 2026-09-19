@@ -3,24 +3,17 @@
 id: interaction-inline-errors-first-focus
 title: Show Inline Errors and Focus the First Invalid Field
 categoryId: form-usability
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/forms-inline-errors-first-focus.md
   repo: mblode/agent-skills
   ruleId: forms-inline-errors-first-focus
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   absent: \.focus\(\)|autoFocus|shouldFocusError
   flags: gu
@@ -28,6 +21,4 @@ mechanical:
 severity: minor
 fix:
   hint: On submit, reveal all relevant errors and move focus to the first failing field. Errors the user has to hunt for are the point where they abandon the form.
-  mode: none
 status: review-only
-handWritten: []

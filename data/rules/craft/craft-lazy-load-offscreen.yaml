@@ -5,29 +5,23 @@
 id: craft-lazy-load-offscreen
 title: Hero or above-the-fold image marked loading lazy
 categoryId: resilience
-domain: craft
 source:
   repo: mblode/agent-skills
   path: skills/ui-design/rules/perf-lazy-load-offscreen.md
   line: 9
   ruleId: perf-lazy-load-offscreen
-  tier: fix-this-sprint
 scope:
   include:
     - "**/*.tsx"
     - "**/*.jsx"
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
 unit: [source]
-tier: mechanical
 mechanical:
   flags: gus
-  regex: "<(?:img|Image)\\b(?=[^>]*loading=\"lazy\")(?=[^>]*(?:[Hh]ero|[Bb]anner|[Cc]over|[Mm]asthead|[Pp]riority))[^>]*>"
+  regex:
+    "<(?:img|Image)\\b(?=[^>]*loading=\"lazy\")(?=[^>]*(?:[Hh]ero|[Bb]anner|[Cc]over|[Mm]asthead\
+    |[Pp]riority))[^>]*>"
 severity: minor
 fix:
-  mode: none
   hint: >-
     Never lazy-load the largest above-the-fold image; it delays the largest contentful paint. Load the hero eagerly (priority) and keep loading="lazy" for images below the fold.
 status: review-only

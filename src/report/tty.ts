@@ -14,8 +14,7 @@ const paint = (colour: Colour, text: string): string => {
 
 const severityTag = (f: Finding): string => {
   const label = f.severity.toUpperCase() + (f.band === "review" ? "?" : "");
-  const colour: Colour =
-    f.severity === "critical" || f.severity === "major" ? "red" : "yellow";
+  const colour: Colour = f.severity === "major" ? "red" : "yellow";
   return paint(f.band === "review" ? "cyan" : colour, `[${label}]`);
 };
 
@@ -28,7 +27,7 @@ export const formatFinding = (f: Finding): string => {
   if (f.evidence) {
     lines.push(`    ${f.evidence}`);
   }
-  if (f.fixHint && f.fixMode !== "none") {
+  if (f.fixHint) {
     lines.push(`    Fix: ${f.fixHint}`);
   }
   if (f.suppressed) {

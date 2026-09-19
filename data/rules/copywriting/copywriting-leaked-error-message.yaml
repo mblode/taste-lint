@@ -3,30 +3,21 @@
 id: copywriting-leaked-error-message
 title: Leaked raw error message in UI
 categoryId: actionable-microcopy
-domain: copywriting
 source:
   line: 10
   path: skills/ui-design/rules/microcopy-leaked-error-message.md
   repo: mblode/agent-skills
   ruleId: microcopy-leaked-error-message
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.ts"
     - "**/*.tsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gu
   regex: \{(error|err|e)\.(message|stack)\}
 severity: major
 fix:
   hint: Rendering `error.message`, `e.stack`, or a stringified error directly into JSX exposes implementation details to users, and frequently to attackers. SQL fragments, ORM stack traces, AWS error codes, payment-provider raw responses, and internal endpoint paths routinely appear in production UIs becaus
-  mode: none
 status: review-only
-handWritten: []

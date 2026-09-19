@@ -3,24 +3,18 @@
 id: copywriting-click-here-links
 title: Link text that names nothing
 categoryId: actionable-cta
-domain: copywriting
 source:
   {
     repo: mblode/agent-skills,
     path: skills/docs-writing/rules/format-descriptive-links.md,
     line: 7,
   }
-scope:
-  include: ["**/*.tsx", "**/*.jsx"]
-  exclude: ["**/CHANGELOG.md", "**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [jsx-text]
-tier: mechanical
 mechanical:
   regex: "^(?:click here|here|learn more|read more|more|link|this link|this page|see more|details)[.!]?$"
   flags: giu
 severity: minor
 fix:
-  mode: none
   hint: >-
     Name the destination so the link makes sense on its own: "View the full report", not "Click here".
 preconditions: { notInCode: true, role: [link] }

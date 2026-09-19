@@ -35,12 +35,12 @@ Read `docs/DESIGN.md` for contracts.
 | --- | --- | --- |
 | check | `npm run check && npm run typecheck` | during an edit loop |
 | verify | `npm run verify` | before a commit (lint, types, tests, build, packed smoke test) |
-| verify:full | `npm run verify:full` | before a push; CI runs exactly this plus `port-rules --check`, and on pull requests `changeset status` once `origin/main` exists |
+| verify:full | `npm run verify:full` | before a push; CI runs exactly this plus `port-rules --check` and, on pull requests, `changeset status` |
 
 Commands that pass while proving less than they look:
 
 - `slop-cop rules check` prints `N active rules`; active here means not draft. A Jev-backed rule can be `review-only` and still count, and so can every ported pattern rule: today most of the pack is review-only by design.
-- `slop-cop lint --dry-run` exits 1 on any act-band mechanical finding. `verify:full` runs it with `--fail-on critical` so the fixtures, which contain deliberate straight quotes, do not fail the umbrella. No shipped rule is critical, so that step only proves the CLI runs end to end; the fixture finding counts are asserted in `src/__tests__/lint.test.ts`.
+- `slop-cop lint --dry-run` exits 1 on any act-band mechanical finding, so the fixtures (deliberate straight quotes) fail it by design; their finding counts are asserted in `src/__tests__/lint.test.ts` and the packed smoke test runs the CLI end to end.
 - `slop-cop eval` without `--include-weak` skips every item whose category maps to more than one rule, which today is every typography rule.
 
 ## Invariants

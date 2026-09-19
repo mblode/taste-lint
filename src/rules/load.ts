@@ -6,7 +6,6 @@ import { parse } from "yaml";
 import { RULE_STATUSES } from "../types.js";
 import type { Rule, Tuning, TuningEntry } from "../types.js";
 import { CODE_RULES } from "./code/index.js";
-import { CATEGORY_BY_ID } from "./taxonomy.js";
 import { validateRule } from "./validate.js";
 
 // Walk up from this module to find the packaged data directory, so the CLI
@@ -142,12 +141,6 @@ export const loadRules = (
   // Code rules join the same list; a fresh object per load so the overlay
   // below never mutates the module constant.
   for (const code of CODE_RULES) {
-    const category = CATEGORY_BY_ID.get(code.categoryId);
-    if (!category || category.domain !== code.domain) {
-      throw new Error(
-        `Invalid code rule ${code.id}: category ${code.categoryId} is unknown or not in domain ${code.domain}`
-      );
-    }
     rules.push({ ...code, thresholds: { ...code.thresholds } });
   }
   for (const rule of rules) {

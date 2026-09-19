@@ -4,19 +4,13 @@
 id: copywriting-idea-repetition
 title: Repeats the same idea without adding new evidence
 categoryId: machine-prose
-domain: copywriting
 source:
   repo: every.to
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: idea_repetition
-scope:
-  include: ["**/*.md", "**/*.mdx"]
-  exclude: ["**/CHANGELOG.md", "**/node_modules/**"]
 unit: [paragraph]
-tier: jev
 question:
-  type: noul
   context: [docType]
   instructions: >-
     Does the writing repeat the same idea without adding new evidence? Ignore a deliberate one-sentence summary at the end of a long section, and a repeated term that is the subject of the passage.
@@ -34,7 +28,6 @@ question:
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
-  mode: none
   hint: >-
     Cut the restatement or replace it with the evidence it was standing in for.
 status: review-only

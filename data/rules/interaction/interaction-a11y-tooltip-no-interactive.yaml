@@ -3,30 +3,21 @@
 id: interaction-a11y-tooltip-no-interactive
 title: Hover tooltips must not contain interactive content
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 10
   path: skills/ui-design/rules/a11y-tooltip-no-interactive.md
   repo: mblode/agent-skills
   ruleId: a11y-tooltip-no-interactive
-  tier: fix-this-sprint
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   flags: gus
   regex: <(Tooltip(Content)?|HoverCard(Content)?)[^>]*>[\s\S]{0,800}<(button|a |input|select|textarea)\b
 severity: minor
 fix:
   hint: A hover tooltip that contains a link, button, or input cannot be used with a keyboard or a touch screen, and it vanishes when the pointer moves to reach the inner control. Users see an action they cannot activate reliably.
-  mode: none
 status: review-only
-handWritten: []

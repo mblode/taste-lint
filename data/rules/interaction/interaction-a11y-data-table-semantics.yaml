@@ -3,24 +3,17 @@
 id: interaction-a11y-data-table-semantics
 title: Mark Up Data Tables With Real Table Semantics
 categoryId: focus-and-a11y
-domain: interaction
 source:
   line: 9
   path: skills/ui-design/rules/a11y-data-table-semantics.md
   repo: mblode/agent-skills
   ruleId: a11y-data-table-semantics
-  tier: release-blocker
 scope:
-  exclude:
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
   include:
     - "**/*.tsx"
     - "**/*.jsx"
 unit:
   - source
-tier: mechanical
 mechanical:
   absent: <caption\b|scope="(col|row)"
   flags: gu
@@ -28,6 +21,4 @@ mechanical:
 severity: major
 fix:
   hint: Tabular data needs a real `<table>` with `<caption>`, header cells, and `scope`. Divs styled as a grid carry no row/column relationships, so screen readers read cells as a flat list. (Layout-only grids use CSS, not `<table>`.)
-  mode: none
 status: review-only
-handWritten: []

@@ -2,28 +2,14 @@
 id: copywriting-vague-error
 title: Error message with no cause and no next step
 categoryId: actionable-microcopy
-domain: copywriting
 source:
   line: 10
   path: skills/ui-design/rules/microcopy-vague-error.md
   repo: mblode/agent-skills
   ruleId: microcopy-vague-error
-  tier: fix-this-sprint
-scope:
-  include:
-    - "**/*.tsx"
-    - "**/*.jsx"
-    - "**/*.ts"
-    - "**/*.mdx"
-  exclude:
-    - "**/CHANGELOG.md"
-    - "**/*.test.*"
-    - "**/*.spec.*"
-    - "**/*.stories.*"
 unit:
   - jsx-text
   - attr-string
-tier: both
 mechanical:
   phrases:
     - error occurred
@@ -37,7 +23,6 @@ mechanical:
     - an error occurred
     - failed
 question:
-  type: noul
   context:
     - element
     - docType
@@ -56,13 +41,7 @@ question:
         - Couldn't reach the payment provider. Your card was not charged. Try again.
         - Wrong email or password.
 severity: major
-severityOverrides:
-  - scope: "**/checkout/**"
-    severity: critical
-  - scope: "**/sign-up/**"
-    severity: critical
 fix:
-  mode: llm
   hint: Write what happened, why when you know it, and the next step. Never blame the person and never clear the form.
 preconditions:
   notInCode: true

@@ -3,24 +3,18 @@
 id: typography-ellipsis
 title: Three periods instead of an ellipsis character
 categoryId: typographic-detail
-domain: typography
 source:
   {
     repo: mblode/agent-skills,
     path: skills/ui-design/guidelines/copywriting.md,
     line: 17,
   }
-scope:
-  include: ["**/*.md", "**/*.mdx", "**/*.tsx", "**/*.jsx"]
-  exclude: ["**/*.test.*", "**/*.spec.*", "**/*.stories.*"]
 unit: [paragraph, heading, jsx-text, attr-string]
-tier: mechanical
 mechanical:
   regex: "\\.\\.\\."
   flags: gu
 severity: minor
 fix:
-  mode: deterministic
   function: ellipsis
   hint: Use the single ellipsis character (U+2026), for example "Saving…".
 preconditions:
