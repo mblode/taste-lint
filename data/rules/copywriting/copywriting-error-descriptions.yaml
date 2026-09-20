@@ -1,0 +1,53 @@
+id: copywriting-error-descriptions
+title: An error explanation provides no recovery guidance
+categoryId: reference-reading
+source:
+  repo: mblode/agent-skills
+  path: skills/docs-writing/rules/code-error-descriptions.md
+  line: 7
+  ruleId: code-error-descriptions
+unit:
+  - paragraph
+mechanical:
+  regex: \b(?:error|HTTP)\s+[45][0-9]{2}\b|\b(?:forbidden|too many requests|unauthorized)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+  instructions: The TEXT is a prose explanation of an error in technical documentation. Return true only when it presents itself as an error explanation but gives neither an actionable recovery step nor a link or explicit pointer to recovery guidance. Return false for incidental mentions, response examples, discussions of error wording, explanations that supply recovery, or passages that explicitly introduce recovery instructions immediately below. Do not require the literal status code when the error is named. Do not judge an isolated table cell or heading as a complete explanation.
+  criteria:
+    "true":
+      what: An error explanation with no actionable recovery or pointer to it.
+      examples:
+        - HTTP 403 means Forbidden.
+        - The Unauthorized error means authentication failed.
+    "false":
+      what: Recovery supplied or referenced, or text is not a complete error explanation.
+      examples:
+        - HTTP 403 means your key lacks permission. Add the billing:read scope in the API dashboard.
+        - For HTTP 429 recovery steps, see the retry guide.
+        - The client records HTTP 403 responses in the access log.
+severity: minor
+fix:
+  hint: Explain the cause and the recovery step, or link to recovery instructions. Keep the error message recognizable to the reader.
+preconditions:
+  notInCode: true
+  docType:
+    - tutorial
+    - howto
+    - reference
+    - explanation
+    - agent-instructions
+  role:
+    - body
+    - list-item
+status: review-only
+handWritten:
+  - title
+  - unit
+  - mechanical
+  - question
+  - fix
+  - preconditions
+  - severity

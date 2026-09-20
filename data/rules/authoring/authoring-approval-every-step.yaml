@@ -1,0 +1,44 @@
+id: authoring-approval-every-step
+title: Blanket approval gate blocks routine local work
+categoryId: instruction-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/agent-skills-creator/references/authoring-tips.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:permission|approval|confirm|ask)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true only for an instruction requiring approval before every routine local edit, read, or harmless command irrespective of task authorization. Return false for permissions covering deployments, messages, purchases, destructive changes, sensitive access, or explicitly restricted environments. Do not infer a grant of authority absent from the text.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Ask permission before every file edit, even when the user asked you to implement the change.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Ask before deploying to production.
+severity: minor
+fix:
+  hint: Limit approval gates to consequential actions and state the authorized routine work.
+preconditions:
+  notInCode: true
+  docType:
+    - skill
+    - agent-instructions
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

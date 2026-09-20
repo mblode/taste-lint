@@ -1,0 +1,43 @@
+id: copywriting-permission-benefit
+title: Permission request states no user benefit
+categoryId: actionable-microcopy
+source:
+  repo: installed/copywriting
+  path: skills/copywriting/references/ui-states.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:allow notifications|grant .*permission|requires? .*access)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true when the supplied text is a permission request framed only as a system need, without explaining a benefit to the person. Return false if the text or supplied heading names the benefit, if it points to an explanation, or if it describes an API permission rather than requesting one from the user.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - This app requires location access.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Find nearby stores. Allow location access.
+severity: minor
+fix:
+  hint: Explain the user benefit before asking for the permission.
+preconditions:
+  notInCode: true
+  docType:
+    - ui
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

@@ -1,0 +1,50 @@
+id: copywriting-requirements-language
+title: A requirement presented as a recommendation
+categoryId: reader-first-framing
+source:
+  repo: mblode/agent-skills
+  path: skills/docs-writing/rules/voice-requirements-language.md
+  line: 7
+  ruleId: voice-requirements-language
+unit:
+  - paragraph
+mechanical:
+  regex: \bshould\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+  instructions: The TEXT is technical documentation. Return true only when it uses should for a requirement and the supplied text explicitly establishes that skipping it causes failure, rejection, data loss, or an irreversible unsafe operation. Do not infer undocumented requirements from technical knowledge. Return false for optional recommendations, expected behavior, quoted wording, style discussions, or insufficient evidence of necessity.
+  criteria:
+    "true":
+      what: Explicitly mandatory behavior weakened to should.
+      examples:
+        - You should supply an API key; requests without one are rejected.
+        - You should back up the database before upgrading; the upgrade permanently deletes the old tables.
+    "false":
+      what: A recommendation, expectation, direct requirement, or necessity not established locally.
+      examples:
+        - You should set a longer timeout on slow networks.
+        - The request should finish within a second.
+        - You must supply an API key; requests without one are rejected.
+severity: minor
+fix:
+  hint: Use must or a direct imperative when the text establishes a requirement. Keep should for recommendations and expectations.
+preconditions:
+  notInCode: true
+  docType:
+    - tutorial
+    - howto
+    - reference
+    - explanation
+    - agent-instructions
+status: review-only
+handWritten:
+  - title
+  - unit
+  - mechanical
+  - question
+  - fix
+  - preconditions
+  - severity

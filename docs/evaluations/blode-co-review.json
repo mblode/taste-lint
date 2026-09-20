@@ -1,0 +1,629 @@
+{
+  "labelSource": "blind agent sweep; provisional, not independent human ground truth",
+  "sourceRevision": "3b21e0d",
+  "threshold": 0.4,
+  "predictions": [
+    {
+      "id": "blode-co-generic-framing-01",
+      "probability": 0.87,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "0da9a9a7555bdfbd006be62030cdd699933515cf2065608968690386da0c0c5e"
+    },
+    {
+      "id": "blode-co-generic-framing-02",
+      "probability": 0.17,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "00267a296dc895c9ad9a2d1a2c32d1a3428b2e3ee65d7760c3be701ec3dbe4d3"
+    },
+    {
+      "id": "blode-co-generic-framing-03",
+      "probability": 0.71,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "01c4b9f40d6bafa10e4a5d42b0b038180d880799b25ef0f55454ee944eda03f9"
+    },
+    {
+      "id": "blode-co-generic-framing-04",
+      "probability": 0.82,
+      "stratum": "explanation/high",
+      "cacheKey": "0237d1a2833d019770a0938470099a358fafd22ed5d87e13615f16264b58d873"
+    },
+    {
+      "id": "blode-co-generic-framing-05",
+      "probability": 0.27,
+      "stratum": "explanation/low",
+      "cacheKey": "0031cabef088cfe71c368ef7bf655a92abf7c1deb7cc1151de91a1d34a3322f3"
+    },
+    {
+      "id": "blode-co-generic-framing-06",
+      "probability": 0.46,
+      "stratum": "explanation/middle",
+      "cacheKey": "00120ef21cc9d99b7e2809c3cb141f0f729195c3f1f5b75a5e06af3e310e63bb"
+    },
+    {
+      "id": "blode-co-generic-framing-07",
+      "probability": 0.85,
+      "stratum": "lesson/high",
+      "cacheKey": "0af233bdb31746dfdc8fddb3f6d2118e13702fef25ec4abb081827174b11fa1b"
+    },
+    {
+      "id": "blode-co-generic-framing-08",
+      "probability": 0.12,
+      "stratum": "lesson/low",
+      "cacheKey": "02e0684129b27d0a4d4bdea8617db2167a208c248a0d44b54af34b57b78e6d0a"
+    },
+    {
+      "id": "blode-co-generic-framing-09",
+      "probability": 0.43,
+      "stratum": "lesson/middle",
+      "cacheKey": "133e269a020393cb7004831f2c78f763efb7e3f16cbfc5eea3ead422c8e65460"
+    },
+    {
+      "id": "blode-co-generic-framing-10",
+      "probability": 0.81,
+      "stratum": "unknown/high",
+      "cacheKey": "20762d581e1ffb3c3c11149ecb051769da59e045db3ee3684aa111dff58edf30"
+    },
+    {
+      "id": "blode-co-generic-framing-11",
+      "probability": 0.23,
+      "stratum": "unknown/low",
+      "cacheKey": "0261edd9ba5f98c44e6b585f78ee908e7619fc680e7103a709a922cd3b8d9603"
+    },
+    {
+      "id": "blode-co-generic-framing-12",
+      "probability": 0.62,
+      "stratum": "unknown/middle",
+      "cacheKey": "018d195d82b59574dc86ede3b1b039efd6aaa011bc0a333909180528acc0fc91"
+    },
+    {
+      "id": "blode-co-generic-framing-13",
+      "probability": 0.79,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "0ea763657f49d97b26b53b66889f9484e3d1ce8fdd3a63a9e12355fdd442edad"
+    },
+    {
+      "id": "blode-co-generic-framing-14",
+      "probability": 0.07,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "012a00760e0318e99bd1baca150c85c1f9ebdab3dd1b772fb4de0ef95538387f"
+    },
+    {
+      "id": "blode-co-generic-framing-15",
+      "probability": 0.59,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "01d2968f8cda2c2207c2d05130c9e33f2229657698cfb27c9dc1abdeb10c4e94"
+    },
+    {
+      "id": "blode-co-generic-framing-16",
+      "probability": 0.82,
+      "stratum": "explanation/high",
+      "cacheKey": "0254e4f36ff99a710776e55ae4f54a99e8e27109ee7b84ce1040cdc14c9f39ea"
+    },
+    {
+      "id": "blode-co-generic-framing-17",
+      "probability": 0.16,
+      "stratum": "explanation/low",
+      "cacheKey": "005d0ed3dc86d37bec0e101ed63c79742fde0fa089df7c125dc5daf2f8db6600"
+    },
+    {
+      "id": "blode-co-generic-framing-18",
+      "probability": 0.63,
+      "stratum": "explanation/middle",
+      "cacheKey": "001e3a6ef6f2255d2ce711250b39c27a7d6fe792de3cf60efa1d5709cd5a61d9"
+    },
+    {
+      "id": "blode-co-generic-framing-19",
+      "probability": 0.81,
+      "stratum": "lesson/high",
+      "cacheKey": "16f3ed80324f3b70fe7c13b1741824f2522c79854c0dcb243a0b7b1fbcaf150d"
+    },
+    {
+      "id": "blode-co-generic-framing-20",
+      "probability": 0.16,
+      "stratum": "lesson/low",
+      "cacheKey": "10c5e30b81122ec1dd439968a57b26346efc8bb8da154478d6685cb5fe12c617"
+    },
+    {
+      "id": "blode-co-generic-framing-21",
+      "probability": 0.69,
+      "stratum": "lesson/middle",
+      "cacheKey": "23852b5999f43bceb66b845a4afdd973b2ee23ab44852f1c5dccd2e8606572cb"
+    },
+    {
+      "id": "blode-co-generic-framing-22",
+      "probability": 0.81,
+      "stratum": "unknown/high",
+      "cacheKey": "d42c1dfa7f27bedc279028f50e6e37527433c9c84fa989515459cc7ce0a97688"
+    },
+    {
+      "id": "blode-co-generic-framing-23",
+      "probability": 0.11,
+      "stratum": "unknown/low",
+      "cacheKey": "049374b240081f90699d57d878d99349602d9764726610bbe64ea96c99991a4a"
+    },
+    {
+      "id": "blode-co-generic-framing-24",
+      "probability": 0.45,
+      "stratum": "unknown/middle",
+      "cacheKey": "0219c0adf5e1512ba8a6990eedf757d756345e72405e9369119d028b3ddb0a3e"
+    },
+    {
+      "id": "blode-co-generic-framing-25",
+      "probability": 0.82,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "10b4c8dd28ddbf28de2e09a4d05f2e4d16f4176dbcd9f57361cfa2aaaf1c3157"
+    },
+    {
+      "id": "blode-co-generic-framing-26",
+      "probability": 0.3,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "0164534aadf1ed9e369973ff72962db9a53750e34e44397a6123bdf9bd77ef39"
+    },
+    {
+      "id": "blode-co-generic-framing-27",
+      "probability": 0.4,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "01d5e152c32d3363dfda90f08560b8a61241c99957df3f251e5513786a356deb"
+    },
+    {
+      "id": "blode-co-generic-framing-28",
+      "probability": 0.83,
+      "stratum": "explanation/high",
+      "cacheKey": "02cb07b56730d60cbba10764c73263761311e5e46623c64d877099cd1f601457"
+    },
+    {
+      "id": "blode-co-generic-framing-29",
+      "probability": 0.3,
+      "stratum": "explanation/low",
+      "cacheKey": "00bc76915bc5f1acaafd87b91e70b6677496a3e8e2acc7754b49fdaea81c3d00"
+    },
+    {
+      "id": "blode-co-generic-framing-30",
+      "probability": 0.46,
+      "stratum": "explanation/middle",
+      "cacheKey": "002330f973993d6ccac87e88c4df5f73746c4a7a1c3116660a83ecc2dc87cfe3"
+    },
+    {
+      "id": "blode-co-generic-framing-31",
+      "probability": 0.89,
+      "stratum": "lesson/high",
+      "cacheKey": "1f02099fb478f45d89208664bd684a0ee1867cd6f7b4d17542de104b443aaef5"
+    },
+    {
+      "id": "blode-co-generic-framing-32",
+      "probability": 0.18,
+      "stratum": "lesson/low",
+      "cacheKey": "1c8af31907d2733c295dddc4f968346948080e46bd593936c977fa78be9af567"
+    },
+    {
+      "id": "blode-co-generic-framing-33",
+      "probability": 0.43,
+      "stratum": "lesson/middle",
+      "cacheKey": "3d0b83eed5c7cbf6c521052f58be2d7cfd06c725ad95fe9525c2afa1f2aac32c"
+    },
+    {
+      "id": "blode-co-generic-framing-34",
+      "probability": 0.17,
+      "stratum": "unknown/low",
+      "cacheKey": "080bb43abfcb0910320ee4694717d7dec141df9f5b963807c82070943d4228ba"
+    },
+    {
+      "id": "blode-co-generic-framing-35",
+      "probability": 0.58,
+      "stratum": "unknown/middle",
+      "cacheKey": "060f817c64736824edcc902f19624170ed32bc230b10d62f147145204e38dcc9"
+    },
+    {
+      "id": "blode-co-generic-framing-36",
+      "probability": 0.83,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "16532be3bf6b6a0aca6f68baa0cbcbbe519cfedfd492d2e619efad72b9ec8fd6"
+    },
+    {
+      "id": "blode-co-generic-framing-37",
+      "probability": 0.28,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "01706699eb88269336589e6aaca5be6d84c8158f5eb34becb28d045ff144e0f9"
+    },
+    {
+      "id": "blode-co-generic-framing-38",
+      "probability": 0.56,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "02c966ad4f4c70b3413a6648e21d17f81723c681e8f7d995538b46da1995af7b"
+    },
+    {
+      "id": "blode-co-generic-framing-39",
+      "probability": 0.75,
+      "stratum": "explanation/high",
+      "cacheKey": "02da28d0a62e6a60f4790d42d08d26105710886bafa6a748bed0001ffb16acf2"
+    },
+    {
+      "id": "blode-co-generic-framing-40",
+      "probability": 0.13,
+      "stratum": "explanation/low",
+      "cacheKey": "00c0744f743454b99efb72d8ecc5d58ba12a5980a050c1868d99098d93479a08"
+    },
+    {
+      "id": "blode-co-unnatural-polish-01",
+      "probability": 0.85,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "00a7c3fe4454714ffa0d9980fbdf1f49b3df69728fe57380f3ea08cec901fd56"
+    },
+    {
+      "id": "blode-co-unnatural-polish-02",
+      "probability": 0.27,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "025e2bac50fc055630b2e15af47eb17c9a07da7ecc24c79874b57b98b0f5f75d"
+    },
+    {
+      "id": "blode-co-unnatural-polish-03",
+      "probability": 0.65,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "000eb80c5cc8563e2a2ce71f6969d96622134fd4ae4d12bdc6b4234b387cead1"
+    },
+    {
+      "id": "blode-co-unnatural-polish-04",
+      "probability": 0.85,
+      "stratum": "explanation/high",
+      "cacheKey": "0096e673dcb3aa4b7b466b2c36525231be2f0a762ed2223fa328b9c9bab40a63"
+    },
+    {
+      "id": "blode-co-unnatural-polish-05",
+      "probability": 0.37,
+      "stratum": "explanation/low",
+      "cacheKey": "002bafdba73d88ed38fa5a780c230d042b9384bd1753296c31e3210b76053e6d"
+    },
+    {
+      "id": "blode-co-unnatural-polish-06",
+      "probability": 0.63,
+      "stratum": "explanation/middle",
+      "cacheKey": "005f8fcd7be24d25ba88de857b0180279b30539cc4f738b9e2586d6105276ad7"
+    },
+    {
+      "id": "blode-co-unnatural-polish-07",
+      "probability": 0.3,
+      "stratum": "lesson/low",
+      "cacheKey": "031d1b1fddf4f536801938e851544a0a50ceb0bc5ef6d8a303ace73b2274d175"
+    },
+    {
+      "id": "blode-co-unnatural-polish-08",
+      "probability": 0.55,
+      "stratum": "lesson/middle",
+      "cacheKey": "07433a225f14bb36e2aa5566df0eba935338348136c8ba0334ebd9e5c6ba8fc1"
+    },
+    {
+      "id": "blode-co-unnatural-polish-09",
+      "probability": 0.82,
+      "stratum": "unknown/high",
+      "cacheKey": "00e0bbc5592e89e0d65ba28013da665b158a2032449d6a6baaf2994c9a464995"
+    },
+    {
+      "id": "blode-co-unnatural-polish-10",
+      "probability": 0.52,
+      "stratum": "unknown/middle",
+      "cacheKey": "0139be633861496d1ede60ddf903b0c73cce07beab98c9ba0822277132bedd30"
+    },
+    {
+      "id": "blode-co-unnatural-polish-11",
+      "probability": 0.82,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "0135a63935bb83f71dd90cbaa9e2bd28a547731206cfa6ad9a7a42c0d7de7dbe"
+    },
+    {
+      "id": "blode-co-unnatural-polish-12",
+      "probability": 0.31,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "0403df1f96ea2a559b52682212a473a680119e57a5d095644e723adab045d96d"
+    },
+    {
+      "id": "blode-co-unnatural-polish-13",
+      "probability": 0.62,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "005e3824e5e2af6638aa4de8a4ed16ec7f23782840189bae315eb55749c8cd47"
+    },
+    {
+      "id": "blode-co-unnatural-polish-14",
+      "probability": 0.79,
+      "stratum": "explanation/high",
+      "cacheKey": "00d380f7687c1c21e8b1850dc0e39a3bdf3c71a25ddd0b3533d365a17a89afe0"
+    },
+    {
+      "id": "blode-co-unnatural-polish-15",
+      "probability": 0.32,
+      "stratum": "explanation/low",
+      "cacheKey": "00fa696ca6a6f582a5b5500c8e09a7f75d6b1044c478d08d937a3b9bacc06daa"
+    },
+    {
+      "id": "blode-co-unnatural-polish-16",
+      "probability": 0.65,
+      "stratum": "explanation/middle",
+      "cacheKey": "00806f38c1c30f7867994039261dc41691be9b06603cf2fe5ef9a1bfd9c718a4"
+    },
+    {
+      "id": "blode-co-unnatural-polish-17",
+      "probability": 0.22,
+      "stratum": "lesson/low",
+      "cacheKey": "09e28f8e978a7a6637a1e39f8441158bbbcb625ea0bad2bb97e7924a5d159b98"
+    },
+    {
+      "id": "blode-co-unnatural-polish-18",
+      "probability": 0.56,
+      "stratum": "lesson/middle",
+      "cacheKey": "0afbdb4f40208a13c0df21541e62484ceb888bc6119068b4d116350a983c9a86"
+    },
+    {
+      "id": "blode-co-unnatural-polish-19",
+      "probability": 0.83,
+      "stratum": "unknown/high",
+      "cacheKey": "011648b8af8db932fb8c0d1da11c19293755e1e78335999a82d9f24614445bf2"
+    },
+    {
+      "id": "blode-co-unnatural-polish-20",
+      "probability": 0.52,
+      "stratum": "unknown/middle",
+      "cacheKey": "016e2b879157a0d871ef931cffc2a3a421ce0ede904606dc68fa74d3c48aecce"
+    },
+    {
+      "id": "blode-co-unnatural-polish-21",
+      "probability": 0.82,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "02473b149e97f27b7e19925ec3f11b9b900525a4c3db726049db1db9caf5d0ba"
+    },
+    {
+      "id": "blode-co-unnatural-polish-22",
+      "probability": 0.38,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "06e70ab12bbf1e2ac3b11a90ae7b414db6fa5ce61aef3f71c0d3913f4670b922"
+    },
+    {
+      "id": "blode-co-unnatural-polish-23",
+      "probability": 0.68,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "01a69197e409ea751899c86e9ca5938e120500d718f167794520d337c1dead73"
+    },
+    {
+      "id": "blode-co-unnatural-polish-24",
+      "probability": 0.76,
+      "stratum": "explanation/high",
+      "cacheKey": "01cf799384b7a49fc9974ef0e48e36169c42619a30e70ac10583c9c9c3fd06c0"
+    },
+    {
+      "id": "blode-co-unnatural-polish-25",
+      "probability": 0.17,
+      "stratum": "explanation/low",
+      "cacheKey": "015601c2ced77bbab1a176346016042f717d53fd5230d77380486ea0002c330c"
+    },
+    {
+      "id": "blode-co-unnatural-polish-26",
+      "probability": 0.59,
+      "stratum": "explanation/middle",
+      "cacheKey": "0099bcdc43251b6b5e03bea1559917ef68b2a4360059b466f6b488ac78a60372"
+    },
+    {
+      "id": "blode-co-unnatural-polish-27",
+      "probability": 0.15,
+      "stratum": "lesson/low",
+      "cacheKey": "0b955db8f564dec4cce2ecea5a5c8edb19910c9793424fa353584dd8e615ce32"
+    },
+    {
+      "id": "blode-co-unnatural-polish-28",
+      "probability": 0.46,
+      "stratum": "lesson/middle",
+      "cacheKey": "17840bb19a8d1aa46ddbd4a209bcaca94aa878dec8875166a090f4f62f6897c6"
+    },
+    {
+      "id": "blode-co-unnatural-polish-29",
+      "probability": 0.76,
+      "stratum": "unknown/high",
+      "cacheKey": "02bb5ba2b515d0be20b26ab6c7125b49306f9e71cdec449770b31e7430b82924"
+    },
+    {
+      "id": "blode-co-unnatural-polish-30",
+      "probability": 0.69,
+      "stratum": "unknown/middle",
+      "cacheKey": "01785454ec6b7259194152ee1ee8c6c3acf2bfd218db13d07fdafa0d168d82b2"
+    },
+    {
+      "id": "blode-co-unnatural-polish-31",
+      "probability": 0.87,
+      "stratum": "agent-instructions/high",
+      "cacheKey": "02c03da9003fc671178a1e627d6688c82a9ffd1dcaa8352890ad7b6dd552f3ab"
+    },
+    {
+      "id": "blode-co-unnatural-polish-32",
+      "probability": 0.36,
+      "stratum": "agent-instructions/low",
+      "cacheKey": "0a7cdd43875ee26b8795deadbd32f5ca722ac3122be71d08903d3195fdc36801"
+    },
+    {
+      "id": "blode-co-unnatural-polish-33",
+      "probability": 0.73,
+      "stratum": "agent-instructions/middle",
+      "cacheKey": "02e43e47ae06c69a360587464f23c70c9d19dab81b71e35aad25404379b8bc64"
+    },
+    {
+      "id": "blode-co-unnatural-polish-34",
+      "probability": 0.76,
+      "stratum": "explanation/high",
+      "cacheKey": "0453ff8cd152a6eb6d2109590b5db10a52daca282529a87c93e0a2e2165bb738"
+    },
+    {
+      "id": "blode-co-unnatural-polish-35",
+      "probability": 0.31,
+      "stratum": "explanation/low",
+      "cacheKey": "019761db51c4a2c0f606e5607eed267e5ec0f79d9835e686405a4eb2254b48ff"
+    },
+    {
+      "id": "blode-co-unnatural-polish-36",
+      "probability": 0.48,
+      "stratum": "explanation/middle",
+      "cacheKey": "00a4499d0d3273b1e6548d1ddf06ada8b7e948fd9b3c13dc22a827ad49f4a8e9"
+    },
+    {
+      "id": "blode-co-unnatural-polish-37",
+      "probability": 0.34,
+      "stratum": "lesson/low",
+      "cacheKey": "0c9358f08f088433bde74f4570551f01fe72f28964b839d31f1a65b002591da4"
+    },
+    {
+      "id": "blode-co-unnatural-polish-38",
+      "probability": 0.63,
+      "stratum": "lesson/middle",
+      "cacheKey": "1ba9fc5350cd3e7d65f00670d6f4f88dcc198ff6baa58ce0b7a8a2c20a0a2105"
+    },
+    {
+      "id": "blode-co-unnatural-polish-39",
+      "probability": 0.75,
+      "stratum": "unknown/high",
+      "cacheKey": "091c605e4a5dc7ed57ce28aa297ebbf0ee985d4c2069fe93a38596754bcbeb2f"
+    },
+    {
+      "id": "blode-co-unnatural-polish-40",
+      "probability": 0.52,
+      "stratum": "unknown/middle",
+      "cacheKey": "03e9675f1f0e28c89ddc9a9bf82d64f9817c1df55cb7ed277b56d06a613cbab0"
+    }
+  ],
+  "rules": {
+    "copywriting-generic-framing": {
+      "dev": {
+        "n": 33,
+        "tp": 2,
+        "fp": 19,
+        "fn": 0,
+        "tn": 12,
+        "precision": 0.09523809523809523,
+        "precisionCI": [0.026518208796947246, 0.2891458386074067],
+        "recall": 1.0,
+        "recallCI": [0.34237195288961925, 1]
+      },
+      "holdout": {
+        "n": 7,
+        "tp": 0,
+        "fp": 5,
+        "fn": 0,
+        "tn": 2,
+        "precision": 0.0,
+        "precisionCI": [0, 0.43449149475208104],
+        "recall": null,
+        "recallCI": [0, 1]
+      },
+      "byDocType": {
+        "agent-instructions": {
+          "n": 12,
+          "tp": 0,
+          "fp": 8,
+          "fn": 0,
+          "tn": 4,
+          "precision": 0.0,
+          "precisionCI": [0, 0.32441561951087694],
+          "recall": null,
+          "recallCI": [0, 1]
+        },
+        "explanation": {
+          "n": 11,
+          "tp": 1,
+          "fp": 6,
+          "fn": 0,
+          "tn": 4,
+          "precision": 0.14285714285714285,
+          "precisionCI": [0.02567895594897482, 0.5131345033190299],
+          "recall": 1.0,
+          "recallCI": [0.2065432914738929, 1]
+        },
+        "lesson": {
+          "n": 9,
+          "tp": 1,
+          "fp": 5,
+          "fn": 0,
+          "tn": 3,
+          "precision": 0.16666666666666666,
+          "precisionCI": [0.03005258587173032, 0.563509436563646],
+          "recall": 1.0,
+          "recallCI": [0.2065432914738929, 1]
+        },
+        "unknown": {
+          "n": 8,
+          "tp": 0,
+          "fp": 5,
+          "fn": 0,
+          "tn": 3,
+          "precision": 0.0,
+          "precisionCI": [0, 0.43449149475208104],
+          "recall": null,
+          "recallCI": [0, 1]
+        }
+      }
+    },
+    "copywriting-unnatural-polish": {
+      "dev": {
+        "n": 30,
+        "tp": 0,
+        "fp": 21,
+        "fn": 0,
+        "tn": 9,
+        "precision": 0.0,
+        "precisionCI": [0, 0.15464382326420195],
+        "recall": null,
+        "recallCI": [0, 1]
+      },
+      "holdout": {
+        "n": 10,
+        "tp": 0,
+        "fp": 7,
+        "fn": 0,
+        "tn": 3,
+        "precision": 0.0,
+        "precisionCI": [0, 0.35433884297520657],
+        "recall": null,
+        "recallCI": [0, 1]
+      },
+      "byDocType": {
+        "agent-instructions": {
+          "n": 12,
+          "tp": 0,
+          "fp": 8,
+          "fn": 0,
+          "tn": 4,
+          "precision": 0.0,
+          "precisionCI": [0, 0.32441561951087694],
+          "recall": null,
+          "recallCI": [0, 1]
+        },
+        "explanation": {
+          "n": 12,
+          "tp": 0,
+          "fp": 8,
+          "fn": 0,
+          "tn": 4,
+          "precision": 0.0,
+          "precisionCI": [0, 0.32441561951087694],
+          "recall": null,
+          "recallCI": [0, 1]
+        },
+        "lesson": {
+          "n": 8,
+          "tp": 0,
+          "fp": 4,
+          "fn": 0,
+          "tn": 4,
+          "precision": 0.0,
+          "precisionCI": [0, 0.48990002040399916],
+          "recall": null,
+          "recallCI": [0, 1]
+        },
+        "unknown": {
+          "n": 8,
+          "tp": 0,
+          "fp": 8,
+          "fn": 0,
+          "tn": 0,
+          "precision": 0.0,
+          "precisionCI": [0, 0.32441561951087694],
+          "recall": null,
+          "recallCI": [0, 1]
+        }
+      }
+    }
+  }
+}

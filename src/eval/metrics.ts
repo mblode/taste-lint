@@ -15,6 +15,7 @@ import { band } from "../reduce/bands.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
 import { loadCorpus, resolveCorpusDir, unitFromItem } from "./corpus.js";
+import { corpusCoverage } from "./coverage.js";
 
 export interface EvalOptions {
   corpusDir?: string;
@@ -38,6 +39,7 @@ export interface RuleEval {
   n: number;
   /** Labelled items the rule could not judge (unresolved value, failed request). */
   unknown: number;
+  skipped?: number;
   metrics: BinaryMetrics;
   reviewRate: number;
   calibration: ReturnType<typeof calibrationTable>;
@@ -46,6 +48,8 @@ export interface RuleEval {
 }
 
 export interface EvalResult {
+  referenceCoverage?: ReturnType<typeof corpusCoverage>;
+  labelSources?: Record<string, number>;
   report: string;
   exitCode: number;
   rules: RuleEval[];
@@ -83,6 +87,7 @@ export const scoreItems = async (
   probabilities: Map<string, Record<string, number>>;
   /** (item id, rule id) pairs with no probability and a reason. */
   unknowns: { itemId: string; ruleId: string; reason: string }[];
+  skipped: { itemId: string; ruleId: string; reason: string }[];
   usage: EvalResult["usage"];
   pendingRequests: number;
 }> => {
@@ -107,12 +112,10 @@ export const scoreItems = async (
     evaluate: options.dryRun ? undefined : options.evaluate,
     jobFilter: labelledFor,
     model: options.model,
-    onProgress: (m) => process.stderr.write(m),
+
     recorder: options.recorder,
   });
-  if (!options.dryRun && options.evaluate) {
-    process.stderr.write("\n");
-  }
+
   const probabilities = new Map<string, Record<string, number>>();
   for (const item of items) {
     probabilities.set(item.id, {});
@@ -147,7 +150,8 @@ export const scoreItems = async (
         rule.tier !== "jev" &&
         probabilities.get(item.id)![rule.id] === undefined &&
         !abstained.has(key) &&
-        !scheduled.has(key)
+        !scheduled.has(key) &&
+        judgement.negatives.get(item.id)?.has(rule.id)
       ) {
         probabilities.get(item.id)![rule.id] = 0;
       }
@@ -156,6 +160,11 @@ export const scoreItems = async (
   return {
     pendingRequests: judgement.estimatedRequests,
     probabilities,
+    skipped: items.flatMap((item) =>
+      Object.entries(judgement.skipped.get(item.id) ?? {})
+        .filter(([id]) => id in item.labels)
+        .map(([ruleId, reason]) => ({ itemId: item.id, reason, ruleId }))
+    ),
     unknowns,
     usage: judgement.usage,
   };
@@ -165,7 +174,8 @@ export const evaluateRules = (
   items: CorpusItem[],
   rules: Rule[],
   probabilities: Map<string, Record<string, number>>,
-  unknowns: { itemId: string; ruleId: string }[] = []
+  unknowns: { itemId: string; ruleId: string }[] = [],
+  skipped: { itemId: string; ruleId: string }[] = []
 ): RuleEval[] =>
   rules.map((rule) => {
     const pairs: RuleEval["pairs"] = [];
@@ -202,6 +212,7 @@ export const evaluateRules = (
       pairs,
       reviewRate: pairs.length === 0 ? 0 : review / pairs.length,
       ruleId: rule.id,
+      skipped: skipped.filter((s) => s.ruleId === rule.id).length,
       unknown,
     };
   });
@@ -217,7 +228,9 @@ export const renderEval = (
   const out: string[] = [];
   for (const e of evals) {
     if (e.n === 0) {
-      out.push(`${e.ruleId}: no labelled items`);
+      out.push(
+        `${e.ruleId}: no evaluated labelled items; ${e.skipped ?? 0} skipped, ${e.unknown} unknown`
+      );
       continue;
     }
     const m = e.metrics;
@@ -225,9 +238,13 @@ export const renderEval = (
       m.tp + m.fp === 0
         ? "precision n/a (no positive predictions)"
         : `precision ${pct(m.precision)} [${pct(m.precisionCI[0])}, ${pct(m.precisionCI[1])}]`;
+    const recall =
+      m.tp + m.fn === 0
+        ? "recall n/a (no positive labels)"
+        : `recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}]`;
     const unknown = e.unknown > 0 ? ` unknown ${e.unknown}` : "";
     out.push(
-      `${e.ruleId}: n=${e.n}${unknown} ${precision} recall ${pct(m.recall)} [${pct(m.recallCI[0])}, ${pct(m.recallCI[1])}] f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
+      `${e.ruleId}: n=${e.n} skipped ${e.skipped ?? 0}${unknown} ${precision} ${recall} f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
     );
     const rows = e.calibration.filter((b) => b.n > 0);
     if (rows.length > 0) {
@@ -268,6 +285,9 @@ export const runEval = async (
   if (options.split && options.split !== "all") {
     items = items.filter((i) => i.split === options.split);
   }
+  if (!items.length) {
+    throw new Error("No corpus items in the selected split.");
+  }
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(
@@ -284,18 +304,19 @@ export const runEval = async (
   const recorder = options.dryRun
     ? undefined
     : makeRecorder("eval", { resultsDir });
-  const { probabilities, unknowns, usage, pendingRequests } = await scoreItems(
-    items,
-    rules,
-    {
+  const { probabilities, unknowns, skipped, usage, pendingRequests } =
+    await scoreItems(items, rules, {
       cache,
       dryRun: options.dryRun,
       evaluate,
       model,
       recorder,
-    }
-  );
-  const evals = evaluateRules(items, rules, probabilities, unknowns);
+    });
+  const labelSources: Record<string, number> = {};
+  for (const item of items) {
+    labelSources[item.labelSource] = (labelSources[item.labelSource] ?? 0) + 1;
+  }
+  const evals = evaluateRules(items, rules, probabilities, unknowns, skipped);
   recorder?.summary({
     rules: evals.map((e) => ({
       id: e.ruleId,
@@ -307,7 +328,13 @@ export const runEval = async (
   });
   return {
     exitCode: usage.errors > 0 ? 2 : 0,
-    report: renderEval(evals, usage, Boolean(options.dryRun), pendingRequests),
+    labelSources,
+    referenceCoverage: corpusCoverage(items, rules),
+    report:
+      (labelSources.ai
+        ? `AI-labeled reference: ${labelSources.ai} items. Metrics measure agreement with AI labels, not human judgments.\n`
+        : "") +
+      renderEval(evals, usage, Boolean(options.dryRun), pendingRequests),
     rules: evals,
     usage,
   };

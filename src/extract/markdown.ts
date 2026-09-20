@@ -369,6 +369,21 @@ export const extractMarkdown = (
   };
 
   walk(tree.children as AnyNode[], "body");
+  let section: Unit[] = [];
+  const finishSection = () => {
+    const text = section.map((unit) => unit.text).join("\n");
+    for (const unit of section) {
+      unit.context.section = text;
+    }
+    section = [];
+  };
+  for (const unit of units) {
+    if (unit.kind === "heading") {
+      finishSection();
+    }
+    section.push(unit);
+  }
+  finishSection();
   return units;
 };
 

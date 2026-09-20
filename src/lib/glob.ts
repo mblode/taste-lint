@@ -1,5 +1,8 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+
+import { InputError } from "./errors.js";
 
 const DEFAULT_EXCLUDE = [
   "**/node_modules/**",
@@ -67,36 +70,107 @@ export const collectFiles = (
   root: string,
   targets: string[],
   include: string[],
-  exclude: string[] = []
+  exclude: string[] = [],
+  diagnostics?: { excluded: number; messages: string[] }
 ): string[] => {
   const excludes = [...DEFAULT_EXCLUDE, ...exclude];
+  const ignoredResult = spawnSync(
+    "git",
+    [
+      "ls-files",
+      "--others",
+      "--ignored",
+      "--exclude-standard",
+      "--directory",
+      "-z",
+      "--",
+      ".",
+    ],
+    { cwd: root, encoding: "utf-8", maxBuffer: 16 * 1024 * 1024 }
+  );
+  // Non-Git directories still support the explicit exclusion policy.
+  const ignored = new Set(
+    ignoredResult.status === 0 ? ignoredResult.stdout.split("\0") : []
+  );
+  const isIgnored = (relative: string): boolean => {
+    if (ignored.has(relative)) {
+      return true;
+    }
+    for (
+      let directory = relative;
+      directory !== ".";
+      directory = path.posix.dirname(directory)
+    ) {
+      if (ignored.has(`${directory}/`)) {
+        return true;
+      }
+    }
+    return false;
+  };
   const out = new Set<string>();
-  const visit = (abs: string): void => {
+  const visited = new Set<string>();
+  const visit = (abs: string, explicit = false): void => {
+    const rel = toPosix(path.relative(root, abs));
+    // Exclude before stat: ignored build trees may contain dangling symlinks.
+    if (
+      rel &&
+      (isIgnored(rel) ||
+        matchesAny(rel, excludes) ||
+        matchesAny(`${rel}/`, excludes))
+    ) {
+      if (diagnostics) {
+        diagnostics.excluded += 1;
+      }
+      return;
+    }
     let stat: fs.Stats;
     try {
       stat = fs.statSync(abs);
-    } catch {
-      return;
+    } catch (error) {
+      const code =
+        (error as NodeJS.ErrnoException).code === "ENOENT"
+          ? "TARGET_NOT_FOUND"
+          : "TARGET_UNREADABLE";
+      throw new InputError(
+        code,
+        `Cannot read target ${abs}. Check that it exists and is readable.`,
+        { path: abs }
+      );
     }
-    const rel = toPosix(path.relative(root, abs));
     if (stat.isDirectory()) {
-      if (rel && matchesAny(`${rel}/`, excludes)) {
+      const real = fs.realpathSync(abs);
+      if (visited.has(real)) {
         return;
       }
-      for (const entry of fs.readdirSync(abs)) {
+      visited.add(real);
+      let entries: string[];
+      try {
+        entries = fs.readdirSync(abs);
+      } catch {
+        throw new InputError(
+          "TARGET_UNREADABLE",
+          `Cannot read directory ${abs}.`,
+          { path: abs }
+        );
+      }
+      for (const entry of entries) {
         visit(path.join(abs, entry));
       }
-      return;
-    }
-    if (matchesAny(rel, excludes)) {
+      visited.delete(real);
       return;
     }
     if (matchesAny(rel, include)) {
       out.add(rel);
+    } else if (explicit) {
+      throw new InputError(
+        "UNSUPPORTED_TARGET",
+        `Unsupported target ${abs}. Use Markdown, MDX, TSX, JSX, CSS or SCSS.`,
+        { path: abs }
+      );
     }
   };
   for (const target of targets) {
-    visit(path.resolve(root, target));
+    visit(path.resolve(root, target), true);
   }
   return [...out].toSorted();
 };

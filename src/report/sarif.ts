@@ -10,18 +10,19 @@ const level = (f: Finding): "error" | "warning" | "note" => {
 };
 
 export const renderSarif = (
-  result: LintResult,
+  result: Pick<LintResult, "findings" | "ruleFindings">,
   rules: Rule[],
   version: string
 ): string => {
-  const used = new Set(result.findings.map((f) => f.ruleId));
+  const findings = result.ruleFindings ?? result.findings;
+  const used = new Set(findings.map((f) => f.ruleId));
   const ruleList = rules.filter((r) => used.has(r.id));
   const index = new Map(ruleList.map((r, i) => [r.id, i]));
   const sarif = {
     $schema: "https://json.schemastore.org/sarif-2.1.0.json",
     runs: [
       {
-        results: result.findings
+        results: findings
           .filter((f) => !f.suppressed)
           .map((f) => ({
             level: level(f),
@@ -41,7 +42,12 @@ export const renderSarif = (
             message: {
               text: `${f.message}. ${f.evidence} Fix: ${f.fixHint}`,
             },
-            partialFingerprints: { unitId: f.unitId },
+            partialFingerprints: {
+              unitId: f.unitId,
+              ...("fingerprint" in f && typeof f.fingerprint === "string"
+                ? { "tasteLint/v1": f.fingerprint }
+                : {}),
+            },
             properties: {
               band: f.band,
               probability: f.probability,

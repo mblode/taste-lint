@@ -17,6 +17,8 @@ import type { Evaluate, Rule, Tuning } from "../types.js";
 import { loadCorpus, resolveCorpusDir } from "./corpus.js";
 import { evaluateRules, scoreItems } from "./metrics.js";
 import type { RuleEval } from "./metrics.js";
+import { promotionEvidence } from "./promotion.js";
+import type { PromotionEvidence } from "./promotion.js";
 
 export interface TuneOptions {
   corpusDir?: string;
@@ -36,6 +38,7 @@ export interface TuneContext {
 
 export interface TuneDecision {
   ruleId: string;
+  validation?: PromotionEvidence;
   n: number;
   current: number;
   chosen: number | null;
@@ -53,7 +56,8 @@ export const decideThreshold = (
   pairs: { label: boolean; probability: number }[],
   currentAct: number,
   floor: number,
-  minItems: number
+  minItems: number,
+  review = 0
 ): Omit<TuneDecision, "ruleId"> => {
   const n = pairs.length;
   if (n < minItems) {
@@ -66,7 +70,7 @@ export const decideThreshold = (
       recall: 0,
     };
   }
-  for (const t of THRESHOLDS) {
+  for (const t of THRESHOLDS.filter((threshold) => threshold > review)) {
     const predictedPositive = pairs.filter((p) => p.probability >= t);
     const tp = predictedPositive.filter((p) => p.label).length;
     const positives = pairs.filter((p) => p.label).length;
@@ -127,26 +131,65 @@ export const runTune = async (
   const knownRuleIds = new Set(
     loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
-  const items = loadCorpus(resolveCorpusDir(options.corpusDir), rules, {
+  const allItems = loadCorpus(resolveCorpusDir(options.corpusDir), rules, {
     knownRuleIds,
-  }).filter((i) => i.split === "dev");
+  });
+  const items = allItems.filter((item) => item.split === "dev");
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(path.join(resultsDir, "cache"));
   const evaluate = resolveEvaluate(options, ctx);
-  const { probabilities, unknowns } = await scoreItems(items, rules, {
-    cache,
-    evaluate,
-    model,
-  });
-  const evals = evaluateRules(items, rules, probabilities, unknowns);
+  const { probabilities, unknowns, skipped, usage } = await scoreItems(
+    allItems,
+    rules,
+    {
+      cache,
+      evaluate,
+      model,
+    }
+  );
+  if (usage.errors > 0) {
+    return {
+      decisions: [],
+      exitCode: 2,
+      report:
+        "Tuning incomplete: provider requests failed. No thresholds were changed.\n",
+    };
+  }
+  const evals = evaluateRules(items, rules, probabilities, unknowns, skipped);
   const decisions: TuneDecision[] = evals.map((e) => {
     const rule = rules.find((r) => r.id === e.ruleId) as Rule;
     return {
       ruleId: e.ruleId,
-      ...decideThreshold(e.pairs, rule.thresholds.act, floor, minItems),
+      ...decideThreshold(
+        e.pairs,
+        rule.thresholds.act,
+        floor,
+        minItems,
+        rule.thresholds.review
+      ),
     };
   });
+  const holdout = evaluateRules(
+    allItems.filter((item) => item.split === "holdout"),
+    rules,
+    probabilities,
+    unknowns,
+    skipped
+  );
+  for (const decision of decisions) {
+    if (decision.chosen !== null) {
+      decision.validation = promotionEvidence(
+        allItems,
+        decision.ruleId,
+        holdout.find((evaluation) => evaluation.ruleId === decision.ruleId)!
+          .pairs,
+        decision.chosen,
+        floor,
+        minItems
+      );
+    }
+  }
   const lines = decisions.map((d) => {
     switch (d.action) {
       case "insufficient": {
@@ -160,6 +203,13 @@ export const runTune = async (
       }
     }
   });
+  for (const decision of decisions) {
+    if (decision.validation) {
+      lines.push(
+        `${decision.ruleId}: ${decision.validation.eligible ? "promotion eligible" : "review-only"}; ${decision.validation.reason}`
+      );
+    }
+  }
   if (options.write) {
     const file = path.join(rulesDir, "tuning.json");
     const existing: Tuning = readTuning(rulesDir);
@@ -169,12 +219,12 @@ export const runTune = async (
         continue;
       }
       existing[d.ruleId] =
-        d.action === "demote"
+        d.action === "demote" || !d.validation?.eligible
           ? { n: d.n, status: "review-only", ts }
           : {
               act: d.chosen as number,
               n: d.n,
-              precisionLower: d.precisionLower,
+              precisionLower: d.validation.precisionLower,
               status: "active",
               ts,
             };
@@ -226,11 +276,29 @@ export const runTuneAb = async (
   const evaluate = resolveEvaluate(options, ctx);
   const a = await scoreItems(items, [rule], { cache, evaluate, model });
   const b = await scoreItems(items, [variant], { cache, evaluate, model });
-  const [ea] = evaluateRules(items, [rule], a.probabilities);
-  const [eb] = evaluateRules(items, [variant], b.probabilities);
+  if (a.usage.errors > 0 || b.usage.errors > 0) {
+    return {
+      exitCode: 2,
+      report:
+        "A/B comparison incomplete: provider requests failed. No paired test was computed.\n",
+    };
+  }
+  const paired = items.filter(
+    (item) =>
+      a.probabilities.get(item.id)?.[rule.id] !== undefined &&
+      b.probabilities.get(item.id)?.[rule.id] !== undefined
+  );
+  if (paired.length === 0) {
+    return {
+      exitCode: 2,
+      report: "A/B comparison has no jointly evaluated items.\n",
+    };
+  }
+  const [ea] = evaluateRules(paired, [rule], a.probabilities);
+  const [eb] = evaluateRules(paired, [variant], b.probabilities);
   const test = mcnemar(correctVector(ea, rule), correctVector(eb, variant));
   const report = [
-    `${rule.id} on ${items.length} dev items`,
+    `${rule.id} on ${paired.length} paired dev items; ${items.length - paired.length} excluded because one or both variants abstained or skipped`,
     `A (current): precision ${(ea.metrics.precision * 100).toFixed(0)}% recall ${(ea.metrics.recall * 100).toFixed(0)}%`,
     `B (variant): precision ${(eb.metrics.precision * 100).toFixed(0)}% recall ${(eb.metrics.recall * 100).toFixed(0)}%`,
     `McNemar: n01=${test.n01} (A right, B wrong) n10=${test.n10} (A wrong, B right) discordant=${test.discordant} p=${test.pValue.toFixed(3)}`,

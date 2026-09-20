@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 
 import {
   evaluateFromEnv,
@@ -166,4 +166,77 @@ it("limits concurrency and rate", async () => {
   const releaseC = await limiter.acquire();
   releaseC();
   expect(clock).toBeGreaterThan(before);
+});
+
+it("backs off on documented overload responses and reports HTTP attempts", async () => {
+  let calls = 0;
+  const delays: number[] = [];
+  const evaluate = makeFetchEvaluate({
+    apiKey: "fixture",
+    fetch: (() => {
+      calls += 1;
+      return Promise.resolve(
+        calls === 1
+          ? new Response("not recorded", {
+              headers: { "retry-after": "1" },
+              status: 529,
+            })
+          : Response.json({
+              answers: { a: { noul: 0.8, type: "noul" } },
+              usage: { input_tokens: 3, output_tokens: 0 },
+            })
+      );
+    }) as typeof globalThis.fetch,
+    sleep: (ms) => {
+      delays.push(ms);
+      return Promise.resolve();
+    },
+  });
+  let attempts = 0;
+  const response = await evaluate(request, () => {
+    attempts += 1;
+  });
+  expect(response.attempts).toBe(2);
+  expect(attempts).toBe(2);
+  expect(delays).toEqual([1000]);
+});
+
+it("rejects mismatched primitive types and invalid usage without leaking bodies", () => {
+  for (const raw of [
+    { answers: { a: { noul: 0.8, type: "score" } } },
+    { answers: { a: { noul: 0.8 } }, usage: { input_tokens: -1 } },
+    { answers: { a: { noul: 0.8 } }, usage: { input_tokens: Number.NaN } },
+  ]) {
+    expect(() => validateResponse(raw, request)).toThrow(/invalid_response/);
+  }
+});
+
+it("prefers the user's gateway environment key and preserves explicit direct credentials", async () => {
+  const fetch = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(Response.json({ answers: { a: { probability: 0.8 } } }));
+  try {
+    await evaluateFromEnv(undefined, {
+      AI_GATEWAY_API_KEY: "user-gateway",
+      TYPESAFE_API_KEY: "legacy-direct",
+    })!(request);
+    expect(fetch.mock.calls[0][0]).toBe(
+      "https://ai-gateway.vercel.sh/v4/ai/evaluation-model"
+    );
+    expect(fetch.mock.calls[0][1]?.headers).toMatchObject({
+      Authorization: "Bearer user-gateway",
+    });
+    fetch.mockResolvedValueOnce(
+      Response.json({ answers: { a: { noul: 0.8 } } })
+    );
+    await evaluateFromEnv("explicit-direct", {
+      AI_GATEWAY_API_KEY: "user-gateway",
+    })!(request);
+    expect(fetch.mock.calls[1][0]).toBe("https://api.typesafe.ai/v1/systemone");
+    expect(fetch.mock.calls[1][1]?.headers).toMatchObject({
+      Authorization: "Bearer explicit-direct",
+    });
+  } finally {
+    fetch.mockRestore();
+  }
 });

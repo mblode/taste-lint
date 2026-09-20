@@ -494,10 +494,13 @@ export const extractTsx = (
 
   const attachNeighbours = (): void => {
     // Second pass: class-list units get neighbours from the map keyed by element.
+    const byStart = new Map(
+      units
+        .filter((unit) => unit.kind === "class-list")
+        .map((unit) => [unit.sourceStart, unit])
+    );
     for (const entry of elementNeighbours) {
-      const unit = units.find(
-        (u) => u.kind === "class-list" && u.sourceStart === entry.classStart
-      );
+      const unit = byStart.get(entry.classStart);
       if (unit) {
         unit.neighbours = { next: entry.next, prev: entry.prev };
       }

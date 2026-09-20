@@ -17,4 +17,5 @@ export { loadConfig } from "./lib/config.js";
 export { runEval } from "./eval/metrics.js";
 export { splitFor } from "./eval/corpus.js";
 export { runTune, runTuneAb } from "./eval/tune.js";
+// oxlint-disable-next-line oxc/no-barrel-file -- Stable package entry; tsdown bundles runtime exports and erases this type-only export.
 export type * from "./types.js";

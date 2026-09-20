@@ -11,9 +11,9 @@ source:
   ruleId: idea_repetition
 unit: [paragraph]
 question:
-  context: [docType]
+  context: [docType, section]
   instructions: >-
-    Does the writing repeat the same idea without adding new evidence? Ignore a deliberate one-sentence summary at the end of a long section, and a repeated term that is the subject of the passage.
+    Does TEXT repeat an idea within SECTION without adding new evidence? Judge TEXT only, using SECTION to distinguish repetition from a useful summary. Ignore a deliberate one-sentence summary at the end of a long section, and a repeated term that is the subject of the passage.
   criteria:
     true:
       what: Restatement with nothing new.

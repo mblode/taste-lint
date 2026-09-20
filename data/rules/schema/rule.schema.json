@@ -13,26 +13,51 @@
     "fix"
   ],
   "properties": {
-    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-    "title": { "type": "string" },
-    "categoryId": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "categoryId": {
+      "type": "string"
+    },
     "source": {
       "type": "object",
       "required": ["repo", "path"],
       "additionalProperties": false,
       "properties": {
-        "repo": { "type": "string" },
-        "path": { "type": "string" },
-        "line": { "type": "integer" },
-        "ruleId": { "type": "string" }
+        "repo": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "ruleId": {
+          "type": "string"
+        }
       }
     },
     "scope": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "include": { "type": "array", "items": { "type": "string" } },
-        "exclude": { "type": "array", "items": { "type": "string" } }
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "unit": {
@@ -52,13 +77,34 @@
     "mechanical": {
       "type": "object",
       "additionalProperties": false,
-      "anyOf": [{ "required": ["regex"] }, { "required": ["phrases"] }],
+      "anyOf": [
+        {
+          "required": ["regex"]
+        },
+        {
+          "required": ["phrases"]
+        }
+      ],
       "properties": {
-        "regex": { "type": "string" },
-        "flags": { "type": "string" },
-        "phrases": { "type": "array", "items": { "type": "string" } },
-        "minMatches": { "type": "integer", "minimum": 1 },
-        "absent": { "type": "string" }
+        "regex": {
+          "type": "string"
+        },
+        "flags": {
+          "type": "string"
+        },
+        "phrases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minMatches": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "absent": {
+          "type": "string"
+        }
       }
     },
     "question": {
@@ -66,19 +112,35 @@
       "required": ["instructions"],
       "additionalProperties": false,
       "properties": {
-        "instructions": { "type": "string" },
+        "instructions": {
+          "type": "string"
+        },
         "context": {
           "type": "array",
           "items": {
-            "enum": ["headingAbove", "docType", "element", "role", "neighbours"]
+            "enum": [
+              "headingAbove",
+              "docType",
+              "element",
+              "role",
+              "neighbours",
+              "writingFacts",
+              "writingProfile",
+              "writingInstructions",
+              "section"
+            ]
           }
         },
         "criteria": {
           "type": "object",
           "required": ["true", "false"],
           "properties": {
-            "true": { "$ref": "#/$defs/side" },
-            "false": { "$ref": "#/$defs/side" }
+            "true": {
+              "$ref": "#/$defs/side"
+            },
+            "false": {
+              "$ref": "#/$defs/side"
+            }
           }
         }
       }
@@ -87,25 +149,41 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "review": { "type": "number", "minimum": 0, "maximum": 1 },
-        "act": { "type": "number", "minimum": 0, "maximum": 1 }
+        "review": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "act": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     },
-    "severity": { "enum": ["major", "minor"] },
+    "severity": {
+      "enum": ["major", "minor"]
+    },
     "fix": {
       "type": "object",
       "required": ["hint"],
       "additionalProperties": false,
       "properties": {
-        "hint": { "type": "string" },
-        "function": { "type": "string" }
+        "hint": {
+          "type": "string"
+        },
+        "function": {
+          "type": "string"
+        }
       }
     },
     "preconditions": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "notInCode": { "const": true },
+        "notInCode": {
+          "const": true
+        },
         "docType": {
           "type": "array",
           "items": {
@@ -118,6 +196,12 @@
               "lesson",
               "marketing",
               "ui",
+              "readme",
+              "skill",
+              "plan",
+              "personal",
+              "pr",
+              "slides",
               "unknown"
             ]
           }
@@ -141,11 +225,20 @@
             ]
           }
         },
-        "smartQuotesAtBuild": { "const": false }
+        "smartQuotesAtBuild": {
+          "const": false
+        }
       }
     },
-    "status": { "enum": ["active", "draft", "review-only"] },
-    "handWritten": { "type": "array", "items": { "type": "string" } }
+    "status": {
+      "enum": ["active", "draft", "review-only"]
+    },
+    "handWritten": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
   },
   "additionalProperties": false,
   "$defs": {
@@ -153,10 +246,14 @@
       "type": "object",
       "required": ["what", "examples"],
       "properties": {
-        "what": { "type": "string" },
+        "what": {
+          "type": "string"
+        },
         "examples": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "minItems": 1
         }
       }

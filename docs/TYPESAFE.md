@@ -1,0 +1,25 @@
+# TypeSafe contract and design decisions
+
+Verified against TypeSafe's official documentation on September 20, 2026. These are concrete contracts, not a claim of certification or universal best practice.
+
+- [Introduction](https://docs.typesafe.ai/introduction): independent, atomic questions share a state and are composed by code. Taste-lint keeps one rule per judgment and batches independent questions. Request sharing never merges source provenance.
+- [Noul](https://docs.typesafe.ai/primitives/noul): the number is the probability of yes. It is not severity, a quality score, or the separate confidence field returned by other primitives. A high value must mean the named defect is present. The report preserves individual probabilities before presentation grouping.
+- [How to build](https://docs.typesafe.ai/concepts/how-to-build-with-system-one): deterministic work stays in code; state supplies relevant context. Applicability, counting, thresholds and fixes remain deterministic. Existing labeled text state is retained to preserve cache semantics. Changing it to structured state requires an evaluation and deliberate cache invalidation, not a cosmetic migration.
+- [Confidence](https://docs.typesafe.ai/confidence): action thresholds depend on the domain and stakes. Jev rules remain review-only until the existing corpus/tuning gate supports promotion. The diagnostic agent-labeled sample is not sufficient evidence to change thresholds.
+- [API reference](https://docs.typesafe.ai/api): direct requests use POST /v1/systemone and bearer authentication. The adapter validates probabilities and usage, retries 429 and 529 with bounded backoff, and does not retry authentication errors. Tests cover overload, malformed responses and attempts. Provider bodies and credentials are never persisted.
+
+The Vercel gateway is a separate transport contract. TypeSafe's direct API docs do not certify the gateway's evaluation route; the existing adapter and its wire-format tests remain the owner. No new SDK or provider dependency was added.
+
+## Run contract
+
+Preparation decides applicability once. Execution consumes the prepared work, consults the answer cache and reports outcomes. Both lint and eval use this seam. Skipped checks never become negative labels. Unknown means an applicable check could not be resolved; it is not a pass.
+
+`summary.failing` is computed from complete rule findings, severity and fail-on policy. Text and exit codes consume that result. JSON v1 retains grouped `findings` and the legacy `scorecard`; additive `ruleFindings`, `ruleScorecard` and `coverage` expose the complete evidence and eligible denominators. SARIF contains all unsuppressed rule findings.
+
+`usage.requests` counts successful logical requests; `usage.attempts` counts HTTP attempts reported by the adapter (one assumed per call for a custom evaluator without telemetry); `usage.cached` counts reused answers; `usage.sharedAnswers` counts answers fanned out within the same run. Cost covers known successful usage and is not a guarantee about provider billing for failed attempts. Cache writes are atomic; a write failure does not erase an answer already received.
+
+Default text output shows at most 20 act examples and 10 review examples, with omitted counts and a full report path. `--verbose` expands the view. `--progress` enables throttled plain progress on stderr when piped; TTY runs show it automatically. Structured stdout stays parseable, including expected argument and config errors. Incomplete reports include a shell-quoted rerun command with absolute root/results paths, without repeating fixes or bypassing the cache.
+
+## Checks
+
+The same `npm run verify:full` runs locally and in CI. Regression coverage lives in `src/__tests__/run-contract.test.ts`, `src/__tests__/cli.test.ts`, `src/__tests__/execution.test.ts` and the existing provider/eval suites. Tests never call a live model. The first three regression tests were observed failing before the fixes.

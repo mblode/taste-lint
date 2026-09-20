@@ -1,11 +1,27 @@
 import type { Command } from "commander";
 
+import { discoverSkills } from "../rules/discover.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 
 export function registerRulesCommand(program: Command): void {
   const rules = program
     .command("rules")
     .description("Inspect and validate the rule files");
+  rules
+    .command("discover <sources...>")
+    .description(
+      "Inventory skill entrypoints, rule folders, and guidance without activating rules"
+    )
+    .option("--rules <path>", "Rules directory used for citation coverage")
+    .action((sources: string[], options: { rules?: string }) => {
+      const loaded = loadRules(resolveRulesDir(options.rules));
+      const inventory = sources.flatMap((source) =>
+        discoverSkills(source, loaded)
+      );
+      process.stdout.write(
+        `${JSON.stringify({ inventory, note: "Citations are provenance, not complete semantic coverage. Uncited sources need triage.", sources }, null, 2)}\n`
+      );
+    });
   rules
     .command("list")
     .description("List rules with tier, status and category")

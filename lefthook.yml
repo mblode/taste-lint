@@ -30,3 +30,6 @@ pre-commit:
         - "**/package-lock.json"
       run: npx oxfmt --write {staged_files}
       stage_fixed: true
+    - name: evidence-contracts
+      glob: "src/{eval,scan,map,__tests__}/**/*.ts"
+      run: npx vitest run src/__tests__/evidence.test.ts src/__tests__/tuning-safety.test.ts

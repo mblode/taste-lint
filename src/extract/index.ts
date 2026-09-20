@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { Repository, sourceFacts } from "../analysis/repository.js";
 import { docTypeFor } from "../lib/config.js";
 import type { Config, Unit } from "../types.js";
 import { extractMarkdown } from "./markdown.js";
@@ -8,37 +9,35 @@ import { extractTsx } from "./tsx.js";
 import { LineIndex, makeUnit } from "./units.js";
 
 export const extractFile = (config: Config, relativeFile: string): Unit[] => {
-  const abs = path.join(config.root, relativeFile);
-  const source = fs.readFileSync(abs, "utf-8");
-  const docType = docTypeFor(config, relativeFile);
-  if (/\.(md|mdx)$/.test(relativeFile)) {
-    return extractMarkdown(relativeFile, source, { config, docType });
-  }
-  if (/\.(tsx|jsx)$/.test(relativeFile)) {
-    return [
-      ...extractTsx(relativeFile, source, { config, docType }),
-      // One source unit per file for rules that pattern-match raw markup.
-      makeUnit(relativeFile, new LineIndex(source), {
-        context: { docType, role: "unknown" },
-        kind: "source",
-        sourceEnd: source.length,
-        sourceStart: 0,
-        text: source,
-      }),
-    ];
-  }
-  if (/\.(css|scss)$/.test(relativeFile)) {
-    return [
-      makeUnit(relativeFile, new LineIndex(source), {
-        context: { docType, role: "unknown" },
-        kind: "source",
-        sourceEnd: source.length,
-        sourceStart: 0,
-        text: source,
-      }),
-    ];
-  }
-  return [];
+  const repository = new Repository(config.root, config.architecture);
+  const source = fs.readFileSync(path.join(config.root, relativeFile), "utf-8");
+  return extractSource(config, relativeFile, source, repository);
+};
+
+export const extractSource = (
+  config: Config,
+  file: string,
+  source: string,
+  repository: Repository
+): Unit[] => {
+  const docType = docTypeFor(config, file);
+  const units = /\.(md|mdx)$/.test(file)
+    ? extractMarkdown(file, source, { config, docType })
+    : /\.(tsx|jsx)$/.test(file)
+      ? extractTsx(file, source, { config, docType })
+      : [];
+  const whole = makeUnit(file, new LineIndex(source), {
+    context: { docType, role: "unknown" },
+    kind: "source",
+    sourceEnd: source.length,
+    sourceStart: 0,
+    text: source,
+  });
+  Object.defineProperty(whole, "facts", {
+    enumerable: false,
+    value: sourceFacts(file, source, repository),
+  });
+  return [...units, whole];
 };
 
 export const SUPPORTED_GLOBS = [
@@ -48,4 +47,13 @@ export const SUPPORTED_GLOBS = [
   "**/*.jsx",
   "**/*.css",
   "**/*.scss",
+  "**/*.ts",
+  "**/*.js",
+  "**/*.mjs",
+  "**/*.cjs",
+  "**/*.mts",
+  "**/*.cts",
+  "**/*.json",
+  "**/*.yaml",
+  "**/*.yml",
 ];

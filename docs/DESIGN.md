@@ -59,3 +59,23 @@ Every rule carries `fix.hint`, printed under the finding for a person or an agen
 - No `choice` or `score` rules; the schema reserves the field.
 - No Tailwind `@theme` parsing; unknown tokens are `unresolved`, never guessed.
 - No composite taste score; the scorecard is counts by category and domain.
+
+## Run evidence and coverage
+
+Preparation in `src/map/judge.ts` is shared by lint preview, execution and eval. A prepared judgement retains eligibility, mechanical negatives and skipped reasons. Execution owns answers and unknowns; renderers own grouping and display limits. The canonical policy result is `LintResult.summary`, computed from all rule findings before presentation grouping.
+
+- **Skipped**: a rule does not apply to the unit; excluded from evaluated negatives.
+- **Negative**: an applicable mechanical check or candidate filter evaluated without a violation.
+- **Request**: one logical provider evaluation; several source units may share it when questions and state are identical.
+- **Attempt**: one HTTP try, including retries owned by the provider adapter.
+- **Cached answer**: one rule probability reused from persisted successful work.
+
+JSON v1 retains its grouped fields and adds complete `ruleFindings`, `ruleScorecard`, `summary`, `scope` and `coverage`. The compatibility scorecard's old unit totals remain; use coverage for eligible denominators. The TypeSafe source references, provider distinctions and contract checks are in `docs/TYPESAFE.md`.
+
+## Repository evidence and skill packs
+
+A run owns one repository-facts service. Source units carry non-enumerable parsed facts and root-contained file access; extraction JSON excludes those capabilities. Markdown structure and actual JavaScript/TypeScript imports drive structural code rules. Missing evidence produces unknowns. README, skill, plan, and explicit personal-writing profiles keep artifact-specific checks scoped.
+
+Personal comparison rules request named context fields supplied by the caller. Missing or oversized context prevents scheduling that comparison. Preparation determines request work once; execution reuses it. Recorder failures remain local failures rather than provider errors.
+
+See [skill packs](SKILL-PACKS.md) for configuration and current limits.

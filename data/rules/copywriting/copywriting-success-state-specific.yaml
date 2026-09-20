@@ -1,0 +1,43 @@
+id: copywriting-success-state-specific
+title: Success message does not name the completed operation
+categoryId: actionable-microcopy
+source:
+  repo: installed/copywriting
+  path: skills/copywriting/references/ui-states.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: "^(?:success[!.]?|operation completed(?: successfully)?[!.]?|done[!.]?)$"
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: The text is UI copy. Return true if it is a standalone success notification that says nothing about what completed. Return false for a control label, a named state, quoted examples, or when the supplied heading identifies the completed operation. Do not infer the notification role from a single ambiguous word.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Operation completed successfully!
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Changes saved.
+severity: minor
+fix:
+  hint: Name what completed, proportional to the action.
+preconditions:
+  notInCode: true
+  docType:
+    - ui
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

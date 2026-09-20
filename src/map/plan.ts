@@ -2,6 +2,7 @@
 
 import { LineIndex } from "../extract/units.js";
 import { matchesAny } from "../lib/glob.js";
+import { estimateTokens, charsPerTokenFor } from "../lib/tokens.js";
 import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
 import type {
@@ -12,6 +13,7 @@ import type {
   Unit,
   Unknown,
 } from "../types.js";
+import { buildState, STATE_TOKEN_CAP } from "./state.js";
 
 export interface JevJob {
   unit: Unit;
@@ -23,6 +25,9 @@ export interface Plan {
   mechanical: Finding[];
   jobs: JevJob[];
   unknowns: Unknown[];
+  eligible: Map<string, Set<string>>;
+  negatives: Map<string, Set<string>>;
+  skipped: Map<string, Record<string, string>>;
 }
 
 // Rendered units come from a URL, not a file, so only the unit kind gates them.
@@ -94,6 +99,9 @@ export const planRequests = (
   rules: Rule[],
   config: Config
 ): Plan => {
+  const eligible = new Map<string, Set<string>>();
+  const negatives = new Map<string, Set<string>>();
+  const skipped = new Map<string, Record<string, string>>();
   const mechanical: Finding[] = [];
   const jobs: JevJob[] = [];
   const unknowns: Unknown[] = [];
@@ -101,16 +109,72 @@ export const planRequests = (
     if (unit.kind === "file") {
       continue;
     }
-    const candidates = rules.filter(
-      (r) => inScope(r, unit) && r.unit.includes(unit.kind)
-    );
+    const skippedRules: Record<string, string> = {};
+    skipped.set(unit.id, skippedRules);
+    const candidates = rules.filter((r) => {
+      if (!inScope(r, unit) || !r.unit.includes(unit.kind)) {
+        skippedRules[r.id] = "out_of_scope";
+        return false;
+      }
+      return true;
+    });
     if (candidates.length === 0) {
       continue;
     }
     const job: JevJob = { rules: [], unit };
     for (const rule of candidates) {
       if (!passesPreconditions(rule, unit, config)) {
+        skippedRules[rule.id] = "precondition";
         continue;
+      }
+      const applied = eligible.get(unit.id) ?? new Set<string>();
+      applied.add(rule.id);
+      eligible.set(unit.id, applied);
+      if (
+        rule.question?.context?.includes("section") &&
+        (!unit.context.section || buildState(unit, [rule]).truncated)
+      ) {
+        unknowns.push({
+          file: unit.file,
+          line: unit.line,
+          reason: unit.context.section
+            ? "Section comparison exceeds the context budget"
+            : "Missing section context",
+          ruleId: rule.id,
+          unitId: unit.id,
+        });
+        continue;
+      }
+      const writingKeys = [
+        "writingFacts",
+        "writingProfile",
+        "writingInstructions",
+      ] as const;
+      const requiredWriting = writingKeys.filter((key) =>
+        rule.question?.context?.includes(key)
+      );
+      if (requiredWriting.length) {
+        const missing = requiredWriting.filter((key) => !unit.context[key]);
+        const total = [
+          unit.text,
+          ...writingKeys.map((key) => unit.context[key] ?? ""),
+        ].join("\n");
+        if (
+          missing.length ||
+          estimateTokens(total, charsPerTokenFor(unit.kind)) >
+            STATE_TOKEN_CAP - 200
+        ) {
+          unknowns.push({
+            file: unit.file,
+            line: unit.line,
+            reason: missing.length
+              ? `Missing explicit writing context: ${missing.join(", ")}`
+              : "Writing comparison exceeds the context budget",
+            ruleId: rule.id,
+            unitId: unit.id,
+          });
+          continue;
+        }
       }
       if (rule.tier === "jev") {
         job.rules.push({ rule });
@@ -138,6 +202,9 @@ export const planRequests = (
         throw error;
       }
       if (!hit.fired) {
+        const ids = negatives.get(unit.id) ?? new Set<string>();
+        ids.add(rule.id);
+        negatives.set(unit.id, ids);
         continue;
       }
       if (rule.tier === "mechanical") {
@@ -147,8 +214,19 @@ export const planRequests = (
       }
     }
     if (job.rules.length > 0) {
-      jobs.push(job);
+      const contextual = job.rules.filter(({ rule }) =>
+        rule.question?.context?.includes("section")
+      );
+      const local = job.rules.filter(
+        ({ rule }) => !rule.question?.context?.includes("section")
+      );
+      if (local.length) {
+        jobs.push({ ...job, rules: local });
+      }
+      for (const candidate of contextual) {
+        jobs.push({ ...job, rules: [candidate] });
+      }
     }
   }
-  return { jobs, mechanical, unknowns };
+  return { eligible, jobs, mechanical, negatives, skipped, unknowns };
 };

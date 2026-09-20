@@ -3,14 +3,21 @@ import path from "node:path";
 
 import type { Command } from "commander";
 
+import { SUPPORTED_GLOBS } from "../extract/index.js";
 import { extractCapture, runStyleCapture } from "../extract/rendered.js";
 import { parseCaptureInput } from "../extract/style-capture-text.js";
+import { loadConfig } from "../lib/config.js";
+import { InputError } from "../lib/errors.js";
+import { collectFiles } from "../lib/glob.js";
+import { readWritingContext } from "../lib/writing-context.js";
 import { defaultResultsDir, runLint } from "../lint.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
 import { renderTty } from "../report/tty.js";
 import type { Severity } from "../types.js";
+
+const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
 
 export function registerLintCommand(program: Command): void {
   program
@@ -27,7 +34,11 @@ export function registerLintCommand(program: Command): void {
     .option("--dry-run", "Plan and estimate cost without calling Jev")
     .option(
       "--print-requests",
-      "With --dry-run, print request payloads as JSONL"
+      "With --dry-run and --output tty, print request JSONL to stderr"
+    )
+    .option(
+      "--writing-context <file>",
+      "Explicit JSON facts/profile/instructions for personal writing; sent to Jev on live runs"
     )
     .option("--mechanical-only", "Skip every Jev-backed rule")
     .option(
@@ -48,6 +59,7 @@ export function registerLintCommand(program: Command): void {
       defaultResultsDir()
     )
     .option("--model <id>", "Jev model id", DEFAULT_MODEL)
+    .option("--progress", "Print periodic progress on stderr even when piped")
     .option("--verbose", "Show suppressed findings and unknowns")
     .option("--url <url>", "Lint a rendered page through style-capture")
     .option("--selector <css>", "Root selector for --url", "body")
@@ -56,6 +68,7 @@ export function registerLintCommand(program: Command): void {
       async (
         paths: string[],
         options: {
+          writingContext?: string;
           root: string;
           rules?: string;
           only?: string;
@@ -71,19 +84,29 @@ export function registerLintCommand(program: Command): void {
           resultsDir: string;
           model: string;
           verbose?: boolean;
+          progress?: boolean;
           url?: string;
           selector: string;
           capture?: string;
         }
       ) => {
         if (!["major", "minor"].includes(options.failOn)) {
-          throw new Error("--fail-on must be major or minor");
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "--fail-on must be major or minor"
+          );
         }
         if (!["tty", "json", "sarif"].includes(options.output)) {
-          throw new Error("--output must be tty, json or sarif");
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "--output must be tty, json or sarif"
+          );
         }
         if (paths.length === 0 && !options.url && !options.capture) {
-          throw new Error("Pass at least one path, --url or --capture");
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "Pass at least one path, --url or --capture"
+          );
         }
         const limitUnits =
           options.limitUnits === undefined
@@ -93,7 +116,34 @@ export function registerLintCommand(program: Command): void {
           limitUnits !== undefined &&
           (!Number.isInteger(limitUnits) || limitUnits < 0)
         ) {
-          throw new Error("--limit-units must be a non-negative integer");
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "--limit-units must be a non-negative integer"
+          );
+        }
+        if (
+          options.printRequests &&
+          (!options.dryRun || options.output !== "tty")
+        ) {
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "--print-requests requires --dry-run and --output tty; request JSONL is written to stderr."
+          );
+        }
+        if (options.progress || process.stderr.isTTY) {
+          process.stderr.write("Scanning requested paths...\n");
+        }
+        const config = { root: path.resolve(options.root) };
+        // Rendered capture is the only path with remote work before runLint.
+        if (options.url || options.capture) {
+          const resolved = loadConfig(config.root);
+          collectFiles(resolved.root, paths, SUPPORTED_GLOBS, [
+            ...resolved.exclude,
+            ...(options.exclude
+              ?.split(",")
+              .map((s) => s.trim())
+              .filter(Boolean) ?? []),
+          ]);
         }
         let extraUnits;
         if (options.capture) {
@@ -107,52 +157,127 @@ export function registerLintCommand(program: Command): void {
             options.url
           );
         }
-        const result = await runLint({
-          dryRun: options.dryRun,
-          exclude: options.exclude
-            ?.split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
-          extraUnits,
-          failOn: options.failOn as Severity,
-          fix: options.fix,
-          limitUnits,
-          mechanicalOnly: options.mechanicalOnly,
-          model: options.model,
-          noCache: !options.cache,
-          only: options.only
-            ?.split(",")
-            .map((s) => s.trim())
-            .filter(Boolean),
-          printRequests: options.printRequests,
-          resultsDir: options.resultsDir,
-          root: options.root,
-          rulesDir: options.rules,
-          targets: paths,
-        });
-        const json = renderJson(result, result.manifest);
-        if (result.status !== "dry-run") {
-          fs.mkdirSync(options.resultsDir, { recursive: true });
-          fs.writeFileSync(
-            path.join(
-              options.resultsDir,
-              `lint-${new Date().toISOString().replaceAll(":", "-")}.json`
-            ),
-            json
+        let lastProgress = 0;
+        const result = await runLint(
+          {
+            dryRun: options.dryRun,
+            exclude: options.exclude
+              ?.split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+            extraUnits,
+            failOn: options.failOn as Severity,
+            fix: options.fix,
+            limitUnits,
+            mechanicalOnly: options.mechanicalOnly,
+            model: options.model,
+            noCache: !options.cache,
+            only: options.only
+              ?.split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+            printRequests: options.printRequests,
+            resultsDir: options.resultsDir,
+            root: options.root,
+            rulesDir: options.rules,
+            targets: paths,
+            writingContext: options.writingContext
+              ? readWritingContext(options.writingContext)
+              : undefined,
+          },
+          {
+            onProgress: (progress) => {
+              if (!(options.progress || process.stderr.isTTY)) {
+                return;
+              }
+              const now = Date.now();
+              if (
+                lastProgress &&
+                now - lastProgress < 2000 &&
+                progress.phase !== "complete"
+              ) {
+                return;
+              }
+              lastProgress = now;
+              process.stderr.write(
+                `${progress.phase}: ${progress.completed}/${progress.planned} requests, ${progress.attempts} HTTP attempts, ${progress.cachedAnswers} cached answers, ${progress.failed} failed, ${(progress.elapsedMs / 1000).toFixed(1)}s\n`
+              );
+            },
+            stdout: (text) => process.stderr.write(text),
+          }
+        );
+        const reportPath =
+          result.status === "dry-run"
+            ? undefined
+            : path.resolve(
+                options.resultsDir,
+                `lint-${new Date().toISOString().replaceAll(":", "-")}.json`
+              );
+        const retryArgs = [
+          // Context is explicit and must survive retry, never inferred from home.
+          process.execPath,
+          path.resolve(process.argv[1]),
+          "lint",
+          "--root",
+          config.root,
+          "--results-dir",
+          path.resolve(options.resultsDir),
+          "--model",
+          options.model,
+          "--fail-on",
+          options.failOn,
+          "--output",
+          options.output,
+        ];
+        if (options.rules) {
+          retryArgs.push("--rules", path.resolve(options.rules));
+        }
+        if (options.only) {
+          retryArgs.push("--only", options.only);
+        }
+        if (options.exclude) {
+          retryArgs.push("--exclude", options.exclude);
+        }
+        if (options.limitUnits) {
+          retryArgs.push("--limit-units", options.limitUnits);
+        }
+        if (options.url) {
+          retryArgs.push("--url", options.url, "--selector", options.selector);
+        }
+        if (options.capture) {
+          retryArgs.push("--capture", path.resolve(options.capture));
+        }
+        if (options.writingContext) {
+          retryArgs.push(
+            "--writing-context",
+            path.resolve(options.writingContext)
           );
+        }
+        retryArgs.push("--", ...paths);
+        const rerun =
+          result.status === "incomplete"
+            ? retryArgs.map(quote).join(" ")
+            : undefined;
+        const reported = { ...result, reportPath, rerun };
+        const json = renderJson(reported, result.manifest);
+        if (reportPath) {
+          fs.mkdirSync(options.resultsDir, { recursive: true });
+          fs.writeFileSync(reportPath, json);
         }
         if (options.output === "json") {
           process.stdout.write(json);
         } else if (options.output === "sarif") {
           process.stdout.write(
             renderSarif(
-              result,
+              reported,
               result.rulesLoaded,
               program.version() ?? "0.0.0"
             )
           );
         } else {
-          process.stdout.write(renderTty(result, { verbose: options.verbose }));
+          process.stdout.write(
+            renderTty(reported, { verbose: options.verbose })
+          );
         }
         process.exitCode = result.exitCode;
       }

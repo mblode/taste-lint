@@ -1,5 +1,7 @@
 // Shared type definitions. See docs/DESIGN.md for the contracts.
 
+import type { SourceFacts } from "./analysis/repository.js";
+
 export const DOMAINS = [
   "typography",
   "craft",
@@ -7,6 +9,9 @@ export const DOMAINS = [
   "interaction",
   "motion",
   "product",
+  "architecture",
+  "dx",
+  "authoring",
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -46,6 +51,12 @@ export const DOC_TYPES = [
   "lesson",
   "marketing",
   "ui",
+  "readme",
+  "skill",
+  "plan",
+  "personal",
+  "pr",
+  "slides",
   "unknown",
 ] as const;
 export type DocType = (typeof DOC_TYPES)[number];
@@ -67,11 +78,15 @@ export const ROLES = [
 export type Role = (typeof ROLES)[number];
 
 export const CONTEXT_KEYS = [
+  "section",
   "headingAbove",
   "docType",
   "element",
   "role",
   "neighbours",
+  "writingFacts",
+  "writingProfile",
+  "writingInstructions",
 ] as const;
 export type ContextKey = (typeof CONTEXT_KEYS)[number];
 
@@ -183,7 +198,17 @@ export interface NeighbourSummary {
   typography?: ResolvedTypography;
 }
 
+export interface WritingContext {
+  facts?: string;
+  profile?: string;
+  instructions?: string;
+}
+
 export interface UnitContext {
+  section?: string;
+  writingFacts?: string;
+  writingProfile?: string;
+  writingInstructions?: string;
   headingAbove?: string;
   docType: DocType;
   element?: string;
@@ -199,6 +224,7 @@ export interface UnitContext {
 }
 
 export interface Unit {
+  facts?: SourceFacts;
   /** Stable hash of file, kind and source offset. */
   id: string;
   kind: UnitKind;
@@ -293,7 +319,20 @@ export interface Scorecard {
   >;
 }
 
+export interface Progress {
+  phase: "evaluating" | "complete";
+  completed: number;
+  planned: number;
+  cachedAnswers: number;
+  failed: number;
+  attempts: number;
+  elapsedMs: number;
+}
+
 export interface Usage {
+  /** HTTP attempts when reported by the evaluator; absent for legacy evaluators. */
+  attempts?: number;
+  sharedAnswers?: number;
   requests: number;
   cached: number;
   inputTokens: number;
@@ -303,7 +342,46 @@ export interface Usage {
 
 export type RunStatus = "complete" | "incomplete" | "dry-run";
 
+export interface RunSummary {
+  act: number;
+  review: number;
+  unknown: number;
+  failing: number;
+  failOn: Severity;
+  ruleFindings: number;
+}
+
+export interface Coverage {
+  byRule: Record<
+    string,
+    {
+      eligible: number;
+      skipped: number;
+      negative: number;
+      pending: number;
+      unknown: number;
+      answered: number;
+    }
+  >;
+  byCategory: Record<string, { eligibleUnits: number; eligiblePairs: number }>;
+}
+
+export interface ScanScope {
+  files: number;
+  units: number;
+  byDocType: Record<string, number>;
+  excluded: number;
+  diagnostics: string[];
+}
+
 export interface LintResult {
+  summary?: RunSummary;
+  ruleFindings?: Finding[];
+  ruleScorecard?: Scorecard;
+  coverage?: Coverage;
+  scope?: ScanScope;
+  reportPath?: string;
+  rerun?: string;
   status: RunStatus;
   findings: Finding[];
   unknowns: Unknown[];
@@ -338,13 +416,15 @@ export interface SystemOneRequest {
 }
 
 export interface SystemOneResponse {
+  attempts?: number;
   model: string;
   answers: Record<string, { type?: string; noul?: number }>;
   usage: { input_tokens: number; output_tokens: number };
 }
 
 export type Evaluate = (
-  request: SystemOneRequest
+  request: SystemOneRequest,
+  onAttempt?: () => void
 ) => Promise<SystemOneResponse>;
 
 export interface RecorderHandle {
@@ -362,12 +442,21 @@ export interface CorpusItem {
   classes?: string[];
   categoryId: string;
   labels: Record<string, boolean>;
-  labelSource: "manifest" | "manifest-weak" | "hand" | "sweep";
+  labelSource: "manifest" | "manifest-weak" | "hand" | "sweep" | "ai";
+  labelModel?: string;
+  labelPromptHash?: string;
   source: { repo: string; path: string; id?: string; option?: string };
   split: "dev" | "holdout";
 }
 
+export interface ArchitecturePolicy {
+  boundaries?: { from: string; disallow: string; reason: string }[];
+  deprecatedImports?: Record<string, string>;
+  generated?: string[];
+}
+
 export interface Config {
+  architecture?: ArchitecturePolicy;
   root: string;
   docTypes: { glob: string; type: DocType }[];
   components: { unwrap: string[]; skip: string[] };

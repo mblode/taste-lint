@@ -1,0 +1,43 @@
+id: copywriting-visual-direction-instruction
+title: UI instruction depends on visual position
+categoryId: actionable-microcopy
+source:
+  repo: installed/copywriting
+  path: skills/copywriting/references/ui-states.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:above|below|left|right)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true only when an instruction identifies a control solely by visual position, without naming the control or a semantic destination. Return false for named controls, keyboard arrow instructions, descriptions of physical directions, or text where position is the information requested.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Click the button on the right.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Select Save changes.
+severity: minor
+fix:
+  hint: Name the control or destination so the instruction works without seeing the layout.
+preconditions:
+  notInCode: true
+  docType:
+    - ui
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

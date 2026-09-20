@@ -11,6 +11,19 @@ source:
   line: 1
   ruleId: unnatural_polish
 unit: [paragraph]
+# The question explicitly excludes reference and UI copy. Decide applicability
+# in code rather than paying Jev to rediscover this deterministic exclusion.
+preconditions:
+  docType:
+    [
+      tutorial,
+      howto,
+      explanation,
+      agent-instructions,
+      lesson,
+      marketing,
+      unknown,
+    ]
 question:
   context: [docType]
   instructions: >-

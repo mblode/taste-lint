@@ -5,9 +5,9 @@ import { charsPerTokenFor, estimateTokens } from "../lib/tokens.js";
 import { buildQuestion } from "../rules/question.js";
 import type {
   Evaluate,
+  Progress,
   RecorderHandle,
   SystemOneNoul,
-  SystemOneRequest,
 } from "../types.js";
 import type { AnswerCache } from "./cache.js";
 import { cacheKey } from "./cache.js";
@@ -108,6 +108,8 @@ export interface RunOutcome {
   /** Probabilities per unit id per rule id. */
   answers: Map<string, Record<string, number>>;
   requests: number;
+  attempts: number;
+  sharedAnswers: number;
   cached: number;
   inputTokens: number;
   errors: number;
@@ -116,13 +118,50 @@ export interface RunOutcome {
 }
 
 export interface RunOptions {
+  work?: ReturnType<typeof requestWork>;
   evaluate: Evaluate;
   cache: AnswerCache;
   model: string;
   recorder?: RecorderHandle;
   limiter?: Limiter;
-  onProgress?: (mark: "." | "x" | "c") => void;
+  onProgress?: (progress: Progress) => void;
 }
+
+// Exact same state, questions and model share one logical request. Provenance
+// stays on each consumer; never merge findings from different source locations.
+export const requestWork = (prepared: PreparedRequest[]) => {
+  const grouped = new Map<
+    string,
+    {
+      prepared: PreparedRequest;
+      questions: Record<string, SystemOneNoul>;
+      consumers: PreparedRequest[];
+    }
+  >();
+  for (const p of prepared) {
+    for (const questions of chunkQuestions(p)) {
+      const ids = Object.keys(questions).toSorted();
+      const key = JSON.stringify(ids.map((id) => [id, p.keys[id]]));
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.consumers.push(p);
+      } else {
+        grouped.set(key, { consumers: [p], prepared: p, questions });
+      }
+    }
+  }
+  return [...grouped.values()];
+};
+
+export const cachedAnswers = (
+  prepared: PreparedRequest[]
+): Map<string, Record<string, number>> => {
+  const answers = new Map<string, Record<string, number>>();
+  for (const p of prepared) {
+    answers.set(p.job.unit.id, { ...answers.get(p.job.unit.id), ...p.cached });
+  }
+  return answers;
+};
 
 export const runRequests = async (
   prepared: PreparedRequest[],
@@ -130,104 +169,161 @@ export const runRequests = async (
 ): Promise<RunOutcome> => {
   const { evaluate, cache, model, recorder, onProgress } = options;
   const limiter = options.limiter ?? new Limiter(20, 8);
-  const answers = new Map<string, Record<string, number>>();
+  const answers = cachedAnswers(prepared);
   const outcome: RunOutcome = {
     answers,
-    cached: 0,
+    attempts: 0,
+    cached: prepared.reduce((n, p) => n + Object.keys(p.cached).length, 0),
     errors: 0,
     failed: [],
     inputTokens: 0,
     requests: 0,
+    sharedAnswers: 0,
   };
-  const tasks: Promise<void>[] = [];
-  // The first auth failure stops every request still waiting on the limiter;
-  // a bad key would otherwise be tried once per chunk.
-  const abort: { error?: ProviderError } = {};
-  for (const p of prepared) {
-    const unitAnswers: Record<string, number> = { ...p.cached };
-    answers.set(p.job.unit.id, unitAnswers);
-    outcome.cached += Object.keys(p.cached).length;
-    for (const questions of chunkQuestions(p)) {
-      const request: SystemOneRequest = { model, questions, state: p.state };
-      tasks.push(
-        (async () => {
-          const release = await limiter.acquire();
-          if (abort.error) {
-            release();
-            return;
+  const work = options.work ?? requestWork(prepared);
+  const started = Date.now();
+  let completed = 0;
+  let aborted = false;
+  const progress = () =>
+    onProgress?.({
+      attempts: outcome.attempts,
+      cachedAnswers: outcome.cached,
+      completed,
+      elapsedMs: Date.now() - started,
+      failed: outcome.errors,
+      phase: completed === work.length ? "complete" : "evaluating",
+      planned: work.length,
+    });
+  progress();
+  // Bounded workers avoid thousands of promises waiting on the limiter.
+  let cursor = 0;
+  let artifactFailure: unknown;
+  const worker = async () => {
+    while (cursor < work.length && artifactFailure === undefined) {
+      const records: Record<string, unknown>[] = [];
+      const { prepared: p, questions, consumers } = work[cursor];
+      cursor += 1;
+      const release = aborted
+        ? () => {
+            /* No permit was acquired after cancellation. */
           }
+        : await limiter.acquire();
+      try {
+        if (aborted) {
+          throw new ProviderError("auth", 401);
+        }
+        const remaining: Record<string, SystemOneNoul> = {};
+        for (const id of Object.keys(questions)) {
+          const hit = cache.get(p.keys[id]);
+          if (hit) {
+            for (const c of consumers) {
+              answers.get(c.job.unit.id)![id] = hit.noul;
+            }
+            outcome.cached += consumers.length;
+          } else {
+            remaining[id] = questions[id];
+          }
+        }
+        if (Object.keys(remaining).length > 0) {
+          let attempts = 0;
+          const onAttempt = () => {
+            attempts += 1;
+            outcome.attempts += 1;
+            progress();
+          };
           let response;
           try {
-            response = await evaluate(request);
-          } catch (error) {
-            outcome.errors += 1;
-            const category =
-              error instanceof ProviderError
-                ? error.category
-                : "provider_error";
-            const status =
-              error instanceof ProviderError ? error.status : undefined;
-            outcome.failed.push({
-              category,
-              ruleIds: Object.keys(questions),
-              unitId: p.job.unit.id,
-            });
-            recorder?.append({
-              error: category,
-              http_status: status ?? null,
-              kind: "request",
-              rule_ids: Object.keys(questions),
-              status: "error",
-              truncated: p.truncated,
-              unit_id: p.job.unit.id,
-            });
-            onProgress?.("x");
-            if (error instanceof ProviderError && error.category === "auth") {
-              abort.error = error;
+            response = await evaluate(
+              { model, questions: remaining, state: p.state },
+              onAttempt
+            );
+          } finally {
+            if (attempts === 0) {
+              outcome.attempts += 1;
             }
-            release();
-            return;
           }
-          release();
           outcome.requests += 1;
           outcome.inputTokens += response.usage.input_tokens;
-          for (const [ruleId, answer] of Object.entries(response.answers)) {
-            unitAnswers[ruleId] = answer.noul as number;
+          for (const [id, answer] of Object.entries(response.answers)) {
+            for (const c of consumers) {
+              answers.get(c.job.unit.id)![id] = answer.noul as number;
+            }
           }
-          recorder?.append({
+          outcome.sharedAnswers +=
+            (consumers.length - 1) * Object.keys(remaining).length;
+          records.push({
+            attempts: attempts || 1,
             input_tokens: response.usage.input_tokens,
             kind: "request",
-            rule_ids: Object.keys(questions),
+            rule_ids: Object.keys(remaining),
+            shared_units: consumers.length,
             status: "ok",
             truncated: p.truncated,
             unit_id: p.job.unit.id,
           });
-          onProgress?.(".");
-          // A cache write failure is not a provider error; the answer is kept.
           try {
-            for (const [ruleId, answer] of Object.entries(response.answers)) {
-              cache.set(p.keys[ruleId], {
+            for (const [id, answer] of Object.entries(response.answers)) {
+              cache.set(p.keys[id], {
                 model: response.model,
                 noul: answer.noul as number,
                 ts: new Date().toISOString(),
               });
             }
           } catch {
-            recorder?.append({
+            records.push({
               kind: "cache_write_failed",
               unit_id: p.job.unit.id,
             });
           }
-        })()
-      );
+        }
+      } catch (error) {
+        outcome.errors += 1;
+        const category =
+          error instanceof ProviderError ? error.category : "provider_error";
+        for (const c of consumers) {
+          const missing = Object.keys(questions).filter(
+            (id) => answers.get(c.job.unit.id)![id] === undefined
+          );
+          if (missing.length) {
+            outcome.failed.push({
+              category,
+              ruleIds: missing,
+              unitId: c.job.unit.id,
+            });
+          }
+        }
+        records.push({
+          error: category,
+          http_status:
+            error instanceof ProviderError ? (error.status ?? null) : null,
+          kind: "request",
+          rule_ids: Object.keys(questions),
+          status: "error",
+          truncated: p.truncated,
+          unit_id: p.job.unit.id,
+        });
+        if (category === "auth") {
+          aborted = true;
+        }
+      } finally {
+        release();
+        completed += 1;
+        progress();
+      }
+      try {
+        for (const record of records) {
+          recorder?.append(record);
+        }
+      } catch (error) {
+        artifactFailure = error;
+      }
     }
-    if (Object.keys(p.questions).length === 0) {
-      onProgress?.("c");
-    }
-  }
-  await Promise.all(tasks);
-  if (abort.error) {
-    throw abort.error;
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(8, work.length) }, () => worker())
+  );
+  if (artifactFailure !== undefined) {
+    throw artifactFailure;
   }
   return outcome;
 };

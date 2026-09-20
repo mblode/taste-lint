@@ -1,0 +1,50 @@
+id: copywriting-conditions-first
+title: An instruction hides its prerequisite after the action
+categoryId: page-structure
+source:
+  repo: mblode/agent-skills
+  path: skills/docs-writing/rules/structure-conditions-first.md
+  line: 7
+  ruleId: structure-conditions-first
+unit:
+  - paragraph
+mechanical:
+  regex: \b(?:if|unless|only when)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+  instructions: The TEXT contains a procedural instruction. Return true when an action is given before a trailing condition that determines whether the reader should perform it, making premature action plausible. Return false when the condition already precedes its action, when the clause describes an outcome rather than a prerequisite, in quoted examples or style discussions, or when there is no instruction. Judge only the supplied text.
+  criteria:
+    "true":
+      what: The action comes before the condition governing whether to do it.
+      examples:
+        - Run the migration script if you are upgrading from version 2.
+        - Delete the cache unless a deployment is running.
+    "false":
+      what: Condition first, descriptive behavior, or no conditional instruction.
+      examples:
+        - If you are upgrading from version 2, run the migration script.
+        - The request fails if the token has expired.
+        - Check if the service is running.
+severity: minor
+fix:
+  hint: Move the condition before its instruction so readers know whether to act before starting.
+preconditions:
+  notInCode: true
+  docType:
+    - tutorial
+    - howto
+    - reference
+    - explanation
+    - agent-instructions
+status: review-only
+handWritten:
+  - title
+  - unit
+  - mechanical
+  - question
+  - fix
+  - preconditions
+  - severity

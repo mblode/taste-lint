@@ -1,23 +1,52 @@
-import { Command } from "commander";
+import { Command, CommanderError } from "commander";
 
 import pkg from "../package.json" with { type: "json" };
 import { registerEvalCommand } from "./commands/eval.js";
 import { registerExtractCommand } from "./commands/extract.js";
 import { registerLintCommand } from "./commands/lint.js";
 import { registerRulesCommand } from "./commands/rules.js";
+import { registerScanCommand } from "./commands/scan.js";
 import { registerTuneCommand } from "./commands/tune.js";
+import { InputError } from "./lib/errors.js";
 import { ProviderError } from "./map/jev.js";
 
+// Configure before registering subcommands: Commander copies the exit hook
+// when a child is created, so setting it after registration misses parse errors.
+const jsonOutput =
+  process.argv.includes("--output=json") ||
+  process.argv[process.argv.indexOf("--output") + 1] === "json";
 const program = new Command();
+program.exitOverride();
+program.enablePositionalOptions();
+program.configureOutput({
+  writeErr: (text) => {
+    if (!jsonOutput) {
+      process.stderr.write(text);
+    }
+  },
+});
 
 program
   .name("taste-lint")
   .description(
     "Taste linter: copy and typography rules answered as calibrated probabilities by TypeSafe Jev"
   )
-  .version(pkg.version);
+  .version(pkg.version)
+  .addHelpText(
+    "after",
+    `
+Quickstart:
+  export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
+  taste-lint scan .
+
+Preview: taste-lint scan . --dry-run
+Without a key: taste-lint scan . --mechanical-only
+Get a key: https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys
+`
+  );
 
 registerLintCommand(program);
+registerScanCommand(program);
 registerExtractCommand(program);
 registerRulesCommand(program);
 registerEvalCommand(program);
@@ -42,25 +71,33 @@ program
     process.stdout.write(`${JSON.stringify(program.commands.map(describe))}\n`);
   });
 
-// Data goes to stdout, so with --output json an error is a JSON envelope
-// there too; otherwise the message goes to stderr for a person.
-const jsonOutput =
-  process.argv[process.argv.indexOf("--output") + 1] === "json";
+// Data and structured errors go to stdout; progress goes to stderr.
 try {
   await program.parseAsync();
 } catch (error) {
-  const message = (error as Error).message;
-  if (jsonOutput) {
-    process.stdout.write(
-      `${JSON.stringify({
-        code: error instanceof ProviderError ? error.category : "UNEXPECTED",
-        details: {},
-        error: true,
-        message,
-      })}\n`
-    );
+  if (error instanceof CommanderError && error.exitCode === 0) {
+    process.exitCode = 0;
   } else {
-    process.stderr.write(`${message}\n`);
+    const message = (error as Error).message;
+    if (jsonOutput) {
+      process.stdout.write(
+        `${JSON.stringify({
+          code:
+            error instanceof ProviderError
+              ? error.category
+              : error instanceof InputError
+                ? error.code
+                : error instanceof CommanderError
+                  ? "INVALID_ARGUMENT"
+                  : "UNEXPECTED",
+          details: error instanceof InputError ? error.details : {},
+          error: true,
+          message,
+        })}\n`
+      );
+    } else if (!(error instanceof CommanderError)) {
+      process.stderr.write(`${message}\n`);
+    }
+    process.exitCode = 1;
   }
-  process.exitCode = 1;
 }

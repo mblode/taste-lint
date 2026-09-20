@@ -2,9 +2,11 @@
 // mechanical checks, answer the Jev questions (from cache, or live when an
 // evaluate is supplied and this is not a dry run), and report abstentions.
 
-import { costUsd } from "../lib/tokens.js";
+import { costUsd, estimateTokens, charsPerTokenFor } from "../lib/tokens.js";
 import type {
   Config,
+  Coverage,
+  Progress,
   Evaluate,
   Finding,
   RecorderHandle,
@@ -13,11 +15,16 @@ import type {
   Unknown,
   Usage,
 } from "../types.js";
-import { chunkQuestions, prepareRequests, runRequests } from "./batch.js";
+import {
+  cachedAnswers,
+  prepareRequests,
+  requestWork,
+  runRequests,
+} from "./batch.js";
 import type { PreparedRequest } from "./batch.js";
 import type { AnswerCache } from "./cache.js";
 import { planRequests } from "./plan.js";
-import type { JevJob } from "./plan.js";
+import type { JevJob, Plan } from "./plan.js";
 
 export interface JudgeOptions {
   config: Config;
@@ -27,12 +34,15 @@ export interface JudgeOptions {
   evaluate?: Evaluate;
   mechanicalOnly?: boolean;
   recorder?: RecorderHandle;
-  onProgress?: (mark: "." | "x" | "c") => void;
+  onProgress?: (progress: Progress) => void;
   /** Narrow or drop a job before it is prepared (eval keeps labelled rules only). */
   jobFilter?: (job: JevJob) => JevJob | null;
 }
 
 export interface Judgement {
+  coverage: Coverage;
+  negatives: Plan["negatives"];
+  skipped: Plan["skipped"];
   mechanical: Finding[];
   jobs: JevJob[];
   /** Requests still needing at least one answer after the cache. */
@@ -44,12 +54,29 @@ export interface Judgement {
   usage: Usage;
 }
 
-export const judge = async (
+export const prepareJudgement = (
   units: Unit[],
   rules: Rule[],
   options: JudgeOptions
-): Promise<Judgement> => {
-  const plan = planRequests(units, rules, options.config);
+) => {
+  const plan = planRequests(
+    units,
+    options.mechanicalOnly
+      ? rules.filter((r) => r.tier === "mechanical")
+      : rules,
+    options.config
+  );
+  if (options.mechanicalOnly) {
+    for (const unit of units) {
+      const skipped = plan.skipped.get(unit.id) ?? {};
+      for (const rule of rules) {
+        if (rule.tier !== "mechanical") {
+          skipped[rule.id] = "mechanical_only";
+        }
+      }
+      plan.skipped.set(unit.id, skipped);
+    }
+  }
   let jobs = options.mechanicalOnly ? [] : plan.jobs;
   if (options.jobFilter) {
     jobs = jobs
@@ -58,6 +85,22 @@ export const judge = async (
   }
   const prepared = prepareRequests(jobs, options.cache, options.model);
   const pending = prepared.filter((p) => Object.keys(p.questions).length > 0);
+  return {
+    jobs,
+    pending,
+    plan,
+    prepared,
+    rules,
+    units,
+    work: requestWork(prepared),
+  };
+};
+
+export const executeJudgement = async (
+  preview: ReturnType<typeof prepareJudgement>,
+  options: JudgeOptions
+): Promise<Judgement> => {
+  const { plan, jobs, prepared, pending, units, rules } = preview;
   const unknowns: Unknown[] = [...plan.unknowns];
   const usage: Usage = {
     cached: 0,
@@ -74,9 +117,12 @@ export const judge = async (
       model: options.model,
       onProgress: options.onProgress,
       recorder: options.recorder,
+      work: preview.work,
     });
     answers = outcome.answers;
     usage.requests = outcome.requests;
+    usage.attempts = outcome.attempts;
+    usage.sharedAnswers = outcome.sharedAnswers;
     usage.cached = outcome.cached;
     usage.inputTokens = outcome.inputTokens;
     usage.costUsd = costUsd(outcome.inputTokens);
@@ -98,23 +144,75 @@ export const judge = async (
     }
   } else {
     // Dry run, or everything came from cache: cached answers still count.
-    answers = new Map(prepared.map((p) => [p.job.unit.id, p.cached]));
+    answers = cachedAnswers(prepared);
     usage.cached = prepared.reduce(
       (s, p) => s + Object.keys(p.cached).length,
       0
     );
   }
+  const coverage: Coverage = { byCategory: {}, byRule: {} };
+  const categoryUnits = new Map<string, Set<string>>();
+  for (const rule of rules) {
+    const eligible = units.filter((u) => plan.eligible.get(u.id)?.has(rule.id));
+    const negative = eligible.filter((u) =>
+      plan.negatives.get(u.id)?.has(rule.id)
+    ).length;
+    const unknown = unknowns.filter((u) => u.ruleId === rule.id).length;
+    const answered =
+      eligible.filter((u) => answers.get(u.id)?.[rule.id] !== undefined)
+        .length + plan.mechanical.filter((f) => f.ruleId === rule.id).length;
+    coverage.byRule[rule.id] = {
+      answered,
+      eligible: eligible.length,
+      negative,
+      pending: Math.max(0, eligible.length - negative - unknown - answered),
+      skipped: units.length - eligible.length,
+      unknown,
+    };
+    const set = categoryUnits.get(rule.categoryId) ?? new Set<string>();
+    for (const unit of eligible) {
+      set.add(unit.id);
+    }
+    categoryUnits.set(rule.categoryId, set);
+    const category = coverage.byCategory[rule.categoryId] ?? {
+      eligiblePairs: 0,
+      eligibleUnits: 0,
+    };
+    category.eligiblePairs += eligible.length;
+    category.eligibleUnits = set.size;
+    coverage.byCategory[rule.categoryId] = category;
+  }
+  const work = preview.work;
   return {
     answers,
-    estimatedRequests: pending.reduce(
-      (s, p) => s + chunkQuestions(p).length,
+    coverage,
+    estimatedRequests: work.length,
+    estimatedTokens: work.reduce(
+      (sum, w) =>
+        sum +
+        estimateTokens(
+          w.prepared.state,
+          charsPerTokenFor(w.prepared.job.unit.kind)
+        ) +
+        Object.values(w.questions).reduce(
+          (n, q) => n + estimateTokens(JSON.stringify(q)),
+          0
+        ),
       0
     ),
-    estimatedTokens: pending.reduce((s, p) => s + p.estimatedTokens, 0),
     jobs,
     mechanical: plan.mechanical,
+    negatives: plan.negatives,
     pending,
+    skipped: plan.skipped,
     unknowns,
     usage,
   };
 };
+
+export const judge = (
+  units: Unit[],
+  rules: Rule[],
+  options: JudgeOptions
+): Promise<Judgement> =>
+  executeJudgement(prepareJudgement(units, rules, options), options);

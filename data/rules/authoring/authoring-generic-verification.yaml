@@ -1,0 +1,45 @@
+id: authoring-generic-verification
+title: Verification instruction names no observable check
+categoryId: instruction-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/agent-skills-creator/references/authoring-tips.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:double.check|verify carefully|test thoroughly|ensure (?:quality|correctness))\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true when this is generic verification coaching without a named check or observable outcome in the supplied text. Return false when it names a test command, a reproducible scenario, expected behavior, a linked canonical verifier, or is discussing this writing pattern.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Double-check your answer and ensure quality.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Run npm test and confirm all checks pass.
+severity: minor
+fix:
+  hint: Name the check and the result that establishes completion.
+preconditions:
+  notInCode: true
+  docType:
+    - skill
+    - agent-instructions
+    - plan
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

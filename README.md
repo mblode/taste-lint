@@ -2,32 +2,40 @@
 
 # [taste-lint](https://github.com/mblode/taste-lint)
 
-**Taste rules from agent-skills and taste-training, run as a linter on every file**
+**Taste rules from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training), run as a linter**
 
 Point it at Markdown, MDX, TSX or a rendered page and get findings with a severity and a probability.
 
 </div>
 
-## Install
-
-```bash
-npm install -g taste-lint
-```
-
-Requires Node 24. Jev-backed rules need `TYPESAFE_API_KEY` (api.typesafe.ai) or `AI_GATEWAY_API_KEY` (Vercel AI Gateway); mechanical rules need neither.
+[npm](https://www.npmjs.com/package/taste-lint) · [Changelog](CHANGELOG.md) · [MIT license](LICENSE.md)
 
 ## Quickstart
 
-```bash
-# Every rule the pack ships, validated
-taste-lint rules check
+Requires Node 24.11 or later. Bring your own [Vercel AI Gateway API key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys): open **AI Gateway → API Keys → Create Key** in your Vercel dashboard.
 
-# Lint a file; Jev answers each question in one request per unit
-AI_GATEWAY_API_KEY=... taste-lint lint notes.md
+```bash
+npm install -g taste-lint
+export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
+
+# Run from your project directory
+taste-lint scan .
 ```
 
+No taste-lint account or configuration file is required. Model usage is billed to your Vercel AI Gateway account. Taste-lint reads the key from your environment and sends selected text and rule context directly to the gateway.
+
+Preview scope and estimated cost with `taste-lint scan . --dry-run`. Try local checks without a key using `taste-lint scan . --mechanical-only`. The default scan focuses on product interfaces; use `--profile writing` for documentation or `--profile instructions` for agent instructions.
+
+Semantic rules remain advisory until calibrated against independent holdout evidence. Mechanical checks can fail a run immediately.
+
+## Where the rules come from
+
+[Agent Skills](https://github.com/mblode/agent-skills) provides reusable instructions for coding agents. [Taste Training](https://blode.co/taste-training) teaches people to spot and fix problems in typography, copy, interaction, and motion. Taste-lint turns applicable guidance into repeatable checks, with source references attached to individual rules.
+
+## Example findings
+
 ```text
-PASS: 118 active rules in data/rules
+PASS: 161 active rules in data/rules
 
 notes.md
 [MINOR] typography-straight-quotes (p=1.00) notes.md:3:1
@@ -39,7 +47,7 @@ notes.md
     3 matches: "fast", "powerful", "seamless"; p=0.95
     Fix: Replace the adjective with the mechanism, the number or the standard it stands for. If none exists, cut the sentence.
 
-Units: 3  |  Rules: 118  |  Act: 1  |  Review: 4  |  Unknown: 0
+Units: 3  |  Rules: 161  |  Act: 1  |  Review: 4  |  Unknown: 0
 Jev: 2 requests, 0 cached answers, 7238 input tokens, $0.0003
 FAIL - 1 finding in the act band
 ```
@@ -48,7 +56,7 @@ FAIL - 1 finding in the act band
 
 - **Severity:** how bad the finding is if real, `major` or `minor`. Set by the rule, never by the model.
 - **Band:** how sure the tool is. `act` fails the run (mechanical hits, or Jev at or above the rule's act threshold), `review` prints a note with a `?`, below that is silent.
-- **Cost:** every question about one unit travels in one request; Jev output is free and input is $0.042 per million tokens. Answers are cached by question and text, so a second run over unchanged files costs nothing.
+- **Cost:** eligible questions about one unit are batched into requests. Preview estimated cost with `--dry-run`; runs report usage and reuse cached answers. Current rates are listed in the [Vercel AI Gateway model catalog](https://vercel.com/ai-gateway/models).
 
 ## Rule packs
 
@@ -99,8 +107,37 @@ Installs the `taste-lint` skill for Claude Code, Codex, Cursor and OpenCode: how
 | `--output <format>` | `tty` | `tty`, `json` or `sarif` |
 | `--url <url>` |  | Lint a rendered page through style-capture |
 
-`taste-lint eval` scores every rule against its labelled corpus (precision, recall, Wilson intervals, a calibration table) and `taste-lint tune` picks act thresholds from the dev split, promoting a rule only when its precision lower bound clears the floor.
+`taste-lint eval` scores every rule against its labelled corpus (precision, recall, Wilson intervals, a calibration table) and `taste-lint tune` picks act thresholds from the dev split, promoting a rule only when the fixed threshold also clears the precision lower bound on an independent holdout. Both label classes, enough evaluated items, complete scoring, and source/text separation are required. `taste-lint eval coverage` reports class balance and split leakage without API calls; add `--output json` to coverage or evaluation for structured results.
 
 ## License
 
-MIT
+[MIT](LICENSE.md) © 2026 Matthew Blode.
+
+## Reading a repository run
+
+The default text report summarizes scope, top rules and up to 30 examples. Use `--verbose` for the full list; every completed or incomplete run also saves a complete JSON report and prints its path. JSON v1 keeps the original grouped `findings`; `ruleFindings` preserves every rule's evidence and `coverage` counts eligible checks. `summary.failing` respects `--fail-on`, and determines the exit code together with run completeness.
+
+```bash
+taste-lint lint --root ../my-site apps/web --dry-run
+taste-lint lint --root ../my-site apps/web --progress --output json > audit.json
+```
+
+Progress goes to stderr. A fully cached run needs no API key. An incomplete report includes a retry command that reuses successful answers. Cost is reported from known usage, excluding any unreported provider billing for failures.
+
+Configuration is optional at `taste-lint.config.json` in the scan root. Its editor schema ships at `node_modules/taste-lint/data/config.schema.json`. Unknown fields and invalid types fail before evaluation. Select the scope explicitly: documentation and agent instructions remain included when you request a whole repository.
+
+```json
+{
+  "$schema": "./node_modules/taste-lint/data/config.schema.json",
+  "exclude": ["docs/archive/**"],
+  "docTypes": [
+    { "glob": "apps/web/content/writing/**/*.mdx", "type": "explanation" }
+  ]
+}
+```
+
+See [TypeSafe contracts](docs/TYPESAFE.md) and the [review-rule evaluation](docs/evaluations/blode-co-review.md) for the implementation evidence and current calibration limits.
+
+See [skill packs](docs/SKILL-PACKS.md) for repository checks, architecture policy, personal-writing context, and source discovery.
+
+Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. The [scan workflow](docs/SCANS.md) covers profiles, baselines, review decisions, changed-code SARIF, calibration samples, graph-tool reports, and remediation exports.

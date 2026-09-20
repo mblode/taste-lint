@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { parse } from "yaml";
 
+import { InputError } from "../lib/errors.js";
 import { RULE_STATUSES } from "../types.js";
 import type { Rule, Tuning, TuningEntry } from "../types.js";
 import { CODE_RULES } from "./code/index.js";
@@ -176,7 +177,11 @@ export const loadRules = (
     const wanted = new Set(options.only);
     const missing = options.only.filter((id) => !seen.has(id));
     if (missing.length > 0) {
-      throw new Error(`Unknown rule ids: ${missing.join(", ")}`);
+      throw new InputError(
+        "INVALID_RULE",
+        `Unknown rule ids: ${missing.join(", ")}`,
+        { rules: missing }
+      );
     }
     out = out.filter((r) => wanted.has(r.id));
   }

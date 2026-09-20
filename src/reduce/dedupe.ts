@@ -26,7 +26,7 @@ export const sortFindings = (findings: Finding[]): Finding[] =>
     return b.probability - a.probability;
   });
 
-export const dedupe = (findings: Finding[]): Finding[] => {
+export const dedupeExact = (findings: Finding[]): Finding[] => {
   const exact = new Map<string, Finding>();
   for (const f of findings) {
     const key = `${f.unitId}\u0000${f.ruleId}`;
@@ -35,12 +35,17 @@ export const dedupe = (findings: Finding[]): Finding[] => {
       exact.set(key, f);
     }
   }
+  // Preserve insertion order for the v1 grouping tie-break contract.
+  return [...exact.values()];
+};
+
+export const dedupe = (findings: Finding[]): Finding[] => {
   // Merge findings that share unit and category: keep the strongest, list
   // the others under `also`. Suppressed findings pass through on their own so
   // a suppression on one rule never hides a live finding from another.
   const byUnitCategory = new Map<string, Finding[]>();
   const out: Finding[] = [];
-  for (const f of exact.values()) {
+  for (const f of dedupeExact(findings)) {
     if (f.suppressed) {
       out.push(f);
       continue;

@@ -49,9 +49,55 @@ export const renderTty = (
   options: { verbose?: boolean } = {}
 ): string => {
   const out: string[] = [];
-  const visible = result.findings.filter(
+  const candidates = result.findings.filter(
     (f) => options.verbose || !f.suppressed
   );
+  const actExamples = candidates.filter((f) => f.band === "act").slice(0, 20);
+  const reviewExamples = candidates
+    .filter((f) => f.band === "review")
+    .slice(0, 10);
+  const visible = options.verbose
+    ? candidates
+    : [...actExamples, ...reviewExamples];
+  if (result.summary) {
+    out.push(
+      `Summary: ${result.summary.act} act, ${result.summary.review} review, ${result.summary.unknown} unknown; ${result.summary.failing} failing rule findings (fail-on ${result.summary.failOn}).`
+    );
+  }
+  if (result.scope) {
+    out.push(
+      `Scope: ${result.scope.files} files; ${Object.entries(
+        result.scope.byDocType
+      )
+        .map(([type, n]) => `${type}: ${n}`)
+        .join(", ")}; ${result.scope.excluded} excluded paths.`,
+      ...result.scope.diagnostics
+    );
+  }
+  const counts = new Map<string, number>();
+  for (const f of result.ruleFindings ?? candidates) {
+    if (!f.suppressed) {
+      counts.set(f.ruleId, (counts.get(f.ruleId) ?? 0) + 1);
+    }
+  }
+  out.push(
+    `Top rules: ${[...counts]
+      .toSorted((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 5)
+      .map(([id, n]) => `${id}: ${n}`)
+      .join(", ")}`
+  );
+  if (visible.length < candidates.length) {
+    out.push(
+      `${candidates.length - visible.length} findings omitted from this view; use --verbose for every finding.`
+    );
+  }
+  if (result.reportPath) {
+    out.push(`Complete report: ${result.reportPath}`);
+  }
+  if (result.rerun) {
+    out.push(`Retry unresolved work: ${result.rerun}`);
+  }
   let currentFile = "";
   for (const f of visible) {
     if (f.file !== currentFile) {
@@ -91,19 +137,31 @@ export const renderTty = (
       `Jev: ${result.usage.requests} request${result.usage.requests === 1 ? "" : "s"}, ${result.usage.cached} cached answers, ${result.usage.inputTokens} input tokens, $${result.usage.costUsd.toFixed(4)}${result.usage.errors ? `, ${result.usage.errors} errors` : ""}`
     );
   }
-  if (result.status === "incomplete") {
-    out.push(
-      paint("red", "INCOMPLETE - some requests failed; findings are partial")
-    );
-  } else if (act > 0) {
+  if (result.scope?.files === 0 && result.units === 0) {
+    out.push("NO SCAN - no supported units selected");
+  } else if (result.status === "incomplete") {
     out.push(
       paint(
         "red",
-        `FAIL - ${act} finding${act === 1 ? "" : "s"} in the act band`
+        "INCOMPLETE - analysis did not finish; see diagnostics and unknowns"
+      )
+    );
+  } else if (result.exitCode === 1) {
+    out.push(
+      paint(
+        "red",
+        `FAIL - ${result.summary?.failing ?? act} rule findings meet the failure threshold`
       )
     );
   } else {
-    out.push(paint("green", "PASS - no act-band findings"));
+    out.push(
+      paint(
+        "green",
+        act > 0
+          ? "PASS - act findings are below the configured failure threshold"
+          : "PASS - no act-band findings"
+      )
+    );
   }
   return `${out.join("\n")}\n`;
 };
