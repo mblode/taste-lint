@@ -210,6 +210,20 @@ export const planRequests = (
       }
       if (
         rule.question?.context?.includes("section") &&
+        unit.context.dynamic &&
+        (unit.kind === "jsx-text" || unit.kind === "attr-string")
+      ) {
+        unknowns.push({
+          file: unit.file,
+          line: unit.line,
+          reason: "Dynamic text may supply the missing explanation or action",
+          ruleId: rule.id,
+          unitId: unit.id,
+        });
+        continue;
+      }
+      if (
+        rule.question?.context?.includes("section") &&
         (!unit.context.section || buildState(unit, [rule]).truncated)
       ) {
         unknowns.push({

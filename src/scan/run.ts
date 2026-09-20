@@ -59,7 +59,8 @@ export const runScan = async (
   ).filter((file) => profileIncludes(profile, file));
   const rules = profileRules(
     profile,
-    loadRules(resolveRulesDir(options.rulesDir), { only: options.only })
+    loadRules(resolveRulesDir(options.rulesDir), { only: options.only }),
+    Boolean(options.only?.length || options.rulesDir)
   );
   for (const rule of rules) {
     if (profile.advisory.includes(rule.id)) {
@@ -184,6 +185,13 @@ export const runScan = async (
       : undefined,
     coverage: result.coverage,
     diagnostics: [
+      ...(profile.name === "product" &&
+      !options.only?.length &&
+      !options.rulesDir
+        ? [
+            "Focused product checks; appearance preferences and experimental ports require --only or --profile all. This is not a complete UI audit.",
+          ]
+        : []),
       ...(result.scope?.diagnostics ?? []),
       ...(graph?.incomplete
         ? [

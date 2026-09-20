@@ -1,5 +1,6 @@
 import { normaliseText } from "../extract/units.js";
 import { InputError } from "../lib/errors.js";
+import { SEVERITY_RANK } from "../types.js";
 import type { Finding, LintResult, Unit } from "../types.js";
 import type { ScanProfile } from "./profiles.js";
 import { hash, object, readJson } from "./storage.js";
@@ -7,6 +8,8 @@ import { hash, object, readJson } from "./storage.js";
 export interface ScanFinding extends Finding {
   fingerprint: string;
   excerpt: string;
+  /** Local source context for review; not a generated explanation. */
+  context?: string;
   lifecycle: "new" | "existing" | "resolved" | "unverified";
   decision?: { status: "dismissed" | "accepted" | "open"; reason: string };
   origin: "taste-lint" | "dependency-cruiser";
@@ -61,6 +64,7 @@ export const identify = (findings: Finding[], units: Unit[]): ScanFinding[] => {
     occurrences.set(key, occurrence + 1);
     return {
       ...finding,
+      context: unit?.context.section,
       excerpt: text.slice(0, 1200),
       fingerprint: hash([key, occurrence]),
       lifecycle: "new",
@@ -94,6 +98,7 @@ export const readReport = (file: string): ScanReport => {
         typeof f.file === "string" &&
         typeof f.ruleId === "string" &&
         typeof f.excerpt === "string" &&
+        (f.context === undefined || typeof f.context === "string") &&
         typeof f.fixHint === "string" &&
         Number.isInteger(f.line) &&
         Number.isInteger(f.endLine) &&
@@ -169,7 +174,15 @@ export const reconcile = (
           : "unverified",
     }));
 };
-export const renderScan = (report: ScanReport, limit = 20): string => {
+const priority = (a: ScanFinding, b: ScanFinding): number =>
+  Number(b.band === "act") - Number(a.band === "act") ||
+  SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+  b.probability - a.probability ||
+  a.ruleId.localeCompare(b.ruleId) ||
+  a.file.localeCompare(b.file) ||
+  a.line - b.line;
+
+export const renderScan = (report: ScanReport, limit = 5): string => {
   const visible = new Set(report.reporting.visible);
   const groups = new Map<string, ScanFinding[]>();
   for (const finding of report.findings.filter((f) =>
@@ -179,12 +192,9 @@ export const renderScan = (report: ScanReport, limit = 20): string => {
     list.push(finding);
     groups.set(finding.ruleId, list);
   }
-  const ranked = [...groups.values()].toSorted(
-    (a, b) =>
-      Number(b[0].band === "act") - Number(a[0].band === "act") ||
-      b.length - a.length ||
-      a[0].ruleId.localeCompare(b[0].ruleId)
-  );
+  const ranked = [...groups.values()]
+    .map((group) => group.toSorted(priority))
+    .toSorted((a, b) => priority(a[0], b[0]));
   const s = report.summary;
   const coverage = Object.values(report.coverage?.byRule ?? {});
   return [
@@ -197,7 +207,7 @@ export const renderScan = (report: ScanReport, limit = 20): string => {
       .slice(0, limit)
       .map(
         (group) =>
-          `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].fixHint}`
+          `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].evidence}\n  ${group[0].fixHint}`
       ),
     ...(ranked.length > limit
       ? [

@@ -29,7 +29,9 @@ export const promotionEvidence = (
     }))
   );
   const rejection =
-    coverage.overlappingSources.length || coverage.overlappingTexts
+    coverage.overlappingSources.length ||
+    coverage.overlappingTexts ||
+    coverage.overlappingFamilies
       ? "Dev and holdout share source files or duplicate text; rebuild independent splits."
       : pairs.length !== holdout.length
         ? "Some holdout labels were skipped or unresolved."

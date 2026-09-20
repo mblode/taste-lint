@@ -22,6 +22,10 @@ export function registerEvalCommand(program: Command): void {
     .option("--only <ids>", "Comma-separated rule ids")
     .option("--split <name>", "dev, holdout or all", "all")
     .option("--include-weak", "Include manifest-weak labels")
+    .option(
+      "--check",
+      "Fail on reference disagreement; incomplete evaluation exits 2"
+    )
     .option("--dry-run", "Plan without calling Jev")
     .option("--no-cache", "Ignore cached answers")
     .option("--results-dir <path>", "Where logs and cache live")
@@ -34,6 +38,7 @@ export function registerEvalCommand(program: Command): void {
         throw new Error("--split must be dev, holdout or all");
       }
       const result = await runEval({
+        check: options.check,
         corpusDir: options.corpus,
         dryRun: options.dryRun,
         includeWeak: options.includeWeak,

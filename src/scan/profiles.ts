@@ -2,6 +2,17 @@ import { InputError } from "../lib/errors.js";
 import { matchesAny } from "../lib/glob.js";
 import type { DocType, Rule } from "../types.js";
 
+// Defaults need a specific user consequence and evidence available to this scanner.
+// Appearance preferences and unverified pattern ports stay explicitly selectable.
+const productRules = new Set([
+  "copywriting-vague-error",
+  "copywriting-empty-state-no-action",
+  "copywriting-bare-confirm-label",
+  "copywriting-claim-without-evidence",
+  "interaction-no-error-state",
+  "motion-transition-all",
+]);
+
 const artifacts = [
   "**/node_modules/**",
   "**/dist/**",
@@ -137,7 +148,11 @@ export const profileFor = (name: string): ScanProfile => {
     }
   }
 };
-export const profileRules = (profile: ScanProfile, rules: Rule[]): Rule[] =>
+export const profileRules = (
+  profile: ScanProfile,
+  rules: Rule[],
+  explicit = false
+): Rule[] =>
   rules.filter((rule) => {
     if (profile.name === "all") {
       return true;
@@ -156,6 +171,9 @@ export const profileRules = (profile: ScanProfile, rules: Rule[]): Rule[] =>
     }
     if (profile.name === "writing") {
       return ["copywriting", "typography"].includes(rule.domain);
+    }
+    if (profile.name === "product" && !explicit) {
+      return productRules.has(rule.id);
     }
     return (
       !["architecture", "dx", "authoring"].includes(rule.domain) &&
