@@ -105,3 +105,17 @@ See [TypeSafe contracts](TYPESAFE.md) and the [review-rule evaluation](evaluatio
 See [skill packs](SKILL-PACKS.md) for repository checks, architecture policy, personal-writing context, and source discovery.
 
 Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. The [scan workflow](SCANS.md) covers profiles, baselines, review decisions, changed-code SARIF, calibration samples, graph-tool reports, and remediation exports.
+
+## Project setup
+
+Run `npx taste-lint@latest init` in a directory containing package.json. Setup detects the package manager from packageManager or a lockfile, installs Taste Lint as a development dependency, and adds `check:taste` for local checks and `taste` for AI scans. React, Next.js, Vue, Svelte, and Astro dependencies select the product profile; other projects start with writing. You can edit the scripts to choose another profile.
+
+Existing scripts and dependencies are preserved. Repeating setup adds only missing scripts. Options:
+
+- `--root <path>` selects a project directory, including an individual workspace package.
+- `--pm npm|pnpm|yarn|bun` overrides detection. Conflicting lockfiles require an explicit choice.
+- `--dry-run` previews setup without writes or installation.
+- `--no-install` adds scripts without running the package manager.
+- `--agent` appends a marked section to AGENTS.md once, preserving existing guidance.
+
+Setup does not request or store an API key. Set AI_GATEWAY_API_KEY in your environment before running the AI script. For a monorepo, run setup in the package you want to scan; setup does not traverse workspace packages.

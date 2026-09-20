@@ -3,6 +3,7 @@ import { Command, CommanderError } from "commander";
 import pkg from "../package.json" with { type: "json" };
 import { registerEvalCommand } from "./commands/eval.js";
 import { registerExtractCommand } from "./commands/extract.js";
+import { registerInitCommand } from "./commands/init.js";
 import { registerLintCommand } from "./commands/lint.js";
 import { registerRulesCommand } from "./commands/rules.js";
 import { registerScanCommand } from "./commands/scan.js";
@@ -46,6 +47,7 @@ Get a key: https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys
   );
 
 registerLintCommand(program);
+registerInitCommand(program);
 registerScanCommand(program);
 registerExtractCommand(program);
 registerRulesCommand(program);
