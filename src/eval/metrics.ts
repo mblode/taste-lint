@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { resolveTypography } from "../extract/tailwind.js";
 import { defaultResultsDir } from "../lib/config.js";
+import { InputError } from "../lib/errors.js";
 import { makeRecorder } from "../lib/record.js";
 import { binaryMetrics, calibrationTable } from "../lib/stats.js";
 import type { BinaryMetrics } from "../lib/stats.js";
@@ -15,9 +16,10 @@ import { band } from "../reduce/bands.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
 import { loadCorpus, resolveCorpusDir, unitFromItem } from "./corpus.js";
-import { corpusCoverage } from "./coverage.js";
+import { corpusCoverage, pairedOutcomes } from "./coverage.js";
 
 export interface EvalOptions {
+  check?: boolean;
   corpusDir?: string;
   rulesDir?: string;
   only?: string[];
@@ -42,8 +44,14 @@ export interface RuleEval {
   skipped?: number;
   metrics: BinaryMetrics;
   reviewRate: number;
+  reviewMetrics?: BinaryMetrics;
+  contrast?: {
+    families: number;
+    passed: number;
+    failed: number;
+    unresolved: number;
+  };
   calibration: ReturnType<typeof calibrationTable>;
-  /** Per item: label, probability. */
   pairs: { id: string; label: boolean; probability: number }[];
 }
 
@@ -207,9 +215,16 @@ export const evaluateRules = (
     );
     return {
       calibration: calibrationTable(pairs),
+      contrast: pairedOutcomes(items, rule, probabilities),
       metrics,
       n: pairs.length,
       pairs,
+      reviewMetrics: binaryMetrics(
+        pairs.map((p) => ({
+          label: p.label,
+          predicted: p.probability >= rule.thresholds.review,
+        }))
+      ),
       reviewRate: pairs.length === 0 ? 0 : review / pairs.length,
       ruleId: rule.id,
       skipped: skipped.filter((s) => s.ruleId === rule.id).length,
@@ -231,6 +246,11 @@ export const renderEval = (
       out.push(
         `${e.ruleId}: no evaluated labelled items; ${e.skipped ?? 0} skipped, ${e.unknown} unknown`
       );
+      if (e.contrast?.families) {
+        out.push(
+          `  Paired families: ${e.contrast.unresolved}/${e.contrast.families} unresolved.`
+        );
+      }
       continue;
     }
     const m = e.metrics;
@@ -246,6 +266,17 @@ export const renderEval = (
     out.push(
       `${e.ruleId}: n=${e.n} skipped ${e.skipped ?? 0}${unknown} ${precision} ${recall} f1 ${m.f1.toFixed(2)} review ${pct(e.reviewRate)} (tp ${m.tp} fp ${m.fp} fn ${m.fn} tn ${m.tn})`
     );
+    if (e.reviewMetrics) {
+      const r = e.reviewMetrics;
+      out.push(
+        `  Visible findings (review threshold): tp ${r.tp} fp ${r.fp} fn ${r.fn} tn ${r.tn}`
+      );
+    }
+    if (e.contrast?.families) {
+      out.push(
+        `  Paired families: ${e.contrast.passed}/${e.contrast.families} passed; ${e.contrast.failed} failed; ${e.contrast.unresolved} unresolved (weak flagged and acceptable preserved).`
+      );
+    }
     const rows = e.calibration.filter((b) => b.n > 0);
     if (rows.length > 0) {
       out.push("  bucket      n  observed  mean p");
@@ -272,6 +303,12 @@ export const runEval = async (
   options: EvalOptions,
   ctx: EvalContext = {}
 ): Promise<EvalResult> => {
+  if (options.check && options.dryRun) {
+    throw new InputError(
+      "INVALID_ARGUMENT",
+      "--check requires evaluated judgments; remove --dry-run."
+    );
+  }
   const rulesDir = resolveRulesDir(options.rulesDir);
   const rules = loadRules(rulesDir, { allowDraft: false, only: options.only });
   const knownRuleIds = new Set(
@@ -326,11 +363,26 @@ export const runEval = async (
     })),
     usage,
   });
+  const incomplete = evals.some(
+    (e) => e.n === 0 || e.unknown > 0 || (e.skipped ?? 0) > 0
+  );
+  const mismatch = evals.some(
+    (e) => (e.reviewMetrics?.fp ?? 0) + (e.reviewMetrics?.fn ?? 0) > 0
+  );
+  const exitCode =
+    usage.errors > 0 || (options.check && incomplete)
+      ? 2
+      : options.check && mismatch
+        ? 1
+        : 0;
   return {
-    exitCode: usage.errors > 0 ? 2 : 0,
+    exitCode,
     labelSources,
     referenceCoverage: corpusCoverage(items, rules),
     report:
+      (options.check
+        ? `Regression check: ${exitCode === 0 ? "PASS" : exitCode === 1 ? "FAIL (reference disagreement)" : "INCOMPLETE (missing evaluations)"}. Uses the review threshold.\n`
+        : "") +
       (labelSources.ai
         ? `AI-labeled reference: ${labelSources.ai} items. Metrics measure agreement with AI labels, not human judgments.\n`
         : "") +

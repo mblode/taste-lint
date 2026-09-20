@@ -478,10 +478,10 @@ for (const [i, paragraph] of sample
   });
 }
 
-// The loader's own split, so hand-added rows without `split` land where a
-// re-seed would put them.
+// Keep variants and related examples in the same source file together.
+// Per-option hashing leaks nearly identical weak/strong siblings across splits.
 for (const item of items) {
-  item.split = splitFor(item.id);
+  item.split = splitFor(JSON.stringify([item.source.repo, item.source.path]));
 }
 
 fs.mkdirSync(outDir, { recursive: true });

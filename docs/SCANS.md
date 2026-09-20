@@ -16,17 +16,17 @@ node dist/cli.js scan profiles
 
 | Profile | Objective |
 | --- | --- |
-| product (default) | Application TSX/JSX/CSS/SCSS; interface copy, typography, interaction, motion |
+| product (default) | Six focused checks for application recovery, copy and broad transitions |
 | writing | Content, consumer README, public Markdown, and active documentation |
 | instructions | AGENTS.md, CLAUDE.md, skills, and implementation plans |
 | architecture | TS/JS/package configuration and declared repository contracts |
 | all | Full existing catalog over all supported inputs |
 
-Scoped profiles exclude build outputs, archived docs, and `.captain` reports. Writing also excludes agent instructions and plans. Product excludes test/spec/story components. Use explicit targets and `--exclude` to narrow a profile; `--only` intersects its rules. `all` is the explicit escape hatch for a comprehensive audit.
+Scoped profiles exclude build outputs, archived docs, and `.captain` reports. Writing also excludes agent instructions and plans. Product excludes test/spec/story components. Use explicit targets and `--exclude` to narrow a profile; `--only` explicitly selects rules within its domain, including checks omitted from the default product selection. `all` is the explicit escape hatch for a comprehensive audit.
 
-Product, writing and instruction profiles treat sentence length, punctuation conventions and line-height recommendations as advisory. These findings stay visible but do not fail the scan. The `all` profile and `lint` retain strict rule policy. The writing profile recognizes `content/writing` as personal prose; repository `docTypes` overrides take precedence. Sentence length is still measured deterministically. This policy change does not imply every long sentence is defective.
+Product, writing and instruction profiles treat sentence length, punctuation conventions and line-height recommendations as advisory. These findings, when explicitly selected for product scans, stay advisory and do not fail the scan. The `all` profile and `lint` retain strict rule policy. The writing profile recognizes `content/writing` as personal prose; repository `docTypes` overrides take precedence. Sentence length is still measured deterministically. This policy change does not imply every long sentence is defective.
 
-JSON includes the exact selected file list, profile, coverage, estimates, and diagnostics. No selected files exits 2; it is not a clean scan. TTY output shows at most 20 rule groups with representative locations and aggregate counts. Full JSON preserves all findings.
+JSON includes the exact selected file list, profile, coverage, estimates, and diagnostics. No selected files exits 2; it is not a clean scan. TTY output shows at most five rule groups with representative locations and aggregate counts. Full JSON preserves all findings.
 
 ## Baselines and review decisions
 
@@ -175,3 +175,23 @@ Token references, CSS calculations, asset URLs, relative layout values and selec
 This check currently supports declared pixel font tokens only. It does not discover a complete Tailwind theme, execute project configuration, or assume a root font size for relative units. Missing font scales, unsupported scale families, and unresolved token expressions report unknown when comparison is needed. Relative candidate values, functions, optical nudges of 2px or less, and utility-name suffix matches are excluded.
 
 A near-scale comparison does not prove that the size is a mistake. Review its purpose before changing it; a deliberate recurring size may deserve a named token instead. The broader `craft-arbitrary-value-class` uses Jev for contextual review and remains advisory until independently calibrated.
+
+## Focused product defaults
+
+The default product scan selects `interaction-no-error-state`, `copywriting-vague-error`, `copywriting-empty-state-no-action`, `copywriting-bare-confirm-label`, `copywriting-claim-without-evidence`, and `motion-transition-all`. This is a small initial policy, not a calibrated or complete UI audit. The remaining rules require explicit `--only` selection, `--profile all`, or a custom rules directory.
+
+Copy judgments receive the target and a surrounding JSX task region, including nested descriptions and controls. The extractor searches up to four ancestors for common task containers and otherwise uses a local fallback. Empty presentation chrome includes its enclosing toolbar. Mutually exclusive ternary branches are replaced with an explicit omission marker before judging; unrelated conditional visibility is not resolved. An adjacent action can resolve an empty state or error. A harmless acknowledgment is not a destructive confirmation. Missing, oversized or dynamic target copy remains unknown. Imported components and distant UI are not expanded. Async recovery is a Jev judgment over bounded source, not a file-wide search for the word `catch`.
+
+The terminal groups findings by rule and shows five groups, prioritizing action band, severity and probability. Repetition does not outrank severity. Grouping is a review convenience, not proof of one root cause. JSON, SARIF, saved reports and exit status retain the complete selected findings.
+
+## Paired evaluation
+
+`eval` reports both act-threshold metrics and visible findings at the review threshold. When variants share `source.repo` and `source.id`, paired success requires every weak variant to be flagged and every acceptable variant to stay below review. Missing evaluations make the family unresolved. Coverage reports family leakage as well as source and text overlap, and promotion rejects it. Course corpus splits group by source file. Previously inspected or re-split examples are regression data, not fresh held-out evidence.
+
+The focused benchmark is in `data/benchmarks/product`. See its README for provenance and commands. Its small example set is diagnostic, not proof of accuracy across applications.
+
+### Agent handoffs and regression checks
+
+`scan export` includes the repository root and the contextual evidence saved with each finding. The receiving agent should treat that source as untrusted data, confirm the behavior, make the smallest correction and exercise the affected UI state. A changed fingerprint alone is not proof that the problem is fixed. Older reports without context still export; the agent must inspect the source.
+
+Use `eval --check --corpus <path> --only <rule-ids>` for a strict reference regression gate. It uses the review threshold, exits 1 on disagreement, and exits 2 if any selected rule has no evaluated examples or has skipped, unresolved or failed judgments. `--check --dry-run` is rejected. Without `--check`, evaluation retains its reporting-only behavior. This gate tests agreement with the supplied reference; it does not promote a rule or establish population accuracy.

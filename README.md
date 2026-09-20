@@ -36,11 +36,13 @@ Use your package manager in place of npm. Pass `--agent` to init for agent instr
 
 ## What it checks
 
-- **Product interfaces:** copy, typography, interaction, and motion in JSX, TSX, and CSS.
+- **Product interfaces:** error recovery, empty states, confirmation labels, unsupported claims, and broad CSS transitions.
 - **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
 - **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
 
 Rules come from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training). Local checks handle measurable rules. Jev judges meaning and returns probabilities. Uncalibrated AI rules stay advisory. Active findings can fail a run.
+
+The default scan focuses on six checks and shows five prioritized groups. Use `--only <rule-id>` for a specific check or `--profile all` for the full catalog. Source checks do not replace reviewing the running interface.
 
 ## Docs
 

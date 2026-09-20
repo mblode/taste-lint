@@ -335,6 +335,22 @@ const directText = (element: Node): DirectText | null => {
   return { end, fixRanges, start, text: normalised };
 };
 
+// Literal fragments cannot establish what a dynamic message says at runtime.
+const dynamicText = (element: Node): boolean =>
+  (element.children as Node[]).some((child) => {
+    if (child.type === "JSXExpressionContainer") {
+      const expression = child.expression as Node;
+      return (
+        expression.type !== "JSXEmptyExpression" &&
+        staticString(expression) === null
+      );
+    }
+    return (
+      (child.type === "JSXElement" || child.type === "JSXFragment") &&
+      dynamicText(child)
+    );
+  });
+
 export interface TsxExtractOptions {
   config: Config;
   docType: DocType;
@@ -392,11 +408,79 @@ export const extractTsx = (
     };
   };
 
+  // While visiting a conditional branch, its alternative cannot supply a
+  // recovery action for the target. Resolve this structural fact in code.
+  const alternatives: Node[] = [];
+  const regionSource = (region: Node): string => {
+    let text = source.slice(region.start, region.end);
+    for (const other of alternatives
+      .filter((node) => node.start >= region.start && node.end <= region.end)
+      .toSorted((a, b) => b.start - a.start)) {
+      const before = text.slice(0, other.start - region.start);
+      const after = text.slice(other.end - region.start);
+      text = `${before}null /* mutually exclusive branch omitted */${after}`;
+    }
+    return text;
+  };
+
+  const parents = new WeakMap<Node, Node>();
+  // A copy decision needs the surrounding task, including controls nested in
+  // sibling wrappers. Capture a complete local region; the planner abstains
+  // rather than truncating it when it exceeds the existing context budget.
+  const copyRegion = (element: Node): string => {
+    let region = element;
+    let fallback = element;
+    for (let depth = 0; depth < 5; depth += 1) {
+      if (depth <= 2) {
+        fallback = region;
+      }
+      if (region.type === "JSXElement") {
+        const tag = region.openingElement as Node;
+        const name = elementName(tag);
+        const roleAttr = attributeByName(tag, "role");
+        const role = roleAttr ? staticString(roleAttr.value as Node) : null;
+        // Empty is presentation chrome; its task action often lives just
+        // outside it in the enclosing toolbar.
+        if (name === "Empty") {
+          return regionSource(parents.get(region) ?? region);
+        }
+        if (
+          /^(?:section|form|dialog|Card|Alert|Command|CommandDialog)$/.test(
+            name
+          ) ||
+          /(?:DialogContent|PopoverContent|MenuContent|MenuSubContent|SelectContent|\.Popup)$/.test(
+            name
+          ) ||
+          (role &&
+            [
+              "dialog",
+              "alertdialog",
+              "alert",
+              "search",
+              "listbox",
+              "menu",
+            ].includes(role))
+        ) {
+          return regionSource(region);
+        }
+      }
+      const parent = parents.get(region);
+      if (!parent) {
+        return regionSource(region);
+      }
+      region = parent;
+    }
+    return regionSource(fallback);
+  };
+
   const visitElement = (
     element: Node,
     skipContext: boolean,
     parent?: Node
   ): void => {
+    if (parent) {
+      parents.set(element, parent);
+    }
     const opening = element.openingElement as Node;
     const name = elementName(opening);
     const role = roleFor(name);
@@ -404,9 +488,52 @@ export const extractTsx = (
     const classAttr = attributeByName(opening, "className");
     const classInfo = classAttr ? staticClasses(classAttr.value as Node) : null;
 
+    const candidates = literalArbitraryValues(classInfo?.classes ?? []);
+    const describeElement = (node: Node) => {
+      const tag = node.openingElement as Node;
+      return {
+        opening: source.slice(tag.start, tag.end),
+        text: directText(node)?.text ?? "",
+      };
+    };
+    const siblings = parent
+      ? (parent.children as Node[]).filter(
+          (child) => child.type === "JSXElement"
+        )
+      : [];
+    const siblingIndex = siblings.indexOf(element);
+    const section = JSON.stringify({
+      nearby:
+        siblingIndex === -1
+          ? []
+          : siblings
+              .slice(Math.max(0, siblingIndex - 2), siblingIndex + 3)
+              .filter((sibling) => sibling !== element)
+              .map(describeElement),
+      parent: parent
+        ? {
+            opening: source.slice(
+              ((parent.openingElement ?? parent.openingFragment) as Node).start,
+              ((parent.openingElement ?? parent.openingFragment) as Node).end
+            ),
+          }
+        : undefined,
+      target: { ...describeElement(element), candidates },
+    });
+
+    const copySection = JSON.stringify({
+      regionSource: copyRegion(element),
+      target: describeElement(element),
+    });
     if (text && !skipContext) {
       push({
-        context: { docType, element: name, role },
+        context: {
+          docType,
+          dynamic: dynamicText(element) || undefined,
+          element: name,
+          role,
+          section: copySection,
+        },
         fixRanges: text.fixRanges,
         kind: "jsx-text",
         sourceEnd: text.end,
@@ -438,6 +565,7 @@ export const extractTsx = (
               : attrName.startsWith("aria-")
                 ? "aria"
                 : "label",
+          section: copySection,
         },
         fixRanges: inner ? [inner] : undefined,
         kind: "attr-string",
@@ -446,40 +574,6 @@ export const extractTsx = (
         text: normaliseText(value),
       });
     }
-    const candidates = literalArbitraryValues(classInfo?.classes ?? []);
-    const describeElement = (node: Node) => {
-      const tag = node.openingElement as Node;
-      return {
-        opening: source.slice(tag.start, tag.end),
-        text: directText(node)?.text ?? "",
-      };
-    };
-    const siblings = parent
-      ? (parent.children as Node[]).filter(
-          (child) => child.type === "JSXElement"
-        )
-      : [];
-    const siblingIndex = siblings.indexOf(element);
-    const section = candidates.length
-      ? JSON.stringify({
-          nearby:
-            siblingIndex === -1
-              ? []
-              : siblings
-                  .slice(Math.max(0, siblingIndex - 2), siblingIndex + 3)
-                  .filter((sibling) => sibling !== element)
-                  .map(describeElement),
-          parent: parent
-            ? {
-                opening: source.slice(
-                  (parent.openingElement as Node).start,
-                  (parent.openingElement as Node).end
-                ),
-              }
-            : undefined,
-          target: { ...describeElement(element), candidates },
-        })
-      : undefined;
     // Every element with classes gets a class-list unit; motion and
     // design-system checks apply to icon wrappers and containers too, while
     // the typography functions decline units with no text of their own.
@@ -582,9 +676,22 @@ export const extractTsx = (
         return;
       }
       case "JSXFragment": {
-        for (const child of node.children as Node[]) {
-          walk(child, skipContext, parent);
+        if (parent) {
+          parents.set(node, parent);
         }
+        for (const child of node.children as Node[]) {
+          walk(child, skipContext, node);
+        }
+        return;
+      }
+      case "ConditionalExpression": {
+        walk(node.test, skipContext, parent);
+        alternatives.push(node.alternate as Node);
+        walk(node.consequent, skipContext, parent);
+        alternatives.pop();
+        alternatives.push(node.consequent as Node);
+        walk(node.alternate, skipContext, parent);
+        alternatives.pop();
         return;
       }
       case "CallExpression": {

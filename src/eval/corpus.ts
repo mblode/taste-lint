@@ -153,7 +153,9 @@ export const loadCorpus = (
       if (
         !isRecord(r.source) ||
         typeof r.source.repo !== "string" ||
-        typeof r.source.path !== "string"
+        typeof r.source.path !== "string" ||
+        (r.source.id !== undefined &&
+          (typeof r.source.id !== "string" || !r.source.id.trim()))
       ) {
         throw new Error(
           `Invalid corpus line ${where}: source needs repo and path`
@@ -245,7 +247,9 @@ export const loadCorpus = (
         labels,
         neighbours: r.neighbours as CorpusItem["neighbours"],
         source: r.source as CorpusItem["source"],
-        split: (r.split as CorpusItem["split"] | undefined) ?? splitFor(r.id),
+        split:
+          (r.split as CorpusItem["split"] | undefined) ??
+          splitFor(JSON.stringify([r.source.repo, r.source.path])),
         text: r.text,
       });
     }
