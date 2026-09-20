@@ -20,6 +20,7 @@ const agentText = `${marker}
 Taste Lint uses Jev to judge copy and UI. Preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
 Fix act findings, review advisory findings in context, and recheck the edited files.
 Never invent a key or treat unknown checks as passes.
+Docs: https://taste-lint.blode.md
 <!-- /taste-lint -->
 `;
 
