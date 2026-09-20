@@ -181,3 +181,9 @@ The focused benchmark is in `data/benchmarks/product`. See its README for proven
 `scan export` includes the repository root and the contextual evidence saved with each finding. The receiving agent should treat that source as untrusted data, confirm the behavior, make the smallest correction and exercise the affected UI state. A changed fingerprint alone is not proof that the problem is fixed. Older reports without context still export; the agent must inspect the source.
 
 Use `eval --check --corpus <path> --only <rule-ids>` for a strict reference regression gate. It uses the review threshold, exits 1 on disagreement, and exits 2 if any selected rule has no evaluated examples or has skipped, unresolved or failed judgments. `--check --dry-run` is rejected. Without `--check`, evaluation retains its reporting-only behavior. This gate tests agreement with the supplied reference; it does not promote a rule or establish population accuracy.
+
+## Reviewing broader source checks
+
+With `--profile all` or explicit rule selection, raw-source searches return `assessment: candidate`. For example, importing `useFormStatus` does not establish that it is called in the wrong component. Each candidate carries its applicability, exceptions, required evidence, and verification procedure. Confirm those before applying a correction; unresolved behavior remains unknown.
+
+The matcher probability is not defect confidence. Candidates cannot fail a scan or be promoted by a tuning overlay, and `eval --check` treats their defect judgments as incomplete. `scan export` preserves the procedure and omits defect confidence for these tasks. Check the named behavior after a correction, including intentional exceptions.

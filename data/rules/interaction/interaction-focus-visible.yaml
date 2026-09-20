@@ -23,3 +23,9 @@ severity: major
 fix:
   hint: Never remove outlines without a clear `:focus-visible` replacement. With the outline gone, keyboard users cannot see where they are and the interface stops being navigable.
 status: review-only
+review:
+  applicability: A keyboard-operable control removes its visible focus indicator.
+  exceptions: Global or inherited focus styles and containers focused only programmatically with tabIndex=-1.
+  evidence: The affected control's computed styles and focus appearance, including forced colors.
+  verification: Tab through the controls in normal and forced-colors modes and confirm focus remains visible.
+  sourceHash: 6a7becf6636a0271b441421decefed4629658f280d0318b5c87454cbc61eb723

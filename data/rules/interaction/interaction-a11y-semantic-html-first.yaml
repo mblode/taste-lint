@@ -21,3 +21,9 @@ severity: major
 fix:
   hint: Use semantic HTML controls first; only add ARIA when native elements cannot express intent. Rebuilding those semantics in ARIA reimplements keyboard behaviour, role, and state by hand, and any gap leaves assistive tech reporting the wrong thing.
 status: review-only
+review:
+  applicability: A generic element is the only way to invoke an action.
+  exceptions: Redundant pointer shortcuts, such as a dismissible backdrop with a real close button and Escape support.
+  evidence: The handler, alternate controls, keyboard path, and rendered semantics.
+  verification: Complete the action with keyboard and pointer; preserve legitimate backdrop dismissal.
+  sourceHash: 7a04ac7b7d825ebeaa9b35ce026c893cf0c6940a66d971e66811797acb7a8444

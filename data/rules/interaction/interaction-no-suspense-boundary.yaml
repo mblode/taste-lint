@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: "In the App Router and React 19, an async server component with no enclosing `<Suspense>` boundary blocks the whole route from streaming. Users wait for the slowest fetch before seeing anything: no shell, no skeleton, no progressive paint. Wrap the slow async tree in `<Suspense fallback={...}>` to un"
 status: review-only
+review:
+  applicability: A component suspends while loading user-visible content.
+  exceptions: Ancestor Suspense or loading.tsx coverage and async functions that do not suspend in practice.
+  evidence: The awaited operation, route ancestry, loading files, and rendered pending behavior.
+  verification: Throttle the operation; verify useful pending feedback appears and the completed view remains usable.
+  sourceHash: 3c85a6e1acbffffb266c4b9a020aab49a622c83489e94948674f232dcab9cbcc

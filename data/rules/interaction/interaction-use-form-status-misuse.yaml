@@ -21,3 +21,9 @@ severity: major
 fix:
   hint: "`useFormStatus` returns the **parent** `<form>`'s status. Called in the same component that renders the `<form>`, it returns `{ pending: false }` forever (no parent form to inspect). It compiles, runs, never warns, and silently breaks everything depending on it (disabled submit, pending label, optim"
 status: review-only
+review:
+  applicability: A component calls useFormStatus to reflect a form's pending state.
+  exceptions: A child component can correctly call the hook even when defined in the same file as the form.
+  evidence: The calling component and its rendered parent form, including imported wrappers.
+  verification: Submit with a delayed action; confirm pending state activates and resets after both success and failure.
+  sourceHash: ef214d29e4b8d8be0fabfbaf3bb0e86b20b24d4a5afea70655eac79f75e2de00

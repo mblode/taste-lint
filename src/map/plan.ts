@@ -5,6 +5,7 @@ import { matchesAny } from "../lib/glob.js";
 import { estimateTokens, charsPerTokenFor } from "../lib/tokens.js";
 import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
+import { isCandidateRule } from "../rules/review.js";
 import type {
   Config,
   Finding,
@@ -13,6 +14,7 @@ import type {
   Unit,
   Unknown,
 } from "../types.js";
+import { missingEvidence } from "./evidence.js";
 import { buildState, STATE_TOKEN_CAP } from "./state.js";
 
 export interface JevJob {
@@ -65,21 +67,31 @@ const passesPreconditions = (
   return true;
 };
 
-// A mechanical hit is certain (p = 1) and acts unless the rule is review-only.
+// p = 1 describes the mechanical match. Raw-source candidates never act.
 // A source unit spans the file, so the finding points at the first match.
 export const mechanicalFinding = (
   rule: Rule,
   unit: Unit,
   hit: MechanicalHit
 ): Finding => {
+  const candidate = isCandidateRule(rule);
   const finding = {
     ...toFinding(
       rule,
       unit,
       1,
-      rule.status === "review-only" ? "review" : "act"
+      candidate || rule.status === "review-only" ? "review" : "act"
     ),
-    evidence: hit.evidence,
+    evidence: candidate
+      ? `Candidate pattern: ${hit.evidence}. This match does not establish a defect.`
+      : hit.evidence,
+    ...(candidate
+      ? {
+          assessment: "candidate" as const,
+          fixHint: "Confirm applicability and exceptions before changing code.",
+          message: `Inspect: ${rule.title}`,
+        }
+      : {}),
   };
   if (unit.kind === "source" && hit.offset !== undefined) {
     const at = new LineIndex(unit.text).positionAt(hit.offset);
@@ -130,22 +142,6 @@ export const planRequests = (
       const applied = eligible.get(unit.id) ?? new Set<string>();
       applied.add(rule.id);
       eligible.set(unit.id, applied);
-      if (
-        rule.tier === "jev" &&
-        rule.question?.context?.includes("section") &&
-        (!unit.context.section || buildState(unit, [rule]).truncated)
-      ) {
-        unknowns.push({
-          file: unit.file,
-          line: unit.line,
-          reason: unit.context.section
-            ? "Section comparison exceeds the context budget"
-            : "Missing section context",
-          ruleId: rule.id,
-          unitId: unit.id,
-        });
-        continue;
-      }
       const writingKeys = [
         "writingFacts",
         "writingProfile",
@@ -178,6 +174,17 @@ export const planRequests = (
         }
       }
       if (rule.tier === "jev") {
+        const reason = missingEvidence(unit, rule);
+        if (reason) {
+          unknowns.push({
+            file: unit.file,
+            line: unit.line,
+            reason,
+            ruleId: rule.id,
+            unitId: unit.id,
+          });
+          continue;
+        }
         job.rules.push({ rule });
         continue;
       }
@@ -208,44 +215,12 @@ export const planRequests = (
         negatives.set(unit.id, ids);
         continue;
       }
-      if (
-        rule.question?.context?.includes("section") &&
-        unit.context.dynamic &&
-        (unit.kind === "jsx-text" || unit.kind === "attr-string")
-      ) {
+      const reason = missingEvidence(unit, rule);
+      if (reason) {
         unknowns.push({
           file: unit.file,
           line: unit.line,
-          reason: "Dynamic text may supply the missing explanation or action",
-          ruleId: rule.id,
-          unitId: unit.id,
-        });
-        continue;
-      }
-      if (
-        rule.question?.context?.includes("section") &&
-        (!unit.context.section || buildState(unit, [rule]).truncated)
-      ) {
-        unknowns.push({
-          file: unit.file,
-          line: unit.line,
-          reason: unit.context.section
-            ? "Section comparison exceeds the context budget"
-            : "Missing section context",
-          ruleId: rule.id,
-          unitId: unit.id,
-        });
-        continue;
-      }
-      if (
-        unit.kind === "source" &&
-        rule.question &&
-        buildState(unit, [rule]).truncated
-      ) {
-        unknowns.push({
-          file: unit.file,
-          line: unit.line,
-          reason: "Source exceeds the semantic context budget",
+          reason,
           ruleId: rule.id,
           unitId: unit.id,
         });
@@ -265,7 +240,18 @@ export const planRequests = (
         ({ rule }) => !rule.question?.context?.includes("section")
       );
       if (local.length) {
-        jobs.push({ ...job, rules: local });
+        if (
+          buildState(
+            unit,
+            local.map(({ rule }) => rule)
+          ).truncated
+        ) {
+          for (const candidate of local) {
+            jobs.push({ ...job, rules: [candidate] });
+          }
+        } else {
+          jobs.push({ ...job, rules: local });
+        }
       }
       for (const candidate of contextual) {
         jobs.push({ ...job, rules: [candidate] });

@@ -20,3 +20,9 @@ severity: minor
 fix:
   hint: "Three coloured dots in a row, a rounded bar with a URL typed into it, a laptop outline around an empty gradient panel: this is a drawing of a product where the product should be. A visitor reads it as a screenshot, leans in to see what the app actually looks like, and finds there is nothing to see. "
 status: review-only
+review:
+  applicability: Decorative browser or device chrome presents itself as a product preview.
+  exceptions: Real screenshots, video, rendered product content, labeled status dots, and intentionally illustrative examples.
+  evidence: Adjacent dot elements and labels, frame children, and the content being represented.
+  verification: Confirm the preview depicts real product content or remove the misleading frame while preserving legitimate illustrations.
+  sourceHash: 857c4c37111c9c2591c5746cb22d391d97e29f9f66656b62068eb7dbe94a4529

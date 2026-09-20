@@ -26,3 +26,9 @@ fix:
     bg-white, text-black and fixed grays break in dark mode: white surfaces glow, grays lose contrast, borders vanish. Use the semantic tokens (bg-background, text-foreground, border-border) or pair each with a dark: variant.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A surface is intended to support dark mode.
+  exceptions: Explicit light-only brand surfaces, fixed-color illustrations and logos, and inherited theme overrides.
+  evidence: Theme policy, computed colors, global styles, and the surface in both supported themes.
+  verification: Switch themes and inspect text, borders, and controls; preserve intentionally fixed-color brand assets.
+  sourceHash: bd3df3c19addb343e38f313757092a20d8fe46b305fda84071d0a435b283ad79

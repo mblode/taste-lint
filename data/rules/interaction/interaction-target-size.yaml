@@ -24,3 +24,9 @@ fix:
     Touch targets need 44 by 44px; 24px is the floor only for dense desktop UI under pointer: fine. Give the button at least size-11, or pad the hit area while keeping the icon small.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A control may have an inadequately small pointer target.
+  exceptions: Small glyphs inside larger controls, expanded hit areas, and applicable spacing or inline-text exceptions.
+  evidence: Rendered interactive bounds, neighboring targets, platform expectations, and the applicable accessibility requirement.
+  verification: Measure the control rather than its icon and exercise nearby targets without accidental activation.
+  sourceHash: cbaf893d74a3cd7cc218b55032b531aba51de7e0b38ead9324d2704eb240cc41

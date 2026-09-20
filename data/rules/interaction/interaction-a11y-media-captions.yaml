@@ -22,3 +22,9 @@ severity: major
 fix:
   hint: Deaf and hard-of-hearing users get nothing from uncaptioned media. Video needs synchronised captions via `<track kind="captions">`; audio-only needs a text transcript. Auto-generated captions alone are not sufficient for meaning-critical media.
 status: review-only
+review:
+  applicability: Media conveys speech or meaning-critical sound.
+  exceptions: Silent decorative loops and players that provide captions or accessible alternatives internally.
+  evidence: The actual media content, player configuration, caption tracks, and transcript alternatives.
+  verification: Play the media with captions enabled and verify meaningful audio has an equivalent accessible representation.
+  sourceHash: e644ef7f5fecf25a6ecd18494a9c158a4a60a6e6887fa35fae8eb43aebf9645f

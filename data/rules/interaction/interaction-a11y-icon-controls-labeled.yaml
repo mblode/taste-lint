@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: Any control with no visible text requires an accessible name. Without one, assistive tech announces nothing usable and the control cannot be identified.
 status: review-only
+review:
+  applicability: An icon-only button has no accessible name.
+  exceptions: An icon title, visually hidden text, or a wrapper may provide the name.
+  evidence: The rendered accessibility tree and the icon or button wrapper implementation.
+  verification: Confirm the button has an accurate accessible name and still performs the intended action.
+  sourceHash: ac90c783c8b12d706c8697164ed16643d7c2c23ea9cf77448f2c05af425fca5a

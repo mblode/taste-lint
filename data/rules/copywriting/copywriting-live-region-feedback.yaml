@@ -22,3 +22,9 @@ severity: minor
 fix:
   hint: Toasts and validation summaries should use polite live regions unless interruption is critical. A toast that is only painted on screen never reaches assistive tech, so the user never learns the action finished.
 status: review-only
+review:
+  applicability: A transient status message communicates an outcome without moving focus.
+  exceptions: A shared toast or live-region provider may already announce the message.
+  evidence: The mounted message, provider implementation, live-region attributes, and announcement timing.
+  verification: Trigger the outcome with a screen reader and confirm exactly one meaningful announcement without focus theft.
+  sourceHash: 48cea89e0c3ca2e41e677f194d6eecc55f4c82b5a356318540c8569bccba32b7

@@ -25,3 +25,9 @@ fix:
     Two keystrokes fire two requests and the slow one can land last, showing stale results under fresh input. Cancel the in-flight request with an AbortController (or pass signal), or debounce through useDeferredValue.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: Successive input-driven requests can update the same visible result.
+  exceptions: Fire-and-forget mutations and correctly keyed query libraries or stale-result guards.
+  evidence: Request keys, cancellation or sequence guards, response commits, and the displayed result.
+  verification: Make an older request finish after a newer one; confirm the UI retains the result for the current input.
+  sourceHash: 293ab4d682398a772dd7b593cc32ee5dc925ac8f02d6ef9e6af715709ca32a71

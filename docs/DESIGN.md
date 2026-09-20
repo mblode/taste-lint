@@ -11,7 +11,7 @@ hidden: true
 
 One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filename. Fields and their meaning live in `src/types.ts` (`Rule`) and are validated fail-closed by `src/rules/validate.ts`; an invalid rule aborts before any request is made. A rule writes only what cannot be derived: the loader fills in `domain` (from the category), `tier` (from which of `mechanical` and `question` are present) and, for every unit kind but `source`, `scope.include` (from the unit kinds: paragraph and heading come from Markdown, jsx-text and class lists from TSX and JSX, attribute strings from both). Every rule skips tests, stories and changelogs; `scope.exclude` adds to that list.
 
-- A mechanical section alone decides in code and never calls Jev (`tier: mechanical`).
+- A mechanical section alone runs in code (`tier: mechanical`). Raw-source regex rules only nominate candidates; their matches do not prove the source skill's conclusion.
 - A question alone sends one question per matching unit (`tier: jev`).
 - Both together make the mechanical part a candidate filter (`tier: both`); only units it fires on are sent to Jev, and the mechanical hit never surfaces alone.
 - A rule is YAML data (`data/rules/<domain>/<id>.yaml`: regex, phrases, `absent`, a Jev question) or a code object (`src/rules/code/*.ts`: the same fields with `check(unit)` in place of `mechanical`). Anything that counts, compares or measures is a code rule; the loader returns both kinds in one list.
@@ -19,6 +19,8 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 - `thresholds.act` and `thresholds.review` are per rule. Findings at or above `act` fail the run, between the two print as review notes, below are silent.
 - `severity` (`major` or `minor`) says how bad a finding is if real; it is independent of probability.
 - `source` points at the exact file and line the rule was harvested from. `handWritten` lists the keys `scripts/port-rules.ts` must not overwrite.
+- Raw-source candidates require `review.applicability`, `review.exceptions`, `review.evidence`, and `review.verification`. They remain review-only, including under tuning overlays. Reports mark them `assessment: candidate`; their probability describes a pattern match, not confidence in a defect. `eval` treats them as unknown until an evidence-based detector replaces the search. Agent handoffs omit defect confidence for candidates.
+- `review.sourceHash` records the reviewed skill document. `port-rules --check` detects changes to that document, including exceptions and verification guidance, and requires a procedure review.
 - `data/rules/tuning.json` overlays `thresholds.act` and `status` per rule and is written only by `tune --write`.
 
 ### Unit

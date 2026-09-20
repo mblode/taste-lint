@@ -22,3 +22,8 @@ fix:
     Move the styling into utility classes or the theme. Inline styles bypass the design tokens, dark mode and the linter alike.
 status: review-only
 handWritten: [mechanical, fix, status, scope]
+review:
+  applicability: Inline styles may bypass an established reusable design token or component API.
+  exceptions: Measured geometry, animation values, dynamic CSS variables, and legitimate one-off styles.
+  evidence: The style values, their runtime dependencies, repeated usage, and the actual design-system policy.
+  verification: Compare relevant states and viewport sizes after any change; preserve dynamic layout and animation behavior.

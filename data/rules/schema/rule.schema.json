@@ -238,6 +238,33 @@
       "items": {
         "type": "string"
       }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicability", "exceptions", "evidence", "verification"],
+      "properties": {
+        "applicability": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exceptions": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
     }
   },
   "additionalProperties": false,
