@@ -279,3 +279,53 @@ it("runs whole-file source rules and points the finding at the first match", asy
   });
   expect(result.units).toBeGreaterThan(0);
 });
+
+it("reviews literal arbitrary values without flagging tokens, assets or layout expressions", () => {
+  const inspect = check("craft-arbitrary-value-class");
+  for (const cls of [
+    "h-[var(--field-height)]",
+    "rounded-[var(--field-radius)]",
+    "pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
+    "bg-[url('/icons/icon.svg')]",
+    "size-[max(100%,3rem)]",
+    "grid-cols-[1fr_auto]",
+    "grid-cols-[repeat(3,minmax(0,1fr))]",
+    "max-w-[65ch]",
+    "max-w-[55%]",
+    "w-[100vw]",
+    "hover:bg-[var(--background)]",
+    "[&>svg]:size-4",
+    "content-['*']",
+  ]) {
+    expect(inspect(unit([cls])).fired, cls).toBe(false);
+  }
+  for (const cls of [
+    "p-[13px]",
+    "hover:text-[13px]",
+    "text-[length:13px]",
+    "bg-[#123456]/[0.5]",
+    "bg-[color:#123456]",
+    "max-w-[900px]",
+    "bg-[#123456]",
+    "tracking-[-0.02em]",
+  ]) {
+    expect(inspect(unit([cls])).fired, cls).toBe(true);
+  }
+  expect(inspect(unit(["h-[var(--height)]", "p-[13px]"]))).toMatchObject({
+    evidence: "p-[13px]",
+    fired: true,
+  });
+});
+
+it("does not infer a slow transition from transition-none", () => {
+  expect(
+    check("motion-duration-over-300ms")(
+      unit(["transition-none", "duration-500"])
+    ).fired
+  ).toBe(false);
+  expect(
+    check("motion-duration-over-300ms")(
+      unit(["transition-opacity", "duration-500"])
+    ).fired
+  ).toBe(true);
+});
