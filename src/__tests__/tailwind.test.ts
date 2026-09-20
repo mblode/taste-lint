@@ -163,3 +163,41 @@ it("fires nearEqualSizeSameWeight only for a small step at equal weight", () => 
     ).fired
   ).toBe(false);
 });
+
+it("respects declared font overrides instead of assuming the default scale", () => {
+  const custom = {
+    components: { skip: [], unwrap: [] },
+    docTypes: [],
+    exclude: [],
+    root: "/",
+    smartQuotesAtBuild: false,
+    tailwind: { theme: { body: "20px", sm: "18px" } },
+  };
+  expect(resolveTypography(["text-sm"], custom)).toMatchObject({
+    fontSizePx: 18,
+  });
+  expect(resolveTypography(["text-sm"], custom).lineHeight).toBeUndefined();
+  expect(resolveTypography(["text-lg", "text-body"], custom)).toMatchObject({
+    fontSizePx: 20,
+  });
+  expect(
+    resolveTypography(["text-lg", "text-body"], custom).lineHeight
+  ).toBeUndefined();
+  expect(
+    resolveTypography(["text-lg", "text-[var(--size)]"]).fontSizePx
+  ).toBeUndefined();
+  expect(
+    resolveTypography(["text-lg", "text-[var(--size)]"]).unresolved
+  ).toContain("text-[var(--size)]");
+  expect(
+    resolveTypography(["text-[length:17px]", "text-[color:var(--ink)]"])
+  ).toMatchObject({
+    colourClasses: ["text-[color:var(--ink)]"],
+    fontSizePx: 17,
+    unresolved: [],
+  });
+  expect(resolveTypography(["text-sm", "leading-6"], custom)).toMatchObject({
+    fontSizePx: 18,
+    lineHeightPx: 24,
+  });
+});

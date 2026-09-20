@@ -20,7 +20,7 @@ const bases = (unit: Unit): string[] => (unit.classes ?? []).map(baseClass);
 const animates = (list: string[]): boolean =>
   list.some(
     (c) =>
-      c.startsWith("transition") ||
+      (c.startsWith("transition") && c !== "transition-none") ||
       c.startsWith("duration-") ||
       (c.startsWith("animate-") && c !== "animate-none")
   );
@@ -145,7 +145,9 @@ export const CLASS_RULES: Rule[] = [
     categoryId: "easing-and-duration",
     check: (unit) => {
       const list = bases(unit);
-      if (!list.some((c) => c.startsWith("transition"))) {
+      if (
+        !list.some((c) => c.startsWith("transition") && c !== "transition-none")
+      ) {
         return none;
       }
       const slow = list.filter((c) => (durationMs(c) ?? 0) > 300);
@@ -222,13 +224,35 @@ export const CLASS_RULES: Rule[] = [
     // typography pack reads arbitrary values on purpose; this is the
     // design-system view of the same class.
     check: (unit) => {
-      const found = bases(unit).filter((c) => /-\[[^\]]+\]/u.test(c));
+      const found = bases(unit).filter((c) => {
+        const value = c
+          .match(/^-?[\w-]+-\[(.+?)\](?:\/[^\s]+)?!?$/u)?.[1]
+          ?.replace(/^(?:length|color):/u, "");
+        if (!value) {
+          return false;
+        }
+        // References already use a token. Math, assets and layout expressions
+        // cannot be replaced with a spacing token from syntax alone.
+        if (
+          /var\(|env\(|theme\(|^--|^(?:calc|min|max|clamp|minmax|repeat|url)\(/u.test(
+            value
+          )
+        ) {
+          return false;
+        }
+        // Report literal design values, not selectors, content or grid syntax.
+        return (
+          /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|ms|s|deg)?$/u.test(value) ||
+          /^#[\da-f]{3,8}$/iu.test(value) ||
+          /^(?:rgb|rgba|hsl|hsla|oklab|oklch|color)\(/u.test(value)
+        );
+      });
       return found.length > 0 ? hit(found.join(" ")) : none;
     },
-    hint: "Step the scale (p-3, text-sm, rounded-md) or register the value in the theme so the next component can reach it by name. p-[13px] is a nudge, not a decision.",
+    hint: "Review whether an existing token serves this literal value. Keep deliberate layout, asset and optical constraints; register a recurring design value if useful. This syntax check does not establish a defect or a safe replacement.",
     id: "craft-arbitrary-value-class",
     ruleId: "shadcn/no-arbitrary-values",
-    title: "Arbitrary value in a utility class",
+    title: "Literal arbitrary utility value to review",
   }),
   shadcn({
     categoryId: "look-constraints",

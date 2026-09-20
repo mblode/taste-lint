@@ -24,7 +24,7 @@ node dist/cli.js scan profiles
 
 Scoped profiles exclude build outputs, archived docs, and `.captain` reports. Writing also excludes agent instructions and plans. Product excludes test/spec/story components. Use explicit targets and `--exclude` to narrow a profile; `--only` intersects its rules. `all` is the explicit escape hatch for a comprehensive audit.
 
-The writing profile treats sentence length and straight quotes as advisory. It recognizes `content/writing` as personal prose; repository `docTypes` overrides take precedence. Sentence length is still measured deterministically. This policy change does not imply every long sentence is defective.
+Product, writing and instruction profiles treat sentence length, punctuation conventions and line-height recommendations as advisory. These findings stay visible but do not fail the scan. The `all` profile and `lint` retain strict rule policy. The writing profile recognizes `content/writing` as personal prose; repository `docTypes` overrides take precedence. Sentence length is still measured deterministically. This policy change does not imply every long sentence is defective.
 
 JSON includes the exact selected file list, profile, coverage, estimates, and diagnostics. No selected files exits 2; it is not a clean scan. TTY output shows at most 20 rule groups with representative locations and aggregate counts. Full JSON preserves all findings.
 
@@ -38,7 +38,7 @@ node dist/cli.js scan review results/product.json FINGERPRINT --decisions result
 node dist/cli.js scan . --profile product --decisions results/review.json
 ```
 
-A baseline must be a completed scan of the same root, target scope, profile, rules, model, and evaluation mode. Review files are bound to that policy too. Save the next scan to another path. A dry run cannot become a completed baseline. Failed or unresolved checks cannot establish resolution. Parse failures and missing graph coverage keep prior findings unverified.
+A baseline must be a completed scan of the same taste-lint version, root, target scope, profile, rules, model, and evaluation mode. Review files are bound to that policy too. Save the next scan to another path. A dry run cannot become a completed baseline. Failed or unresolved checks cannot establish resolution. Parse failures and missing graph coverage keep prior findings unverified.
 
 Fingerprints use rule ID, relative file, normalized unit content, and occurrence. Inserting unrelated lines preserves identity. Renaming files or editing the affected text creates a new identity. Identical repeated text is distinguished by occurrence; inserting another identical occurrence can change that association. Findings retain independent severity, confidence, lifecycle, and reviewer decision fields.
 
@@ -162,7 +162,11 @@ Image attribute checks parse JSX and HTML rather than matching comment or string
 
 Body-size and letter-spacing checks measure styles in code, then ask Jev whether the text is substantive prose. Captions, metadata, and short control descriptions are excluded by that judgment. These semantic checks remain advisory.
 
-### Near-scale values
+### Arbitrary utility values
+
+`craft-arbitrary-value-class` reviews literal numbers, fixed lengths and colours. It skips token references, CSS calculations, asset URLs, relative layout values and selector syntax. A remaining warning identifies a style choice to review, not a proven defect or a safe replacement. Deliberate layout and optical constraints can be kept.
+
+## Near-scale values
 
 `craft-near-duplicate-scale` compares parsed JSX font-size classes against the explicit `tailwind.theme` mapping in `taste-lint.config.json`. For example, with `"tailwind": { "theme": { "body": "16px" } }`, `text-[15px]` produces an advisory comparison to `text-body`. Exact matches also qualify; values farther than 1px do not.
 

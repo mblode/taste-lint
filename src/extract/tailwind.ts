@@ -146,7 +146,9 @@ const isColour = (token: string): boolean => {
     token.startsWith("[rgb") ||
     token.startsWith("[hsl") ||
     token.startsWith("[oklch") ||
-    token.startsWith("[var(")
+    token.startsWith("[oklab") ||
+    token.startsWith("[color:") ||
+    token.startsWith("(color:")
   ) {
     return true;
   }
@@ -175,7 +177,7 @@ export const resolveTypography = (
     if (base.startsWith("text-")) {
       const token = base.slice("text-".length);
       const [sizeToken, leadingToken] = token.split("/");
-      if (isColour(sizeToken)) {
+      if (!Object.hasOwn(theme, sizeToken) && isColour(sizeToken)) {
         out.colourClasses.push(cls);
         continue;
       }
@@ -198,7 +200,25 @@ export const resolveTypography = (
         continue;
       }
       const known = FONT_SIZES[sizeToken];
-      if (known) {
+      const declared = Object.hasOwn(theme, sizeToken);
+      const arbitrary = sizeToken.startsWith("[") && sizeToken.endsWith("]");
+      if (declared || arbitrary) {
+        const raw = declared
+          ? theme[sizeToken]
+          : sizeToken.slice(1, -1).replace(/^length:/u, "");
+        const px = parseLength(raw);
+        // An explicit size supersedes an earlier value, including an earlier
+        // default line height. Do not keep stale numeric evidence on failure.
+        out.fontSizePx = px ?? undefined;
+        if (lineHeightFromSize) {
+          out.lineHeightPx = undefined;
+          out.lineHeight = undefined;
+          lineHeightFromSize = false;
+        }
+        if (px === null) {
+          out.unresolved.push(cls);
+        }
+      } else if (known) {
         out.fontSizePx = known[0];
         if (
           !leadingToken &&
@@ -208,20 +228,6 @@ export const resolveTypography = (
           out.lineHeightPx = known[1];
           out.lineHeight = undefined;
           lineHeightFromSize = true;
-        }
-      } else if (sizeToken.startsWith("[") && sizeToken.endsWith("]")) {
-        const px = parseLength(sizeToken.slice(1, -1));
-        if (px === null) {
-          out.unresolved.push(cls);
-        } else {
-          out.fontSizePx = px;
-        }
-      } else if (theme[sizeToken]) {
-        const px = parseLength(theme[sizeToken]);
-        if (px === null) {
-          out.unresolved.push(cls);
-        } else {
-          out.fontSizePx = px;
         }
       } else {
         out.unresolved.push(cls);

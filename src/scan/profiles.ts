@@ -10,6 +10,17 @@ const artifacts = [
   "**/docs/archive/**",
   "**/.captain/**",
 ];
+// These checks describe house style, not a supported product defect. Keep the
+// findings visible, while strict lint and the all profile retain rule policy.
+const stylePreferences = [
+  "copywriting-long-sentence",
+  "typography-straight-quotes",
+  "typography-ellipsis",
+  "typography-dashes",
+  "typography-midpoint-separators",
+  "typography-line-height-out-of-band",
+];
+
 const internal = [
   "**/.claude/**",
   "**/.agents/**",
@@ -71,6 +82,7 @@ export const profileFor = (name: string): ScanProfile => {
     case "product": {
       return {
         ...common,
+        advisory: stylePreferences,
         exclude: [
           ...artifacts,
           ...internal,
@@ -84,7 +96,7 @@ export const profileFor = (name: string): ScanProfile => {
     case "writing": {
       return {
         ...common,
-        advisory: ["copywriting-long-sentence", "typography-straight-quotes"],
+        advisory: stylePreferences,
         docTypes: [
           { glob: "**/content/writing/**/*.{md,mdx}", type: "personal" },
         ],
@@ -101,7 +113,7 @@ export const profileFor = (name: string): ScanProfile => {
     case "instructions": {
       return {
         ...common,
-        advisory: ["copywriting-long-sentence", "typography-straight-quotes"],
+        advisory: stylePreferences,
         include: [...internal, "**/docs/plans/**/*.md"],
         objective:
           "Review repository instructions, skill authoring, and implementation plans",

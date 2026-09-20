@@ -24,7 +24,7 @@ taste-lint scan profiles
 
 Scoped profiles skip build outputs, archived docs, and `.captain` reports. Writing also skips agent instructions and plans. Product skips test, spec, and story components. Pass explicit targets and `--exclude` to narrow a profile. `--only` intersects its rules. `all` is the escape hatch for a full audit.
 
-The writing profile treats sentence length and straight quotes as advisory. It treats `content/writing` as personal prose. Repository `docTypes` overrides win. Sentence length is still measured in code.
+Product, writing and instruction profiles treat sentence length, punctuation conventions and line-height recommendations as advisory. These findings stay visible but do not fail the scan. The `all` profile and `lint` retain strict rule policy. It treats `content/writing` as personal prose. Repository `docTypes` overrides win. Sentence length is still measured in code.
 
 JSON includes the selected files, profile, coverage, estimates, and diagnostics. No selected files exits 2. TTY shows at most 20 rule groups with representative locations and counts. Full JSON keeps every finding.
 
@@ -70,6 +70,10 @@ taste-lint eval --corpus results/labeled --split holdout
 Version 2 samples include source text and the full rule rubric, with examples and requested context, and with predictions hidden. Version 1 label files still import. Sampling is deterministic across rule, document type, and score band. It includes negative judgments and candidate-filter negatives. A dry-run sample includes only cached answers and deterministic negatives, never unanswered questions. Duplicate evidence is sampled once. Identical text with different context or rubrics stays separate. Splits group by repository and source file. This is a stratified diagnostic sample.
 
 Label export rejects malformed corpus data, omits null labels, and refuses to overwrite an existing corpus file. It never invents human labels. Use held-out evidence before promoting rules. Mocks and scan volume do not establish semantic accuracy. Personal facts and profile checks stay available through `lint --writing-context`. scan does not load private profiles on its own.
+
+## Arbitrary utility values
+
+`craft-arbitrary-value-class` reviews literal numbers, fixed lengths and colours. It skips token references, CSS calculations, asset URLs, relative layout values and selector syntax. A remaining warning identifies a style choice to review, not a proven defect or a safe replacement. Deliberate layout and optical constraints can be kept.
 
 ## Near-scale values
 

@@ -208,8 +208,38 @@ try {
   assert.equal(declaredScale.findings.length, 1);
   assert.match(declaredScale.findings[0].evidence, /text-body \(16px\)/);
   assert.doesNotMatch(declaredScale.findings[0].evidence, /900px/);
+  fs.writeFileSync(
+    path.join(project, "policy.tsx"),
+    `export const X = () => <p className="h-[var(--height)] pb-[calc(1rem+env(safe-area-inset-bottom))] text-sm leading-6">It's a longer piece of running text that should stay readable...</p>;`
+  );
+  const policy = JSON.parse(
+    run(
+      process.execPath,
+      [
+        cli,
+        "scan",
+        "policy.tsx",
+        "--root",
+        project,
+        "--output",
+        "json",
+        "--only",
+        "craft-arbitrary-value-class,typography-straight-quotes,typography-ellipsis,typography-line-height-out-of-band",
+        "--results-dir",
+        path.join(temporary, "results"),
+      ],
+      consumer,
+      env
+    )
+  );
+  assert.equal(policy.status, "complete");
+  assert.equal(policy.summary.failing, 0);
+  assert.equal(policy.summary.review, 3);
+  assert.ok(
+    policy.findings.every((f) => f.ruleId !== "craft-arbitrary-value-class")
+  );
   console.log(
-    "Packed artifact passed: rules, dry-run lint, key guard and scale evidence verified offline."
+    "Packed artifact passed: rules, dry-run lint, key guard, scale evidence and product policy verified offline."
   );
 } finally {
   fs.rmSync(temporary, { force: true, recursive: true });

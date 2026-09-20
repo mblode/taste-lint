@@ -1,5 +1,6 @@
 import fs from "node:fs";
 
+import pkg from "../../package.json" with { type: "json" };
 import { SUPPORTED_GLOBS } from "../extract/index.js";
 import { loadConfig } from "../lib/config.js";
 import { InputError } from "../lib/errors.js";
@@ -76,6 +77,7 @@ export const runScan = async (
     : undefined;
   const signature = hash({
     config: { ...config, root: undefined },
+    engineVersion: pkg.version,
     exclude,
     graph: graph?.digest,
     model: options.model ?? "jev-latest",
