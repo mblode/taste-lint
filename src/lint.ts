@@ -5,24 +5,31 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { extractFile, SUPPORTED_GLOBS } from "./extract/index.js";
-import { loadConfig } from "./lib/config.js";
+import { Repository } from "./analysis/repository.js";
+import { extractSource, SUPPORTED_GLOBS } from "./extract/index.js";
+import { defaultResultsDir, loadConfig } from "./lib/config.js";
+import { InputError } from "./lib/errors.js";
 import { collectFiles } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
+import { validateWritingContext } from "./lib/writing-context.js";
 import { chunkQuestions } from "./map/batch.js";
 import { AnswerCache } from "./map/cache.js";
 import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "./map/jev.js";
-import { judge } from "./map/judge.js";
+import { prepareJudgement, executeJudgement } from "./map/judge.js";
 import { jevFindings } from "./reduce/bands.js";
-import { dedupe } from "./reduce/dedupe.js";
+import { dedupe, dedupeExact } from "./reduce/dedupe.js";
 import { FIXES } from "./reduce/fixes.js";
 import type { FixFunction } from "./reduce/fixes.js";
 import { buildScorecard } from "./reduce/scorecard.js";
 import { applySuppressions } from "./reduce/suppress.js";
 import { loadRules, resolveRulesDir } from "./rules/load.js";
 import type {
+  WritingContext,
+  DocType,
   Evaluate,
+  Progress,
+  ScanScope,
   Finding,
   LintResult,
   RecorderHandle,
@@ -33,6 +40,9 @@ import type {
 import { SEVERITY_RANK, STRUCTURAL_KINDS } from "./types.js";
 
 export interface LintOptions {
+  docTypes?: { glob: string; type: DocType }[];
+  advisoryRules?: string[];
+  writingContext?: WritingContext;
   root: string;
   targets: string[];
   rulesDir?: string;
@@ -56,10 +66,15 @@ export interface LintContext {
   evaluate?: Evaluate;
   stdout?: (text: string) => void;
   stderr?: (text: string) => void;
+  onProgress?: (progress: Progress) => void;
+  onEvidence?: (
+    units: Unit[],
+    answers: Map<string, Record<string, number>>,
+    negatives: Map<string, Set<string>>
+  ) => void;
 }
 
-export const defaultResultsDir = (): string =>
-  path.join(process.cwd(), "results");
+export { defaultResultsDir } from "./lib/config.js";
 
 export const runLint = async (
   options: LintOptions,
@@ -73,33 +88,87 @@ export const runLint = async (
 > => {
   const stderr = ctx.stderr ?? ((t: string) => process.stderr.write(t));
   const stdout = ctx.stdout ?? ((t: string) => process.stdout.write(t));
-  const config = loadConfig(options.root);
+  const config = loadConfig(options.root, options.docTypes);
   const rulesDir = resolveRulesDir(options.rulesDir);
   const rules = loadRules(rulesDir, { only: options.only });
+  for (const rule of rules) {
+    if (options.advisoryRules?.includes(rule.id)) {
+      rule.status = "review-only";
+    }
+  }
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
 
+  const scan = { excluded: 0, messages: [] as string[] };
   const files =
     options.targets.length > 0
-      ? collectFiles(config.root, options.targets, SUPPORTED_GLOBS, [
-          ...config.exclude,
-          ...(options.exclude ?? []),
-        ])
+      ? collectFiles(
+          config.root,
+          options.targets,
+          SUPPORTED_GLOBS,
+          [...config.exclude, ...(options.exclude ?? [])],
+          scan
+        )
       : [];
   let units: Unit[] = [];
   const sources = new Map<string, string[]>();
+  const repository = new Repository(config.root, config.architecture);
   for (const file of files) {
-    units.push(...extractFile(config, file));
-    sources.set(
-      file,
-      fs.readFileSync(path.join(config.root, file), "utf-8").split("\n")
-    );
+    const source = fs.readFileSync(path.join(config.root, file), "utf-8");
+    units.push(...extractSource(config, file, source, repository));
+    sources.set(file, source.split("\n"));
   }
   if (options.extraUnits) {
     units.push(...options.extraUnits);
   }
+  if (options.writingContext) {
+    const writing = validateWritingContext(options.writingContext);
+    for (const unit of units) {
+      if (unit.context.docType === "personal") {
+        Object.assign(unit.context, {
+          writingFacts: writing.facts,
+          writingInstructions: writing.instructions,
+          writingProfile: writing.profile,
+        });
+      }
+    }
+  }
   if (options.limitUnits !== undefined) {
     units = units.slice(0, options.limitUnits);
+  }
+
+  const scope: ScanScope = {
+    byDocType: {},
+    diagnostics: scan.messages,
+    excluded: scan.excluded,
+    files: files.length,
+    units: units.filter((u) => !STRUCTURAL_KINDS.includes(u.kind)).length,
+  };
+  for (const u of units) {
+    if (!STRUCTURAL_KINDS.includes(u.kind)) {
+      scope.byDocType[u.context.docType] =
+        (scope.byDocType[u.context.docType] ?? 0) + 1;
+    }
+  }
+  const parseFailures = new Set(
+    units
+      .filter(
+        (unit) =>
+          unit.context.parseError ||
+          unit.context.mdxFallback ||
+          unit.facts?.parseError
+      )
+      .map((unit) => unit.file)
+  );
+  for (const file of parseFailures) {
+    scope.diagnostics.push(
+      `Could not fully parse ${file}; analysis is incomplete.`
+    );
+  }
+  if (units.length === 0) {
+    scope.diagnostics.push(
+      "No supported units were selected. Check targets and exclusions; no clean-scan verdict is available."
+    );
   }
 
   const cache = new AnswerCache(
@@ -109,33 +178,39 @@ export const runLint = async (
   const manifest: Record<string, unknown> = {
     config_root: config.root,
     model,
+    provider_policy: { retries: 3, timeoutMs: 10_000 },
     rules: rules.map((r) => r.id),
+    scope,
     smart_quotes_at_build: config.smartQuotesAtBuild,
     targets: options.targets,
   };
 
-  // A live run needs an evaluate; a dry run reads the cache only. Deciding
-  // that here keeps the key check next to the flag that waives it.
+  const judgeOptions = {
+    cache,
+    config,
+    mechanicalOnly: options.mechanicalOnly,
+    model,
+  };
+  const prepared = prepareJudgement(units, rules, judgeOptions);
   let evaluate = ctx.evaluate;
   let recorder: RecorderHandle | undefined;
-  if (!options.dryRun && !options.mechanicalOnly) {
+  if (
+    !options.dryRun &&
+    !options.mechanicalOnly &&
+    prepared.pending.length > 0
+  ) {
     evaluate ??= evaluateFromEnv(options.apiKey);
     if (!evaluate) {
-      throw new Error(
+      throw new InputError(
+        "MISSING_CREDENTIALS",
         `${KEY_HINT} Or run with --dry-run or --mechanical-only.`
       );
     }
   } else {
     evaluate = undefined;
   }
-  const preview = await judge(units, rules, {
-    cache,
-    config,
-    mechanicalOnly: options.mechanicalOnly,
-    model,
-  });
   if (options.printRequests) {
-    for (const p of preview.pending) {
+    for (const p of prepared.pending) {
       for (const questions of chunkQuestions(p)) {
         const ordered = Object.fromEntries(
           Object.keys(questions)
@@ -148,24 +223,20 @@ export const runLint = async (
       }
     }
   }
-  let judgement = preview;
-  if (evaluate && preview.pending.length > 0) {
+  if (evaluate && prepared.pending.length > 0) {
     recorder = makeRecorder("lint", { resultsDir, skillsDir: config.root });
     recorder.append({ kind: "manifest", ...manifest });
-    judgement = await judge(units, rules, {
-      cache,
-      config,
-      evaluate,
-      mechanicalOnly: options.mechanicalOnly,
-      model,
-      onProgress: (mark) => stderr(mark),
-      recorder,
-    });
-    stderr("\n");
   }
+  const judgement = await executeJudgement(prepared, {
+    ...judgeOptions,
+    evaluate,
+    onProgress: ctx.onProgress,
+    recorder,
+  });
+  ctx.onEvidence?.(units, judgement.answers, judgement.negatives);
   const status: LintResult["status"] = options.dryRun
     ? "dry-run"
-    : judgement.usage.errors > 0
+    : judgement.usage.errors > 0 || parseFailures.size > 0 || units.length === 0
       ? "incomplete"
       : "complete";
   const jf = jevFindings(judgement.jobs, judgement.answers);
@@ -173,15 +244,16 @@ export const runLint = async (
   const { unknowns, usage } = judgement;
   recorder?.summary({ findings: findings.length, status, usage });
 
-  findings = dedupe(applySuppressions(findings, rules, sources));
+  const ruleFindings = dedupeExact(applySuppressions(findings, rules, sources));
+  findings = dedupe(ruleFindings);
 
   if (options.fix && !options.dryRun) {
-    applyFixes(config.root, findings, rules, units, stderr);
+    applyFixes(config.root, ruleFindings, rules, units, stderr);
   }
 
   const scorecard = buildScorecard(units, rules, findings, unknowns, jf.silent);
   const failOn = options.failOn ?? "minor";
-  const failing = findings.filter(
+  const failing = ruleFindings.filter(
     (f) =>
       f.band === "act" &&
       !f.suppressed &&
@@ -193,21 +265,40 @@ export const runLint = async (
   } else if (failing.length > 0) {
     exitCode = 1;
   }
+  const summary = {
+    act: findings.filter((f) => f.band === "act" && !f.suppressed).length,
+    failOn,
+    failing: failing.length,
+    review: findings.filter((f) => f.band === "review" && !f.suppressed).length,
+    ruleFindings: ruleFindings.filter((f) => !f.suppressed).length,
+    unknown: unknowns.length,
+  };
   return {
+    coverage: judgement.coverage,
     estimated: options.dryRun
       ? {
-          costUsd: costUsd(preview.estimatedTokens),
-          inputTokens: preview.estimatedTokens,
-          requests: preview.estimatedRequests,
+          costUsd: costUsd(judgement.estimatedTokens),
+          inputTokens: judgement.estimatedTokens,
+          requests: judgement.estimatedRequests,
         }
       : undefined,
     exitCode,
     findings,
     manifest,
+    ruleFindings,
+    ruleScorecard: buildScorecard(
+      units,
+      rules,
+      ruleFindings,
+      unknowns,
+      jf.silent
+    ),
     rules: rules.map((r) => r.id),
     rulesLoaded: rules,
+    scope,
     scorecard,
     status,
+    summary,
     units: units.filter((u) => !STRUCTURAL_KINDS.includes(u.kind)).length,
     unknowns,
     usage,

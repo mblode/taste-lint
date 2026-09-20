@@ -133,11 +133,22 @@ export const loadCorpus = (
       }
       const labelSource = r.labelSource;
       if (
-        !["manifest", "manifest-weak", "hand", "sweep"].includes(
+        !["manifest", "manifest-weak", "hand", "sweep", "ai"].includes(
           labelSource as string
         )
       ) {
         throw new Error(`Invalid corpus line ${where}: labelSource`);
+      }
+      if (
+        labelSource === "ai" &&
+        (typeof r.labelModel !== "string" ||
+          !r.labelModel.trim() ||
+          typeof r.labelPromptHash !== "string" ||
+          !/^[a-f0-9]{64}$/.test(r.labelPromptHash))
+      ) {
+        throw new Error(
+          `Invalid corpus line ${where}: AI labels require model and prompt hash`
+        );
       }
       if (
         !isRecord(r.source) ||
@@ -209,6 +220,8 @@ export const loadCorpus = (
         context: (r.context as CorpusItem["context"]) ?? {},
         id: r.id,
         kind: r.kind as CorpusItem["kind"],
+        labelModel: r.labelModel as string | undefined,
+        labelPromptHash: r.labelPromptHash as string | undefined,
         labelSource: labelSource as CorpusItem["labelSource"],
         labels,
         neighbours: r.neighbours as CorpusItem["neighbours"],

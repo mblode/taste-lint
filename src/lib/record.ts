@@ -13,6 +13,7 @@ const gitSha = (repoDir?: string): string => {
     return execFileSync("git", ["rev-parse", "HEAD"], {
       cwd: repoDir,
       encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch {
     return "unknown";

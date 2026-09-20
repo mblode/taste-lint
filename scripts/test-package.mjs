@@ -114,7 +114,31 @@ try {
     env
   );
   assert.match(dry, /No calls were made/);
-  assert.match(dry, /1 request would be sent/);
+  assert.match(dry, /2 requests would be sent/);
+  const scan = JSON.parse(
+    run(
+      process.execPath,
+      [
+        cli,
+        "scan",
+        ".",
+        "--profile",
+        "all",
+        "--root",
+        project,
+        "--dry-run",
+        "--output",
+        "json",
+        "--results-dir",
+        path.join(temporary, "results"),
+      ],
+      consumer,
+      env
+    )
+  );
+  assert.equal(scan.kind, "taste-lint-scan");
+  assert.equal(scan.status, "dry-run");
+  assert.equal(scan.files.length, 1);
   let failed;
   try {
     execFileSync(
@@ -140,7 +164,7 @@ try {
     failed = error;
   }
   assert.equal(failed?.status, 1, "A Jev run without a key must exit nonzero");
-  assert.match(String(failed.stderr), /TYPESAFE_API_KEY/);
+  assert.match(String(failed.stderr), /AI_GATEWAY_API_KEY/);
   console.log(
     "Packed artifact passed: rules, dry-run lint and key guard verified offline."
   );

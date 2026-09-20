@@ -1,7 +1,7 @@
 // Per (question, state) answer cache under results/cache. Changing one rule's
 // wording invalidates only that rule's entries.
 
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -62,6 +62,12 @@ export class AnswerCache {
   set(key: string, entry: CacheEntry): void {
     const file = this.file(key);
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(entry));
+    const temporary = `${file}.${randomUUID()}.tmp`;
+    try {
+      fs.writeFileSync(temporary, JSON.stringify(entry));
+      fs.renameSync(temporary, file);
+    } finally {
+      fs.rmSync(temporary, { force: true });
+    }
   }
 }

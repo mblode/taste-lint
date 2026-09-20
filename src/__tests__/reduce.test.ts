@@ -81,16 +81,16 @@ it("stops sending requests after the first auth failure", async () => {
   const cache = new AnswerCache(temporary(), false);
   const prepared = prepareRequests(jobs, cache, "jev-latest");
   let calls = 0;
-  await expect(
-    runRequests(prepared, {
-      cache,
-      evaluate: () => {
-        calls += 1;
-        return Promise.reject(new ProviderError("auth", 401));
-      },
-      model: "jev-latest",
-    })
-  ).rejects.toMatchObject({ category: "auth" });
+  const outcome = await runRequests(prepared, {
+    cache,
+    evaluate: () => {
+      calls += 1;
+      return Promise.reject(new ProviderError("auth", 401));
+    },
+    model: "jev-latest",
+  });
+  expect(outcome.failed).toHaveLength(40);
+  expect(outcome.failed.every((f) => f.category === "auth")).toBe(true);
   // At most the concurrency bound (8) is in flight when the first 401 lands.
   expect(calls).toBeLessThanOrEqual(8);
 });
@@ -119,4 +119,18 @@ it("keeps the answer when only the cache write fails", async () => {
   });
   expect(outcome.errors).toBe(0);
   expect(outcome.answers.get("u1")).toEqual({ "copywriting-r": 0.9 });
+});
+
+it("keeps v1 grouping tie breaks while retaining exact per-rule evidence", async () => {
+  const { dedupeExact } = await import("../reduce/dedupe.js");
+  const findings = [
+    finding({ line: 20, ruleId: "first", severity: "minor" }),
+    finding({ line: 10, ruleId: "second", severity: "major" }),
+  ];
+  expect(dedupeExact(findings)).toHaveLength(2);
+  expect(dedupe(findings)[0]).toMatchObject({
+    also: ["second"],
+    line: 20,
+    ruleId: "first",
+  });
 });

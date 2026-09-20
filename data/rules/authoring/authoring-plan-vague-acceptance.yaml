@@ -1,0 +1,43 @@
+id: authoring-plan-vague-acceptance
+title: Plan acceptance criterion is not observable
+categoryId: instruction-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/planning/references/plan-quality-rubric.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:works? (?:well|correctly)|user.friendly|production.ready|robust|seamless)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true when text presented as an acceptance criterion relies only on a subjective quality word and supplies no observable result. Return false when the supplied text gives a concrete scenario and expected result, or is narrative background rather than an acceptance criterion.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - "Acceptance: the integration works correctly and is production-ready."
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - "Acceptance: replaying the same request ID returns the original result and creates no second record."
+severity: minor
+fix:
+  hint: Specify a trigger and observable result for the acceptance check.
+preconditions:
+  notInCode: true
+  docType:
+    - plan
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

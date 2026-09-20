@@ -18,7 +18,7 @@ export const DEFAULT_MODEL = "jev-latest";
 /** The gateway's id for Jev; a `--model` with a slash in it is passed through. */
 export const GATEWAY_MODEL = "typesafe-ai/jev";
 export const KEY_HINT =
-  "Set TYPESAFE_API_KEY (api.typesafe.ai) or AI_GATEWAY_API_KEY (Vercel AI Gateway) for Jev-backed rules.";
+  "Set AI_GATEWAY_API_KEY to your Vercel AI Gateway key, then rerun. Create a key at https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys. Use --mechanical-only for lint/scan without a key.";
 const MAX_RETRY_AFTER_MS = 30_000;
 
 export class ProviderError extends Error {
@@ -32,7 +32,7 @@ export class ProviderError extends Error {
   ) {
     super(
       category === "auth"
-        ? `The provider rejected the API key (HTTP ${status ?? 401}). Check TYPESAFE_API_KEY or AI_GATEWAY_API_KEY.`
+        ? `The provider rejected the API key (HTTP ${status ?? 401}). Check AI_GATEWAY_API_KEY (or TYPESAFE_API_KEY when using the direct transport).`
         : `Jev request failed: ${category}${status ? ` (HTTP ${status})` : ""}`
     );
     this.name = "ProviderError";
@@ -59,6 +59,13 @@ export const validateResponse = (
     }
     // TypeSafe answers `noul`; the gateway answers `probability`.
     const answer = a as Record<string, unknown>;
+    if (
+      answer.type !== undefined &&
+      answer.type !== "noul" &&
+      answer.type !== "boolean"
+    ) {
+      throw new ProviderError("invalid_response");
+    }
     const noul = answer.noul ?? answer.probability;
     if (
       typeof noul !== "number" ||
@@ -73,7 +80,13 @@ export const validateResponse = (
   const usage = (r.usage as Record<string, unknown> | undefined) ?? {};
   const count = (snake: string, camel: string): number => {
     const v = usage[snake] ?? usage[camel];
-    return typeof v === "number" ? v : 0;
+    if (v === undefined) {
+      return 0;
+    }
+    if (typeof v !== "number" || !Number.isSafeInteger(v) || v < 0) {
+      throw new ProviderError("invalid_response");
+    }
+    return v;
   };
   const inputTokens = count("input_tokens", "inputTokens");
   const outputTokens = count("output_tokens", "outputTokens");
@@ -100,15 +113,14 @@ const defaultSleep = (ms: number): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
-// Pick the transport from the environment: TypeSafe's own key first, then the
-// gateway key. Undefined means neither is set; the caller says what to do.
+// An explicit API option retains its direct-TypeSafe contract. Otherwise prefer
+// the user's Gateway key; the legacy TypeSafe environment key remains a fallback.
 export const evaluateFromEnv = (
   apiKey?: string,
   env: NodeJS.ProcessEnv = process.env
 ): Evaluate | undefined => {
-  const typesafe = apiKey ?? env.TYPESAFE_API_KEY;
-  if (typesafe) {
-    return makeFetchEvaluate({ apiKey: typesafe });
+  if (apiKey) {
+    return makeFetchEvaluate({ apiKey });
   }
   if (env.AI_GATEWAY_API_KEY) {
     return makeFetchEvaluate({
@@ -116,7 +128,9 @@ export const evaluateFromEnv = (
       transport: "gateway",
     });
   }
-  return undefined;
+  return env.TYPESAFE_API_KEY
+    ? makeFetchEvaluate({ apiKey: env.TYPESAFE_API_KEY })
+    : undefined;
 };
 
 // The gateway takes the model in a header and calls the noul primitive
@@ -151,7 +165,7 @@ export const makeFetchEvaluate = (options: FetchEvaluateOptions): Evaluate => {
     sleep = defaultSleep,
   } = options;
   const url = `${baseUrl.replace(/\/$/, "")}${transport === "gateway" ? "/evaluation-model" : "/v1/systemone"}`;
-  return async (request) => {
+  return async (request, onAttempt) => {
     const call =
       transport === "gateway"
         ? gatewayCall(request)
@@ -159,6 +173,7 @@ export const makeFetchEvaluate = (options: FetchEvaluateOptions): Evaluate => {
     let attempt = 0;
     for (;;) {
       attempt += 1;
+      onAttempt?.();
       let response: Response;
       try {
         response = await doFetch(url, {
@@ -206,7 +221,7 @@ export const makeFetchEvaluate = (options: FetchEvaluateOptions): Evaluate => {
       } catch {
         throw new ProviderError("invalid_response", response.status);
       }
-      return validateResponse(body, request);
+      return { ...validateResponse(body, request), attempts: attempt };
     }
   };
 };

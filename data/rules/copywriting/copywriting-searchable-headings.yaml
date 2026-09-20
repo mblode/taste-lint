@@ -1,0 +1,52 @@
+id: copywriting-searchable-headings
+title: A documentation heading names no topic or action
+categoryId: page-structure
+source:
+  repo: mblode/agent-skills
+  path: skills/docs-writing/rules/nav-searchable-headings.md
+  line: 7
+  ruleId: nav-searchable-headings
+unit:
+  - heading
+mechanical:
+  regex: ^(?:common (?:issues|problems)|more (?:info(?:rmation)?|details)|overview|miscellaneous|other)\s*[.:?]?$
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+  instructions: The TEXT is a documentation heading. Return true when it is generic and names neither the feature nor the task, such as Common issues or More information. Return false when the supplied heading context gives it a clear specific subject, when it names a concrete topic or action, or when it quotes a heading as an example. Do not assume unseen page context.
+  criteria:
+    "true":
+      what: A generic heading with no specific subject in the supplied context.
+      examples:
+        - Common issues
+        - More information
+    "false":
+      what: Specific topic or action, or a generic subheading with explicit subject context.
+      examples:
+        - Troubleshoot authentication errors
+        - Configure rate limits
+        - |-
+          TEXT: Overview
+          HEADING: Webhook retries
+severity: minor
+fix:
+  hint: Name the feature or reader task, for example Troubleshoot authentication errors. Keep a short subheading when its parent already supplies the subject.
+preconditions:
+  notInCode: true
+  docType:
+    - tutorial
+    - howto
+    - reference
+    - explanation
+    - agent-instructions
+status: review-only
+handWritten:
+  - title
+  - unit
+  - mechanical
+  - question
+  - fix
+  - preconditions
+  - severity

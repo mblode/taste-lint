@@ -299,6 +299,8 @@ export const TYPOGRAPHY_RULES: Rule[] = [
     id: "copywriting-long-sentence",
     preconditions: {
       docType: [
+        "readme",
+        "personal",
         "tutorial",
         "howto",
         "reference",

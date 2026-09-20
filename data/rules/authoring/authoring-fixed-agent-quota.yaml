@@ -1,0 +1,44 @@
+id: authoring-fixed-agent-quota
+title: Workflow imposes an unconditional agent quota
+categoryId: instruction-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/agent-skills-creator/references/authoring-tips.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:always|every task|minimum|at least|exactly)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true only when the text mandates a fixed number of agents or review rounds for every task regardless of complexity. Return false for a specific bounded task, an evidence-driven retry, conditional delegation, or discussion of the anti-pattern.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Always spawn exactly five agents for every task, including typo fixes.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Delegate independent modules when the task benefits from parallel work.
+severity: minor
+fix:
+  hint: Describe independent work and completion evidence; let the host choose orchestration.
+preconditions:
+  notInCode: true
+  docType:
+    - skill
+    - agent-instructions
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

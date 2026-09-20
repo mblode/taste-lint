@@ -1,0 +1,44 @@
+id: authoring-generic-coding-advice
+title: Instruction contains only generic coding advice
+categoryId: instruction-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/agents-md/references/root-content-guidance.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:clean code|best practices|meaningful names|descriptive (?:names|variable names)|handle errors properly)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true when the entire instruction is generic coding advice with no project-specific constraint, corrective example, boundary, or reference. Return false when it names a concrete convention, known failure, or repo-specific check.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - Write clean code and follow best practices.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - Use tenantId for the authenticated tenant identifier; reject caller-supplied tenant IDs.
+severity: minor
+fix:
+  hint: Replace generic advice with the repository fact that changes an implementation decision.
+preconditions:
+  notInCode: true
+  docType:
+    - skill
+    - agent-instructions
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

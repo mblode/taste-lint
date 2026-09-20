@@ -129,7 +129,7 @@ it("refuses to run Jev rules without a key or an injected evaluate", async () =>
   const { root, rulesDir, resultsDir } = setup();
   await expect(
     runLint({ apiKey: undefined, resultsDir, root, rulesDir, targets: ["."] })
-  ).rejects.toThrow(/TYPESAFE_API_KEY/);
+  ).rejects.toThrow(/AI_GATEWAY_API_KEY/);
   const mechanical = await runLint({
     mechanicalOnly: true,
     resultsDir,
@@ -167,7 +167,9 @@ it("prints request payloads with sorted keys and renders SARIF", async () => {
   expect(sarif.runs[0].tool.driver.rules[0].helpUri).toMatch(
     /github\.com\/mblode\/agent-skills\/blob\/main\/.*#L7/
   );
-  expect(sarif.runs[0].results.length).toBe(result.findings.length);
+  expect(sarif.runs[0].results.length).toBe(
+    result.ruleFindings?.filter((f) => !f.suppressed).length
+  );
 });
 
 it("honours smartQuotesAtBuild and suppression comments", async () => {

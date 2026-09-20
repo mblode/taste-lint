@@ -1,0 +1,43 @@
+id: copywriting-confirmshaming
+title: Decline label shames the person
+categoryId: actionable-microcopy
+source:
+  repo: installed/copywriting
+  path: skills/copywriting/references/ui-states.md
+  line: 1
+unit:
+  - paragraph
+  - jsx-text
+  - attr-string
+mechanical:
+  regex: \b(?:no thanks|no,? i|i (?:do not|don.t) want)\b
+  flags: giu
+question:
+  context:
+    - docType
+    - headingAbove
+    - role
+    - element
+  instructions: Return true when a decline action assigns the person a negative trait or an absurd undesired outcome, instead of describing their choice. Return false for a neutral decline, an accurate consequence, quoted examples, or genuinely stated personal preferences.
+  criteria:
+    "true":
+      what: The stated failure is supported by the supplied text.
+      examples:
+        - No, I prefer wasting money.
+    "false":
+      what: The text is specific, justified, quoted, or outside this rule.
+      examples:
+        - No thanks, continue without notifications.
+severity: minor
+fix:
+  hint: Use a neutral decline label that accurately describes the choice.
+preconditions:
+  notInCode: true
+  docType:
+    - ui
+status: review-only
+handWritten:
+  - mechanical
+  - question
+  - preconditions
+  - fix

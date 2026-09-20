@@ -20,7 +20,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Setup facts
 
-- Live Jev calls need `TYPESAFE_API_KEY` (api.typesafe.ai) or `AI_GATEWAY_API_KEY` (Vercel AI Gateway); the first wins when both are set. `--dry-run` and `--mechanical-only` need neither. Tests never call a model: vitest replaces `fetch`, and the fetch client is exercised only against a fake.
+- Live Jev calls need a user-supplied `AI_GATEWAY_API_KEY` (Vercel AI Gateway). It takes precedence over the legacy `TYPESAFE_API_KEY` environment fallback; an explicit programmatic `apiKey` retains its direct-TypeSafe contract. `--dry-run` and `--mechanical-only` need neither. Tests never call a model: vitest replaces `fetch`, and the fetch client is exercised only against a fake.
 - `scripts/*.ts` run with `node --experimental-strip-types` (the npm scripts do this). Node 22 runs the build and tests but not `fs.globSync` edge cases the package relies on; use Node 24 for anything you will report.
 - `port-rules --check` and the taste-training baseline expect sibling checkouts at `../agent-skills` and `../taste-training`. The baseline command and its expected counts are in the review log of `docs/plans/taste-lint-taste-linter.md`.
 - Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
@@ -53,3 +53,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 ## Contracts
 
 `docs/DESIGN.md`: the rule, unit, request and finding contracts, the pipeline map, the glossary.
+
+## Labeling scan samples
+
+Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md`: prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.

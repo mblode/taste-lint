@@ -1,0 +1,123 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "exclude": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "smartQuotesAtBuild": {
+      "type": "boolean"
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unwrap": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "docTypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "glob": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "tutorial",
+              "howto",
+              "reference",
+              "explanation",
+              "agent-instructions",
+              "lesson",
+              "marketing",
+              "ui",
+              "readme",
+              "skill",
+              "plan",
+              "personal",
+              "pr",
+              "slides",
+              "unknown"
+            ]
+          }
+        },
+        "required": ["glob", "type"]
+      }
+    },
+    "tailwind": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "theme": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boundaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "disallow", "reason"],
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "disallow": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "deprecatedImports": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "generated": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "taste-lint user configuration"
+}

@@ -20,7 +20,18 @@ fix:
 preconditions:
   notInCode: true
   docType:
-    [tutorial, howto, reference, explanation, lesson, marketing, ui, unknown]
+    [
+      tutorial,
+      howto,
+      reference,
+      explanation,
+      lesson,
+      marketing,
+      ui,
+      unknown,
+      readme,
+      personal,
+    ]
   smartQuotesAtBuild: false
 status: active
 handWritten: [mechanical, fix, preconditions]
