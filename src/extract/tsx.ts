@@ -11,6 +11,7 @@ import type {
   Role,
   Unit,
 } from "../types.js";
+import { literalArbitraryValues } from "./arbitrary.js";
 import { resolveTypography, splitClasses } from "./tailwind.js";
 import {
   decodeEntities,
@@ -391,7 +392,11 @@ export const extractTsx = (
     };
   };
 
-  const visitElement = (element: Node, skipContext: boolean): void => {
+  const visitElement = (
+    element: Node,
+    skipContext: boolean,
+    parent?: Node
+  ): void => {
     const opening = element.openingElement as Node;
     const name = elementName(opening);
     const role = roleFor(name);
@@ -441,6 +446,40 @@ export const extractTsx = (
         text: normaliseText(value),
       });
     }
+    const candidates = literalArbitraryValues(classInfo?.classes ?? []);
+    const describeElement = (node: Node) => {
+      const tag = node.openingElement as Node;
+      return {
+        opening: source.slice(tag.start, tag.end),
+        text: directText(node)?.text ?? "",
+      };
+    };
+    const siblings = parent
+      ? (parent.children as Node[]).filter(
+          (child) => child.type === "JSXElement"
+        )
+      : [];
+    const siblingIndex = siblings.indexOf(element);
+    const section = candidates.length
+      ? JSON.stringify({
+          nearby:
+            siblingIndex === -1
+              ? []
+              : siblings
+                  .slice(Math.max(0, siblingIndex - 2), siblingIndex + 3)
+                  .filter((sibling) => sibling !== element)
+                  .map(describeElement),
+          parent: parent
+            ? {
+                opening: source.slice(
+                  (parent.openingElement as Node).start,
+                  (parent.openingElement as Node).end
+                ),
+              }
+            : undefined,
+          target: { ...describeElement(element), candidates },
+        })
+      : undefined;
     // Every element with classes gets a class-list unit; motion and
     // design-system checks apply to icon wrappers and containers too, while
     // the typography functions decline units with no text of their own.
@@ -454,6 +493,7 @@ export const extractTsx = (
           fontScale: config?.tailwind.theme,
           interpolated: classInfo.interpolated || undefined,
           role,
+          section,
         },
         kind: "class-list",
         sourceEnd: classAttr?.end ?? element.end,
@@ -482,10 +522,10 @@ export const extractTsx = (
       }
     }
     for (const child of element.children as Node[]) {
-      walk(child, skipContext);
+      walk(child, skipContext, element);
     }
     // JSX passed through props (render props, slots) carries copy too.
-    walk(opening.attributes, skipContext);
+    walk(opening.attributes, skipContext, element);
   };
 
   const neighbourMap = new WeakMap<
@@ -513,10 +553,10 @@ export const extractTsx = (
     next?: NeighbourSummary;
   }[] = [];
 
-  const walk = (node: unknown, skipContext: boolean): void => {
+  const walk = (node: unknown, skipContext: boolean, parent?: Node): void => {
     if (Array.isArray(node)) {
       for (const item of node) {
-        walk(item, skipContext);
+        walk(item, skipContext, parent);
       }
       return;
     }
@@ -538,12 +578,12 @@ export const extractTsx = (
             });
           }
         }
-        visitElement(node, skipContext);
+        visitElement(node, skipContext, parent);
         return;
       }
       case "JSXFragment": {
         for (const child of node.children as Node[]) {
-          walk(child, skipContext);
+          walk(child, skipContext, parent);
         }
         return;
       }
@@ -556,12 +596,12 @@ export const extractTsx = (
               ? (((callee.object as Node).name as string) ?? "")
               : "";
         const skip = skipContext || SKIP_CALLEES.has(root);
-        walk(node.callee, skip);
-        walk(node.arguments, skip);
+        walk(node.callee, skip, parent);
+        walk(node.arguments, skip, parent);
         return;
       }
       case "ThrowStatement": {
-        walk(node.argument, true);
+        walk(node.argument, true, parent);
         return;
       }
       case "Property": {
@@ -592,7 +632,7 @@ export const extractTsx = (
           }
           return;
         }
-        walk(value, skipContext);
+        walk(value, skipContext, parent);
         break;
       }
       case "ImportDeclaration":
@@ -613,7 +653,7 @@ export const extractTsx = (
             continue;
           }
           if (Array.isArray(value) || isNode(value)) {
-            walk(value, skipContext);
+            walk(value, skipContext, parent);
           }
         }
       }

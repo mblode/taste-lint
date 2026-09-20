@@ -238,8 +238,36 @@ try {
   assert.ok(
     policy.findings.every((f) => f.ruleId !== "craft-arbitrary-value-class")
   );
+  fs.writeFileSync(
+    path.join(project, "style.tsx"),
+    '<span className="text-[13px]">Pending</span>'
+  );
+  const stylePreview = JSON.parse(
+    run(
+      process.execPath,
+      [
+        cli,
+        "scan",
+        "style.tsx",
+        "--root",
+        project,
+        "--only",
+        "craft-arbitrary-value-class",
+        "--dry-run",
+        "--output",
+        "json",
+        "--results-dir",
+        path.join(temporary, "results"),
+      ],
+      consumer,
+      env
+    )
+  );
+  assert.equal(stylePreview.status, "dry-run");
+  assert.equal(stylePreview.findings.length, 0);
+  assert.equal(stylePreview.estimated.requests, 1);
   console.log(
-    "Packed artifact passed: rules, dry-run lint, key guard, scale evidence and product policy verified offline."
+    "Packed artifact passed: rules, dry-run lint, key guard, scale evidence, semantic style planning and product policy verified offline."
   );
 } finally {
   fs.rmSync(temporary, { force: true, recursive: true });

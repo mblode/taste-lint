@@ -164,7 +164,9 @@ Body-size and letter-spacing checks measure styles in code, then ask Jev whether
 
 ### Arbitrary utility values
 
-`craft-arbitrary-value-class` reviews literal numbers, fixed lengths and colours. It skips token references, CSS calculations, asset URLs, relative layout values and selector syntax. A remaining warning identifies a style choice to review, not a proven defect or a safe replacement. Deliberate layout and optical constraints can be kept.
+`craft-arbitrary-value-class` uses code to select literal values, then Jev to judge whether their visual role merits a named design token. Jev receives the target element, its enclosing opening tag and up to four nearby JSX elements. Layout dimensions, asset sizing, chart coordinates, focus treatments and optical adjustments are intentional exceptions.
+
+Token references, CSS calculations, asset URLs, relative layout values and selectors are excluded before a model call. Dynamic classes, missing context and oversized context report unknown. Provider errors never fall back to a mechanical warning. Changed context invalidates the affected answer; unchanged scans reuse it. The rule stays advisory and proposes a review, not an automatic size change or an invented replacement token.
 
 ## Near-scale values
 
@@ -172,4 +174,4 @@ Body-size and letter-spacing checks measure styles in code, then ask Jev whether
 
 This check currently supports declared pixel font tokens only. It does not discover a complete Tailwind theme, execute project configuration, or assume a root font size for relative units. Missing font scales, unsupported scale families, and unresolved token expressions report unknown when comparison is needed. Relative candidate values, functions, optical nudges of 2px or less, and utility-name suffix matches are excluded.
 
-A near-scale comparison does not prove that the size is a mistake. Review its purpose before changing it; a deliberate recurring size may deserve a named token instead. The broader `craft-arbitrary-value-class` remains an advisory style preference, not a calibrated defect detector.
+A near-scale comparison does not prove that the size is a mistake. Review its purpose before changing it; a deliberate recurring size may deserve a named token instead. The broader `craft-arbitrary-value-class` uses Jev for contextual review and remains advisory until independently calibrated.

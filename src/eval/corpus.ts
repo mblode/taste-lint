@@ -181,6 +181,14 @@ export const loadCorpus = (
         }
         const { docType, role } = r.context;
         if (
+          r.context.section !== undefined &&
+          typeof r.context.section !== "string"
+        ) {
+          throw new Error(
+            `Invalid corpus line ${where}: section must be a string`
+          );
+        }
+        if (
           r.context.fontScale !== undefined &&
           (!isRecord(r.context.fontScale) ||
             Object.values(r.context.fontScale).some(
