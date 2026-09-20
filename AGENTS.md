@@ -24,6 +24,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 - `port-rules --check` and the taste-training baseline expect sibling checkouts at `../agent-skills` and `../taste-training`. The baseline command and its expected counts are in the review log of `docs/plans/taste-lint-taste-linter.md`.
 - Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
 - Results and the answer cache write to `results/` (ignored). A rerun over unchanged files reports `0 requests`; delete `results/cache` to force live answers.
+- Public docs: https://taste-lint.blode.md. In-repo ALL-CAPS `docs/*.md` copies stay hidden; prefer the matching MDX pages for readers.
 
 ## Gotchas
 
@@ -51,11 +52,11 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Contracts
 
-`docs/DESIGN.md`: the rule, unit, request and finding contracts, the pipeline map, the glossary.
+`docs/DESIGN.md` (https://taste-lint.blode.md/design): the rule, unit, request and finding contracts, the pipeline map, the glossary.
 
 ## Labeling scan samples
 
-Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md`: prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
+Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md` (https://taste-lint.blode.md/scans): prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
 
 ## TypeSafe integration
 

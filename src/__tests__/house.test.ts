@@ -33,7 +33,7 @@ describe("house rules", () => {
     const files = walk(
       root,
       (f) =>
-        /\.(ts|mjs|yaml|json|md)$/.test(f) &&
+        /\.(ts|mjs|yaml|json|mdx?)$/.test(f) &&
         !f.includes(`${path.sep}data${path.sep}corpus${path.sep}`) &&
         !f.includes(`${path.sep}__tests__${path.sep}fixtures${path.sep}`) &&
         !f.endsWith("package-lock.json")

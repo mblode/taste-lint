@@ -19,20 +19,20 @@ Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introductio
 npx taste-lint@latest init
 ```
 
-Requires Node 24.11 or later. Run from your project directory to install locally and add a scan script.
+Requires Node 24.11 or later. Run it from your project directory. Init installs locally and adds a scan script.
 
 ## Quickstart
 
-Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). From your project directory, set your key and run:
+Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). Then:
 
 ```bash
 export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
 npm run taste
 ```
 
-No account or config for taste-lint. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Answers are cached for repeat runs.
+No taste-lint account or config. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Repeat runs reuse cached answers.
 
-Use your package manager in place of npm. Add `--agent` to init for agent instructions, or `--dry-run` to preview setup.
+Use your package manager in place of npm. Pass `--agent` to init for agent instructions, or `--dry-run` to preview setup.
 
 ## What it checks
 
@@ -40,17 +40,13 @@ Use your package manager in place of npm. Add `--agent` to init for agent instru
 - **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
 - **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
 
-Rules draw on [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training). Local checks handle measurable rules. Jev judges meaning and returns probabilities. Uncalibrated AI rules stay advisory; active findings can fail a run.
+Rules come from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training). Local checks handle measurable rules. Jev judges meaning and returns probabilities. Uncalibrated AI rules stay advisory. Active findings can fail a run.
 
-## Useful options
+## Docs
 
-| Option           | What it does                                         |
-| ---------------- | ---------------------------------------------------- |
-| `--dry-run`      | Preview scope and estimated cost without model calls |
-| `--output json`  | Save findings for scripts and agents                 |
-| `--output sarif` | Export findings for code review tools                |
+[taste-lint.blode.md](https://taste-lint.blode.md)
 
-Run `taste-lint scan --help` for all options. Docs: [taste-lint.blode.md](https://taste-lint.blode.md) ([quickstart](https://taste-lint.blode.md/quickstart), [scans](https://taste-lint.blode.md/scans), [usage](https://taste-lint.blode.md/usage)). Changelog: [CHANGELOG.md](https://github.com/mblode/taste-lint/blob/main/CHANGELOG.md).
+`taste-lint scan --help` lists every option. `--dry-run` previews scope and cost. `--output json` and `--output sarif` are for scripts and code review.
 
 ## License
 

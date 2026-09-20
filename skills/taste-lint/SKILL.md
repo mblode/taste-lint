@@ -49,6 +49,10 @@ Linting reads files and writes only under `results/`, and a whole repository cos
 - Class-list rules see only static Tailwind classes. Theme tokens, template expressions and computed values are `unknown` until you run `--url`.
 - Never paste a raw provider response or error body into an issue or a summary; the tool records categories and token counts only, and so should you.
 
+## Docs
+
+https://taste-lint.blode.md
+
 ## Related skills
 
 From `mblode/agent-skills`: `docs-writing` and `ui-design` own the wording of a fix; `typography-audit` is the type review this tool's typography pack is harvested from; `ui-design` and `ui-animation` supply the interaction, craft and motion checks.

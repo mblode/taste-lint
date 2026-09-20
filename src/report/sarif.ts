@@ -58,7 +58,7 @@ export const renderSarif = (
           })),
         tool: {
           driver: {
-            informationUri: "https://github.com/mblode/taste-lint",
+            informationUri: "https://taste-lint.blode.md",
             name: "taste-lint",
             rules: ruleList.map((r) => ({
               fullDescription: { text: r.question?.instructions ?? r.fix.hint },

@@ -1,106 +1,102 @@
 ---
 title: Scans
-description: How taste-lint scans projects, profiles, and what fails a run.
+description: Profiles, bands, baselines, and what fails a run.
 ---
 
-`scan` adds scope, review history, and a bounded report around the same evaluator used by `lint`. Existing `lint` commands retain their reporting contract. Start with a preview:
+# Scans
+
+`scan` wraps the same evaluator as `lint` with a profile, review history, and a bounded report. `lint` keeps its existing reporting contract. Start with a preview:
 
 ```sh
-node dist/cli.js scan . --root ../blode-co --profile product --dry-run
-node dist/cli.js scan profiles
+taste-lint scan . --profile product --dry-run
+taste-lint scan profiles
 ```
 
 ## Profiles and scope
 
 | Profile | Objective |
 | --- | --- |
-| product (default) | Application TSX/JSX/CSS/SCSS; interface copy, typography, interaction, motion |
+| product (default) | Application TSX/JSX/CSS/SCSS: interface copy, typography, interaction, motion |
 | writing | Content, consumer README, public Markdown, and active documentation |
 | instructions | AGENTS.md, CLAUDE.md, skills, and implementation plans |
 | architecture | TS/JS/package configuration and declared repository contracts |
-| all | Full existing catalog over all supported inputs |
+| all | Full catalog over every supported input |
 
-Scoped profiles exclude build outputs, archived docs, and `.captain` reports. Writing also excludes agent instructions and plans. Product excludes test/spec/story components. Use explicit targets and `--exclude` to narrow a profile; `--only` intersects its rules. `all` is the explicit escape hatch for a comprehensive audit.
+Scoped profiles skip build outputs, archived docs, and `.captain` reports. Writing also skips agent instructions and plans. Product skips test, spec, and story components. Pass explicit targets and `--exclude` to narrow a profile. `--only` intersects its rules. `all` is the escape hatch for a full audit.
 
-The writing profile treats sentence length and straight quotes as advisory. It recognizes `content/writing` as personal prose; repository `docTypes` overrides take precedence. Sentence length is still measured deterministically. This policy change does not imply every long sentence is defective.
+The writing profile treats sentence length and straight quotes as advisory. It treats `content/writing` as personal prose. Repository `docTypes` overrides win. Sentence length is still measured in code.
 
-JSON includes the exact selected file list, profile, coverage, estimates, and diagnostics. No selected files exits 2; it is not a clean scan. TTY output shows at most 20 rule groups with representative locations and aggregate counts. Full JSON preserves all findings.
+JSON includes the selected files, profile, coverage, estimates, and diagnostics. No selected files exits 2. TTY shows at most 20 rule groups with representative locations and counts. Full JSON keeps every finding.
 
 ## Baselines and review decisions
 
 ```sh
-node dist/cli.js scan . --profile product --save results/product.json
-node dist/cli.js scan . --profile product --baseline results/product.json --new-only --save results/product-next.json
-node dist/cli.js scan review results/product.json FINGERPRINT --decisions results/review.json --status dismissed --reason 'Intentional project convention'
-node dist/cli.js scan review results/product.json FINGERPRINT --decisions results/review.json --status open
-node dist/cli.js scan . --profile product --decisions results/review.json
+taste-lint scan . --profile product --save results/product.json
+taste-lint scan . --profile product --baseline results/product.json --new-only --save results/product-next.json
+taste-lint scan review results/product.json FINGERPRINT --decisions results/review.json --status dismissed --reason 'Intentional project convention'
+taste-lint scan review results/product.json FINGERPRINT --decisions results/review.json --status open
+taste-lint scan . --profile product --decisions results/review.json
 ```
 
-A baseline must be a completed scan of the same root, target scope, profile, rules, model, and evaluation mode. Review files are bound to that policy too. Save the next scan to another path. A dry run cannot become a completed baseline. Failed or unresolved checks cannot establish resolution. Parse failures and missing graph coverage keep prior findings unverified.
+A baseline must be a completed scan of the same root, targets, profile, rules, model, and evaluation mode. Review files are bound to that policy too. Save the next scan to another path. A dry run cannot become a baseline. Failed or unresolved checks cannot mark a finding resolved. Parse failures and missing graph coverage leave prior findings unverified.
 
-Fingerprints use rule ID, relative file, normalized unit content, and occurrence. Inserting unrelated lines preserves identity. Renaming files or editing the affected text creates a new identity. Identical repeated text is distinguished by occurrence; inserting another identical occurrence can change that association. Findings retain independent severity, confidence, lifecycle, and reviewer decision fields.
+Fingerprints use rule ID, relative file, normalised unit content, and occurrence. Inserting unrelated lines keeps identity. Renaming a file or editing the affected text creates a new one. Repeated identical text is distinguished by occurrence. Findings keep independent severity, confidence, lifecycle, and reviewer decision fields.
 
-`--new-only` gates new findings only; without it, existing undismissed act findings still fail. Dismissals require a reason. Reopening explicitly overrides an inherited dismissal. Review decisions do not alter probability, severity, rule thresholds, or calibration labels.
+`--new-only` gates new findings only. Without it, existing undismissed act findings still fail. Dismissals need a reason. Reopening overrides an inherited dismissal. Review decisions do not change probability, severity, thresholds, or calibration labels.
 
 ## Changed-code reporting and reviewdog
 
 ```sh
-node dist/cli.js scan . --profile product --since origin/main --output sarif > results/scan.sarif
+taste-lint scan . --profile product --since origin/main --output sarif > results/scan.sarif
 reviewdog -f=sarif -reporter=github-pr-check < results/scan.sarif
 ```
 
-The diff compares the named commit with the working tree, including staged, unstaged, and untracked files. Analysis retains full selected-file context; changed lines filter reporting and exit policy. This is not a promise that only changed files are analyzed. Unchanged model states reuse the answer cache. Graph findings without exact line positions use changed-file filtering.
+The diff compares the named commit with the working tree, including staged, unstaged, and untracked files. Analysis still uses the full selected-file context. Changed lines filter reporting and the exit policy. Unchanged model states reuse the answer cache. Graph findings without exact line positions filter by changed file.
 
-SARIF includes the content fingerprint as `tasteLint/v1`. Posting with reviewdog is a separate, explicitly invoked operation; taste-lint does not create comments or PRs.
+SARIF includes the content fingerprint as `tasteLint/v1`. Posting with reviewdog is a separate, explicit step. taste-lint does not create comments or PRs.
 
 ## Context and calibration
 
-The repetition rule receives the containing Markdown section and evaluates the target paragraph in that context. Missing or oversized sections abstain. Section questions use separate requests, so adding section context does not silently enlarge unrelated questions. Cache replay merges the resulting answers for the same unit.
+The repetition rule receives the containing Markdown section and judges the target paragraph in that context. Missing or oversized sections abstain. Section questions use separate requests, so extra context does not enlarge unrelated questions. Cache replay merges the answers for the same unit.
 
 ```sh
-node dist/cli.js scan . --profile writing --dry-run --samples results/blind.json
+taste-lint scan . --profile writing --dry-run --samples results/blind.json
 # Codex labels the samples using the workflow below.
 mkdir -p results/labeled
-node dist/cli.js scan labels results/blind.json --out results/labeled/review.jsonl
-node dist/cli.js eval --corpus results/labeled --split holdout
+taste-lint scan labels results/blind.json --out results/labeled/review.jsonl
+taste-lint eval --corpus results/labeled --split holdout
 ```
 
-Version 2 samples contain source text and the full rule rubric, including examples and requested context, with predictions hidden. Version 1 label files remain importable. Sampling is deterministic across rule, document type, and score band; it includes negative judgments and candidate-filter negatives. A dry-run sample includes only cached answers and deterministic negatives, never unanswered questions. Duplicate evidence is sampled once; identical text with different context or rubrics remains separate. Splits are grouped by repository and source file. This is a stratified diagnostic sample, not an unbiased estimate of repository-wide precision.
+Version 2 samples include source text and the full rule rubric, with examples and requested context, and with predictions hidden. Version 1 label files still import. Sampling is deterministic across rule, document type, and score band. It includes negative judgments and candidate-filter negatives. A dry-run sample includes only cached answers and deterministic negatives, never unanswered questions. Duplicate evidence is sampled once. Identical text with different context or rubrics stays separate. Splits group by repository and source file. This is a stratified diagnostic sample.
 
-Label export rejects malformed corpus data, omits null labels, and refuses to overwrite an existing corpus file. It never invents human labels. Use separate held-out evidence before promoting rules; mocks and scan volume do not establish semantic accuracy. Personal facts/profile checks remain available through `lint --writing-context`; scan does not load private profiles implicitly.
+Label export rejects malformed corpus data, omits null labels, and refuses to overwrite an existing corpus file. It never invents human labels. Use held-out evidence before promoting rules. Mocks and scan volume do not establish semantic accuracy. Personal facts and profile checks stay available through `lint --writing-context`. scan does not load private profiles on its own.
 
 ## Architecture adapter
 
-Generate a report with the target repository's configured dependency-cruiser installation, then import it:
+Generate a report with the target repository's dependency-cruiser install, then import it:
 
 ```sh
 depcruise --config .dependency-cruiser.cjs --ts-config tsconfig.json --output-type json src > graph.json
-node /path/to/taste-lint/dist/cli.js scan . --profile architecture --dependency-cruiser graph.json
+taste-lint scan . --profile architecture --dependency-cruiser graph.json
 ```
 
-The adapter accepts dependency-cruiser's `modules` and `summary.violations` format, verified against real 18.3.1 output. It preserves external rule names and severity, fingerprints the input report, and imports only findings inside the selected scope. Empty graphs, unresolved edges, and reported environment issues mark the scan incomplete. Invalid input fails before model calls.
+The adapter accepts dependency-cruiser's `modules` and `summary.violations` format, verified against 18.3.1 output. It keeps external rule names and severity, fingerprints the input report, and imports only findings inside the selected scope. Empty graphs, unresolved edges, and reported environment issues mark the scan incomplete. Invalid input fails before model calls.
 
-The caller owns graph freshness and the external tool's configuration. Imports and graph policies are evaluated by dependency-cruiser, not by Jev. Importing a graph does not retroactively resolve taste-lint's separate file-local dependency unknowns. Graph findings remain separately attributed to avoid claiming they were produced by native rules. Overlapping external and native policies can still yield separate findings; use `--only` when one tool owns that check.
+You own graph freshness and the external tool's configuration. Imports and graph policies are evaluated by dependency-cruiser, not Jev. Importing a graph does not resolve taste-lint's file-local dependency unknowns. Graph findings stay separately attributed. Overlapping external and native policies can still yield two findings. Use `--only` when one tool owns that check.
 
 ## Remediation handoff
 
 ```sh
-node dist/cli.js scan export results/product.json --out results/remediation.json
+taste-lint scan export results/product.json --out results/remediation.json
 ```
 
-The export uses the saved report's visible, undismissed findings. Each task includes stable ID, source evidence, location, correction hint, and verification requirements. The report and exports include source excerpts and should be handled like source code. Exporting does not execute instructions from scanned content, modify files, or open PRs.
+The export uses the saved report's visible, undismissed findings. Each task includes a stable ID, source evidence, location, correction hint, and verification requirements. Reports and exports include source excerpts. Treat them like source code. Exporting does not run instructions from scanned content, edit files, or open PRs.
 
-## Architecture and references
+## AI labeling with Codex
 
-`src/scan/run.ts` owns profile selection and orchestration; `report.ts` owns identity, lifecycle, and presentation; `git.ts` owns diff evidence; `architecture.ts` owns the external JSON boundary; `samples.ts` owns blind sampling and corpus export. Evaluation remains in `runLint` and the existing shared judgement pipeline.
+In this repository, ask Codex to label the blind samples in the current session. No separate gateway key is required. Files stay local. Inference uses Codex.
 
-The workflow draws on [Devin's scan lifecycle](https://docs.devin.ai/work-with-devin/code-scans), [reviewdog's SARIF and diff integration](https://github.com/reviewdog/reviewdog), [Vale's scoped styles](https://docs.vale.sh/topics/styles), [Knip's evidence-based entry discovery](https://knip.dev/explanations/entry-files), and [dependency-cruiser's JSON and configuration contracts](https://github.com/sverweij/dependency-cruiser/blob/main/doc/cli.md). No external agent runtime is required.
-
-### AI labeling with Codex (default)
-
-Ask Codex in this workspace to label the blind samples directly. This uses the current Codex session; no separate gateway key or labeling API call is needed. Files are local, while inference uses the Codex service and your Codex usage.
-
-Codex first prepares a fresh file using its actual current model identifier:
+Prepare a fresh file with the actual current model identifier:
 
 ```sh
 node scripts/prepare-labels.mjs results/blind.json results/codex-labels.json CURRENT_MODEL
@@ -108,21 +104,21 @@ node scripts/prepare-labels.mjs results/blind.json results/codex-labels.json CUR
 
 Then ask: "Read the instructions in results/codex-labels.json and label every sample directly. Use only each sample's full rubric, text, and supplied context. Preserve the metadata and source evidence."
 
-The preparation script clears previous labels, records AI provenance and the exact task prompt hash, and refuses to overwrite an existing file. It does not label samples or launch another agent. Codex reads manageable batches, writes individual judgments, and marks `completed` only after reviewing all samples. Missing evidence remains null. Existing Claude or other reference labels are kept separately and must not be consulted during blind labeling.
+The preparation script clears previous labels, records AI provenance and the task prompt hash, and refuses to overwrite an existing file. It does not label samples or launch another agent. Codex writes individual judgments and marks `completed` only after reviewing all samples. Missing evidence stays null. Do not consult existing Claude or other reference labels during blind labeling.
 
 After labeling:
 
 ```sh
 mkdir -p results/labeled
-node dist/cli.js scan labels results/codex-labels.json --out results/labeled/codex.jsonl
-node dist/cli.js eval --corpus results/labeled
+taste-lint scan labels results/codex-labels.json --out results/labeled/codex.jsonl
+taste-lint eval --corpus results/labeled
 ```
 
-Use a corpus directory containing only the intended reference set. The evaluation command still uses Jev and requires its usual credentials for uncached judgments.
+Use a corpus directory that holds only the intended reference set. `eval` still uses Jev and needs credentials for uncached judgments.
 
-AI annotation files carry `annotation.source: "ai"`, `annotation.model`, and `annotation.promptHash`. Corpus rows preserve these as `labelSource: "ai"`, `labelModel`, and `labelPromptHash`. Evaluation reports AI-reference agreement. No human-labeling step is required; model agreement is not an independent measurement of human preference.
+AI annotation files carry `annotation.source: "ai"`, `annotation.model`, and `annotation.promptHash`. Corpus rows keep these as `labelSource: "ai"`, `labelModel`, and `labelPromptHash`. Evaluation reports AI-reference agreement. Agreement with AI labels is not a human accuracy claim.
 
-### Optional gateway labeling
+## Optional gateway labeling
 
 For unattended labeling through a separately configured provider:
 
@@ -130,24 +126,24 @@ For unattended labeling through a separately configured provider:
 node scripts/label-samples.mjs results/blind.json results/ai-labels.json anthropic/claude-sonnet-4.6
 ```
 
-This optional script requires `AI_GATEWAY_API_KEY` and sends sample text, criteria, and supplied context to the chosen model. It retains validated labels and provenance, not raw provider responses. Failed batches leave a `.partial` checkpoint. Null means abstention and is omitted from the corpus.
+This script needs `AI_GATEWAY_API_KEY`. It sends sample text, criteria, and supplied context to the chosen model. It keeps validated labels and provenance, not raw provider responses. Failed batches leave a `.partial` checkpoint. Null means abstention and is omitted from the corpus.
 
 ## Evidence before promotion
 
-Run `taste-lint eval coverage --corpus results/labeled` before spending on evaluation. It reports positives, negatives, holdout balance, document types, repositories, and source/text overlap without credentials or network calls. `--output json` preserves per-rule detail. Coverage counts describe the dataset; they do not establish accuracy.
+Run `taste-lint eval coverage --corpus results/labeled` before spending on evaluation. It reports positives, negatives, holdout balance, document types, repositories, and source/text overlap with no credentials or network. `--output json` keeps per-rule detail. Coverage counts describe the dataset. They do not establish accuracy.
 
-`taste-lint tune --write` chooses thresholds from dev data only, then checks that fixed choice against holdout data. Promotion requires both label classes, the configured minimum item count, complete scoring, no shared source files or duplicate text across splits, and a held-out Wilson precision lower bound above the configured floor. A failed gate keeps the rule review-only and reports why. Provider failures prevent tuning writes entirely.
+`taste-lint tune --write` chooses thresholds from dev data only, then checks that choice against holdout data. Promotion needs both label classes, the configured minimum item count, complete scoring, no shared source files or duplicate text across splits, and a held-out Wilson precision lower bound above the configured floor. A failed gate keeps the rule review-only and reports why. Provider failures block tuning writes.
 
-Do not repeatedly change rules in response to the same holdout and still treat it as unseen evidence. Move used examples into development data and collect a fresh independent holdout. Keep AI reference provenance visible; agreement with AI labels is not a human accuracy claim. Stratified scan samples diagnose failure modes rather than estimate their population frequency.
+Do not keep changing rules against the same holdout and still treat it as unseen. Move used examples into development data and collect a fresh holdout. Keep AI reference provenance visible.
 
-Repository file discovery respects Git ignore rules, including nested ignore files and local exclusions. Tracked files remain eligible even when an ignore pattern matches them. Ignored build trees are skipped before filesystem inspection, so their broken symlinks do not abort a source scan. Non-Git directories use the built-in and configured exclusions.
+Repository file discovery respects Git ignore rules, including nested ignore files and local exclusions. Tracked files stay eligible even when an ignore pattern matches them. Ignored build trees are skipped before filesystem inspection, so broken symlinks there do not abort a source scan. Non-Git directories use the built-in and configured exclusions.
 
 ## Search and agent discovery
 
-`taste-lint scan . --profile discovery` checks existing static HTML, robots.txt and llms.txt artifacts. It validates page titles, empty descriptions/canonicals, conflicting canonical declarations, JSON-LD syntax, sitemap directive URLs, and agent-index structure and size. Common email-template directories are excluded. All new discovery checks are advisory.
+`taste-lint scan . --profile discovery` checks existing static HTML, robots.txt, and llms.txt artifacts. It validates page titles, empty descriptions and canonicals, conflicting canonical declarations, JSON-LD syntax, sitemap directive URLs, and agent-index structure and size. Common email-template directories are excluded. All new discovery checks are advisory.
 
-These checks do not evaluate Next.js metadata source as deployed HTML, fetch URLs, validate schema.org eligibility, or infer missing generated routes. Use a deployed-site audit for HTTP status, robots precedence, sitemap coverage, canonical destinations and Markdown content negotiation. An empty discovery scan is incomplete, not evidence that a site passed. Point scans at actual artifacts and exclude unrelated saved pages.
+These checks do not evaluate Next.js metadata source as deployed HTML, fetch URLs, validate schema.org eligibility, or infer missing generated routes. Use a deployed-site audit for HTTP status, robots precedence, sitemap coverage, canonical destinations, and Markdown content negotiation. An empty discovery scan is incomplete. Point scans at actual artifacts and exclude unrelated saved pages.
 
-The source-pattern rules `craft-affordance-mismatch` and `craft-virtualize-large-lists` have moved to `data/rule-drafts`: hover styling does not prove an inert interaction, and a mapped list does not establish its size. Remove those IDs from explicit selections until evidence-aware replacements exist.
+The source-pattern rules `craft-affordance-mismatch` and `craft-virtualize-large-lists` live in `data/rule-drafts`. Hover styling does not prove an inert interaction, and a mapped list does not establish its size. Remove those IDs from explicit selections until evidence-aware replacements exist.
 
-Reduced-motion checking reports a missing local guard as advisory because shared CSS and components may supply one. It no longer treats unrelated reduced-motion classes as proof that animation is guarded. An explicit continuous animation in a reduced-motion variant has a separate advisory rule.
+Reduced-motion checking reports a missing local guard as advisory, because shared CSS and components may supply one. Unrelated reduced-motion classes are not proof that animation is guarded. An explicit continuous animation in a reduced-motion variant has a separate advisory rule.

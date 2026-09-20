@@ -21,7 +21,8 @@
 - Use sentence case for headings
 - Bold UI labels: Click **Settings**
 - Use code formatting for file names, commands, paths, JSON fields, and code references
-- No em dashes
+- No em dashes, and no spaced hyphen standing in for one
+- Point readers at https://taste-lint.blode.md, not raw GitHub `docs/*.md` paths
 
 ## Content boundaries
 
