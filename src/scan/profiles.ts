@@ -23,6 +23,7 @@ export const PROFILE_NAMES = [
   "writing",
   "instructions",
   "architecture",
+  "discovery",
   "all",
 ] as const;
 export type ProfileName = (typeof PROFILE_NAMES)[number];
@@ -48,6 +49,25 @@ export const profileFor = (name: string): ScanProfile => {
     name: name as ProfileName,
   };
   switch (name) {
+    case "discovery": {
+      return {
+        ...common,
+        exclude: [
+          ...artifacts,
+          "**/supabase/templates/**",
+          "**/emails/**",
+          "**/email/**",
+        ],
+        include: [
+          "**/*.html",
+          "**/*.htm",
+          "**/robots.txt",
+          "**/llms.txt",
+          "**/llms-full.txt",
+        ],
+        objective: "Validate static search and agent discovery artifacts",
+      };
+    }
     case "product": {
       return {
         ...common,
@@ -109,6 +129,9 @@ export const profileRules = (profile: ScanProfile, rules: Rule[]): Rule[] =>
   rules.filter((rule) => {
     if (profile.name === "all") {
       return true;
+    }
+    if (profile.name === "discovery") {
+      return rule.domain === "seo" || rule.id.startsWith("authoring-llms-");
     }
     if (profile.name === "architecture") {
       return ["architecture", "dx"].includes(rule.domain);

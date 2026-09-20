@@ -1,4 +1,4 @@
-import { none, hit } from "../../reduce/mechanical.js";
+import { baseClass, none, hit } from "../../reduce/mechanical.js";
 import type { Unit } from "../../types.js";
 import { codeRule } from "./rule.js";
 
@@ -29,6 +29,23 @@ const make = (
   );
 
 export const SKILL_CLASS_RULES = [
+  make(
+    "motion-reduced-motion-animation",
+    "Continuous animation explicitly targets reduced-motion users",
+    "motion-restraint",
+    "ui-animation/references/live-tuning.md",
+    (u) => {
+      const found = u.classes?.find(
+        (c) =>
+          c.split(":").includes("motion-reduce") &&
+          ["animate-spin", "animate-ping", "animate-bounce"].includes(
+            baseClass(c)
+          )
+      );
+      return found ? hit(found) : none;
+    },
+    "Check the rendered reduced-motion state. Prefer a static indicator or motion-safe animation for continuous motion."
+  ),
   make(
     "typography-justify-without-hyphens",
     "Justified text explicitly disables hyphenation",
@@ -80,7 +97,7 @@ export const SKILL_CLASS_RULES = [
     (u) => {
       const cls = u.classes?.find((c) =>
         /^transition-\[(?:[^\]]*,)?(?:width|height|top|left|right|bottom|margin|padding)(?:,|\])/.test(
-          c
+          baseClass(c)
         )
       );
       return cls ? hit(cls) : none;

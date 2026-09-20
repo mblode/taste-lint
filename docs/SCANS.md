@@ -138,3 +138,13 @@ Run `taste-lint eval coverage --corpus results/labeled` before spending on evalu
 Do not repeatedly change rules in response to the same holdout and still treat it as unseen evidence. Move used examples into development data and collect a fresh independent holdout. Keep AI reference provenance visible; agreement with AI labels is not a human accuracy claim. Stratified scan samples diagnose failure modes rather than estimate their population frequency.
 
 Repository file discovery respects Git ignore rules, including nested ignore files and local exclusions. Tracked files remain eligible even when an ignore pattern matches them. Ignored build trees are skipped before filesystem inspection, so their broken symlinks do not abort a source scan. Non-Git directories use the built-in and configured exclusions.
+
+## Search and agent discovery
+
+`taste-lint scan . --profile discovery --mechanical-only` checks existing static HTML, robots.txt and llms.txt artifacts. It validates page titles, empty descriptions/canonicals, conflicting canonical declarations, JSON-LD syntax, sitemap directive URLs, and agent-index structure and size. Common email-template directories are excluded. All new discovery checks are advisory.
+
+These checks do not evaluate Next.js metadata source as deployed HTML, fetch URLs, validate schema.org eligibility, or infer missing generated routes. Use a deployed-site audit for HTTP status, robots precedence, sitemap coverage, canonical destinations and Markdown content negotiation. An empty discovery scan is incomplete, not evidence that a site passed. Point scans at actual artifacts and exclude unrelated saved pages.
+
+The source-pattern rules `craft-affordance-mismatch` and `craft-virtualize-large-lists` have moved to `data/rule-drafts`: hover styling does not prove an inert interaction, and a mapped list does not establish its size. Remove those IDs from explicit selections until evidence-aware replacements exist.
+
+Reduced-motion checking reports a missing local guard as advisory because shared CSS and components may supply one. It no longer treats unrelated reduced-motion classes as proof that animation is guarded. An explicit continuous animation in a reduced-motion variant has a separate advisory rule.

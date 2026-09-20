@@ -67,6 +67,7 @@
     "micromark-extension-gfm": "^3.0.0",
     "micromark-extension-mdxjs": "^3.0.0",
     "oxc-parser": "^0.150.0",
+    "parse5": "^8.0.1",
     "yaml": "^2.9.1"
   },
   "devDependencies": {

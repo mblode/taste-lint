@@ -1,3 +1,4 @@
+# Disabled after real-project review: this pattern lacks evidence of a defect.
 # Ported from mblode/agent-skills skills/ui-design/rules/perf-virtualize-large-lists.md by scripts/port-rules.ts.
 # Keys listed in handWritten are preserved on re-run; everything else is regenerated.
 id: craft-virtualize-large-lists
@@ -21,4 +22,4 @@ mechanical:
 severity: minor
 fix:
   hint: Large lists (roughly >50 visible items) should use virtualization/windowing. Rendering the whole dataset stalls scrolling and grows memory with the list.
-status: review-only
+status: draft

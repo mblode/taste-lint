@@ -14,13 +14,13 @@ scope:
     - "**/README.md"
 unit: [heading, jsx-text, attr-string]
 mechanical:
-  # Three or more consecutive capitalised words. Proper nouns also match, so Jev decides.
-  regex: "\\b[A-Z][a-z]+(?: (?:[A-Z][a-z]+|of|the|and|for|to|a|in|on|with)){2,}\\b"
-  flags: gu
+  # Whole-label candidate: embedded capitalised names in a sentence are not Title Case.
+  regex: "^(?:[A-Z][a-z]+|of|the|and|for|to|a|in|on|with)(?: (?:[A-Z][a-z]+|of|the|and|for|to|a|in|on|with)){2,}[?!:.]?$"
+  flags: u
 question:
   context: [role]
   instructions: >-
-    The TEXT is a heading, button label, tab or field label. Return true when most of its words start with a capital letter because it is set in Title Case, not because those words are names of people, products, places or organisations. Return false when the capitals are proper nouns or acronyms, when the TEXT is a single word, or when it is an ordinary sentence with one capital at the start.
+    Evaluate capitalisation of ordinary words only. Ignore the initial word and all words belonging to a product, person, place or organisation name. An imperative followed by a product name is sentence case, even when every word begins with a capital. If the supplied text does not establish that a capitalised phrase is ordinary words rather than a name, return false. The TEXT is a heading, button label, tab or field label. Return true when most of its words start with a capital letter because it is set in Title Case, not because those words are names of people, products, places or organisations. Return false when the capitals are proper nouns or acronyms, when the TEXT is a single word, or when it is an ordinary sentence with one capital at the start.
   criteria:
     true:
       what: Ordinary words capitalised as a heading style.
@@ -34,6 +34,8 @@ question:
         - "Connect Google Drive and Microsoft Teams"
         - "Manage your team settings"
         - "New York office hours"
+        - "Open Cedar Notes"
+        - "Ask River Desk"
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:
