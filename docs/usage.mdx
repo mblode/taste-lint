@@ -1,9 +1,7 @@
 ---
-title: Usage reference
-hidden: true
+title: Usage
+description: CLI options, findings, rule packs, and rendered mode.
 ---
-
-# Usage reference
 
 ## Example findings
 
@@ -57,7 +55,7 @@ const result = await runLint({ root: process.cwd(), targets: ["content"] });
 console.log(result.scorecard.byDomain, result.usage.costUsd);
 ```
 
-`runLint` takes the same options as the `lint` command and returns findings, unknowns, the scorecard and usage. `taste-lint schema` prints every command, flag and default as JSON, and `--output json` turns an error into a `{ error, code, message }` envelope on stdout.
+`runLint` takes the same options as the `lint` command and returns findings, unknowns, the scorecard and usage. `taste-lint schema` prints every command, flag and default as JSON, and `--output json` turns an error into a `\{ error, code, message \}` envelope on stdout.
 
 ## Agent skill
 
@@ -104,11 +102,11 @@ Configuration is optional at `taste-lint.config.json` in the scan root. Its edit
 }
 ```
 
-See [TypeSafe contracts](TYPESAFE.md) and the [review-rule evaluation](evaluations/blode-co-review.md) for the implementation evidence and current calibration limits.
+See [TypeSafe contracts](/typesafe) and the [review-rule evaluation](evaluations/blode-co-review.md) for the implementation evidence and current calibration limits.
 
-See [skill packs](SKILL-PACKS.md) for repository checks, architecture policy, personal-writing context, and source discovery.
+See [skill packs](/skill-packs) for repository checks, architecture policy, personal-writing context, and source discovery.
 
-Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. The [scan workflow](SCANS.md) covers profiles, baselines, review decisions, changed-code SARIF, calibration samples, graph-tool reports, and remediation exports.
+Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. The [scan workflow](/scans) covers profiles, baselines, review decisions, changed-code SARIF, calibration samples, graph-tool reports, and remediation exports.
 
 ## Project setup
 

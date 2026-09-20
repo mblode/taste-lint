@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#CFF6EE"/>
+  <path d="M20 18h14c8.837 0 16 7.163 16 16s-7.163 16-16 16H20V18Z" fill="#0C3A33"/>
+  <text x="84" y="41" fill="#F9FAFB" font-family="Arial, sans-serif" font-size="28" font-weight="700">Taste Lint</text>
+</svg>

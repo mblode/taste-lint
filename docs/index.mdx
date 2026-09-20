@@ -1,0 +1,43 @@
+---
+title: Introduction
+description: Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.
+---
+
+# Taste Lint
+
+Catch AI slop before you ship.
+
+Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction). Local checks handle measurable rules. Jev judges meaning and returns probabilities.
+
+## Install
+
+```bash
+npx taste-lint@latest init
+```
+
+Requires Node 24.11 or later. Run from your project directory to install locally and add a scan script.
+
+## Quickstart
+
+Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). From your project directory:
+
+```bash
+export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
+npm run taste
+```
+
+No account or config for taste-lint. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Answers are cached for repeat runs.
+
+## What it checks
+
+- **Product interfaces:** copy, typography, interaction, and motion in JSX, TSX, and CSS.
+- **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
+- **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
+
+Rules draw on [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training).
+
+## Next
+
+- [Quickstart](/quickstart): first scan in under a minute
+- [Scans](/scans): profiles, bands, and failing a run
+- [Usage](/usage): CLI reference and rule packs

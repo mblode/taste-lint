@@ -1,3 +1,8 @@
+---
+title: blode-co review-rule evaluation
+hidden: true
+---
+
 # blode-co review-rule evaluation
 
 2026-09-20. Diagnostic evaluation of 80 blind agent-labeled rule-unit pairs, using cached probabilities from the original audit. No new model calls. These labels are provisional and are not human ground truth.

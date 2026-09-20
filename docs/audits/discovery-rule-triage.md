@@ -1,3 +1,8 @@
+---
+title: Discovery and animation rule triage
+hidden: true
+---
+
 # Discovery and animation rule triage
 
 ## Implemented

@@ -1,3 +1,8 @@
+---
+title: Make taste-lint runs trustworthy and usable
+hidden: true
+---
+
 # Make taste-lint runs trustworthy and usable
 
 Authoritative implementation plan. Based on checkout `72392b1`, the September 20, 2026 blode-co audit, and local Node 24 probes. Implementation executed in this checkout. The execution record below supersedes the planning-time verification limits.

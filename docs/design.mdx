@@ -1,9 +1,7 @@
 ---
 title: Design
-hidden: true
+description: Architecture and design choices behind taste-lint.
 ---
-
-# Design
 
 ## Contracts
 
@@ -27,7 +25,7 @@ One YAML file per rule at `data/rules/<domain>/<id>.yaml`. `id` equals the filen
 
 ### Jev request
 
-`src/map/jev.ts` speaks `POST /v1/systemone` with `{ model, state, questions }`, or the same request through Vercel AI Gateway's evaluation route (model in a header, `boolean` for `noul`) when only `AI_GATEWAY_API_KEY` is set. State is a labelled string built from the unit and only the context keys the batched questions asked for. Questions use the noul primitive with `criteria.true` and `criteria.false` as `{ what, examples }` objects, which is the structured form the API accepts. The response is validated fail-closed; bodies are never logged.
+`src/map/jev.ts` speaks `POST /v1/systemone` with `\{ model, state, questions \}`, or the same request through Vercel AI Gateway's evaluation route (model in a header, `boolean` for `noul`) when only `AI_GATEWAY_API_KEY` is set. State is a labelled string built from the unit and only the context keys the batched questions asked for. Questions use the noul primitive with `criteria.true` and `criteria.false` as `\{ what, examples \}` objects, which is the structured form the API accepts. The response is validated fail-closed; bodies are never logged.
 
 ### Finding
 
@@ -75,7 +73,7 @@ Preparation in `src/map/judge.ts` is shared by lint preview, execution and eval.
 - **Attempt**: one HTTP try, including retries owned by the provider adapter.
 - **Cached answer**: one rule probability reused from persisted successful work.
 
-JSON v1 retains its grouped fields and adds complete `ruleFindings`, `ruleScorecard`, `summary`, `scope` and `coverage`. The compatibility scorecard's old unit totals remain; use coverage for eligible denominators. The TypeSafe source references, provider distinctions and contract checks are in `docs/TYPESAFE.md`.
+JSON v1 retains its grouped fields and adds complete `ruleFindings`, `ruleScorecard`, `summary`, `scope` and `coverage`. The compatibility scorecard's old unit totals remain; use coverage for eligible denominators. The TypeSafe source references, provider distinctions and contract checks are in [TypeSafe](/typesafe).
 
 ## Repository evidence and skill packs
 
@@ -83,4 +81,4 @@ A run owns one repository-facts service. Source units carry non-enumerable parse
 
 Personal comparison rules request named context fields supplied by the caller. Missing or oversized context prevents scheduling that comparison. Preparation determines request work once; execution reuses it. Recorder failures remain local failures rather than provider errors.
 
-See [skill packs](SKILL-PACKS.md) for configuration and current limits.
+See [skill packs](/skill-packs) for configuration and current limits.

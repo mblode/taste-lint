@@ -1,3 +1,8 @@
+---
+title: All-skills rule coverage audit
+hidden: true
+---
+
 # All-skills rule coverage audit
 
 ## Scope and method

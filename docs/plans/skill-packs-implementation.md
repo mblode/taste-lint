@@ -1,3 +1,8 @@
+---
+title: Skill pack implementation
+hidden: true
+---
+
 # Skill pack implementation
 
 Implement the audited packs through evidence-specific checks. Existing rule IDs and report contracts remain stable. Reuse one file read, one Markdown structure, and cached repository facts. Add repository/authoring taxonomy and explicit document profiles. Never execute commands found in a document or upload private profiles implicitly.
