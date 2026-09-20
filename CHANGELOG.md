@@ -1,5 +1,11 @@
 # taste-lint
 
+## 0.0.7
+
+### Patch Changes
+
+- 6b512e2: Compare near-scale font sizes against explicitly declared pixel tokens instead of flagging arbitrary values with a source regex. Parse complete JSX classes, preserve variants, and report unknown when scale evidence is unavailable. Keep the check advisory and avoid automatic size changes.
+
 ## 0.0.6
 
 ### Patch Changes
