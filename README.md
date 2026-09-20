@@ -16,10 +16,10 @@ Scan your project with local checks and [Jev by TypeSafe AI](https://docs.typesa
 ## Install
 
 ```bash
-npm install -g taste-lint
+npx taste-lint@latest init
 ```
 
-Requires Node 24.11 or later.
+Requires Node 24.11 or later. Run from your project directory to install locally and add check scripts.
 
 ## Quickstart
 
@@ -27,10 +27,12 @@ Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authenticati
 
 ```bash
 export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
-taste-lint scan .
+npm run taste
 ```
 
 No account or config for taste-lint. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Answers are cached for repeat runs.
+
+Run `npm run check:taste` for local checks without a key. Use your package manager in place of npm. Add `--agent` to init for agent instructions, or `--dry-run` to preview setup.
 
 ## What it checks
 
