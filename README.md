@@ -50,7 +50,7 @@ Rules draw on [Agent Skills](https://github.com/mblode/agent-skills) and [Taste 
 | `--output json`  | Save findings for scripts and agents                 |
 | `--output sarif` | Export findings for code review tools                |
 
-Run `taste-lint scan --help` for all options. See the [scan guide](https://github.com/mblode/taste-lint/blob/main/docs/SCANS.md), [usage reference](https://github.com/mblode/taste-lint/blob/main/docs/USAGE.md), and [changelog](https://github.com/mblode/taste-lint/blob/main/CHANGELOG.md) for more.
+Run `taste-lint scan --help` for all options. Docs: [taste-lint.blode.md](https://taste-lint.blode.md) ([quickstart](https://taste-lint.blode.md/quickstart), [scans](https://taste-lint.blode.md/scans), [usage](https://taste-lint.blode.md/usage)). Changelog: [CHANGELOG.md](https://github.com/mblode/taste-lint/blob/main/CHANGELOG.md).
 
 ## License
 

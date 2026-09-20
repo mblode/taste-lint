@@ -1,3 +1,8 @@
+---
+title: "taste-lint: taste as a linter"
+hidden: true
+---
+
 # taste-lint: taste as a linter
 
 Authoritative plan for this repository. The session plan file it was reviewed from lives outside the checkout and is not available to CI or other sessions; this copy wins where they differ.

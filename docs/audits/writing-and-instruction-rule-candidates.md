@@ -1,3 +1,8 @@
+---
+title: Writing and instruction rule candidates
+hidden: true
+---
+
 # Writing and instruction rule candidates
 
 Historical candidate audit, written before implementation. See [current implementation status](skill-pack-status.md) for shipped checks and remaining work.

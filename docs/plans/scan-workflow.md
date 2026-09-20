@@ -1,3 +1,8 @@
+---
+title: Scan workflow implementation
+hidden: true
+---
+
 # Scan workflow implementation
 
 Authoritative implementation plan for the scan-quality expansion.
