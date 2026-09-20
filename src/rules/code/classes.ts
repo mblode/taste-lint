@@ -137,8 +137,6 @@ export const CLASS_RULES: Rule[] = [
   }),
   motion({
     categoryId: "motion-restraint",
-    // Any animate-* utility with no motion-reduce or motion-safe variant on the
-    // element: the animation runs for users who asked for less motion.
     check: (unit) => {
       const classes = unit.classes ?? [];
       const animated = classes
@@ -147,15 +145,23 @@ export const CLASS_RULES: Rule[] = [
       if (animated.length === 0) {
         return none;
       }
-      const guarded = classes.some(
-        (c) => c.startsWith("motion-reduce:") || c.startsWith("motion-safe:")
-      );
+      const guarded =
+        classes.includes("motion-reduce:animate-none") ||
+        classes
+          .filter(
+            (c) =>
+              baseClass(c).startsWith("animate-") &&
+              baseClass(c) !== "animate-none"
+          )
+          .every((c) => c.split(":").includes("motion-safe"));
       return guarded ? none : hit(animated.join(" "));
     },
-    hint: "Gate the animation with motion-safe:animate-* or pair it with motion-reduce:animate-none so users who asked for less motion get less.",
+    hint: "Check shared CSS and component policy first. If no reduced-motion handling exists, use motion-safe:animate-* or motion-reduce:animate-none.",
     id: "motion-animate-without-reduced-motion",
     source: { line: 57, path: `${ANIMATION}/live-tuning.md` },
-    title: "Animation with no reduced-motion variant",
+    // Local class evidence cannot establish global or component motion policy.
+    status: "review-only",
+    title: "Animation has no local reduced-motion guard",
   }),
   shadcn({
     categoryId: "colour-system",

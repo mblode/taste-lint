@@ -7,6 +7,8 @@ import { gfm } from "micromark-extension-gfm";
 import { parseSync } from "oxc-parser";
 
 import type { ArchitecturePolicy } from "../types.js";
+import { htmlElements } from "./html.js";
+import type { HtmlElement } from "./html.js";
 
 export interface DocumentNode {
   type: string;
@@ -26,6 +28,7 @@ export interface ImportFact {
 }
 
 export interface SourceFacts {
+  html?: HtmlElement[];
   document?: DocumentNode;
   imports?: ImportFact[];
   parseError?: string;
@@ -162,7 +165,10 @@ export const sourceFacts = (
   repository: Repository
 ): SourceFacts => {
   const facts: SourceFacts = { repository };
-  if (/\.mdx?$/.test(file)) {
+  if (/\.html?$/.test(file)) {
+    facts.html = htmlElements(text);
+  }
+  if (/\.mdx?$/.test(file) || /(?:^|\/)llms(?:-full)?\.txt$/.test(file)) {
     facts.document = fromMarkdown(
       text.replace(/^---\r?\n[\s\S]*?\r?\n---(?=\r?\n|$)/, (m) =>
         m.replaceAll(/[^\r\n]/g, " ")

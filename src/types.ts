@@ -12,6 +12,7 @@ export const DOMAINS = [
   "architecture",
   "dx",
   "authoring",
+  "seo",
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 

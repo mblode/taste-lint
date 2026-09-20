@@ -2,7 +2,7 @@
 
 # Taste Lint
 
-**Catch vague copy, inconsistent typography, and UI problems before you ship**
+**Catch AI slop before you ship.**
 
 Scan your project with local checks and [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction).
 
@@ -23,13 +23,10 @@ Requires Node 24.11 or later.
 
 ## Quickstart
 
-Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). From your project directory, run this and paste your key when prompted:
+Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). From your project directory, set your key and run:
 
 ```bash
-printf 'Vercel AI Gateway key: '
-read -rs AI_GATEWAY_API_KEY
-export AI_GATEWAY_API_KEY
-printf '\n'
+export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
 taste-lint scan .
 ```
 
@@ -45,12 +42,12 @@ Rules draw on [Agent Skills](https://github.com/mblode/agent-skills) and [Taste 
 
 ## Useful options
 
-| Option | What it does |
-| --- | --- |
-| `--dry-run` | Preview scope and estimated cost without model calls |
-| `--mechanical-only` | Run local checks without an API key |
-| `--output json` | Save findings for scripts and agents |
-| `--output sarif` | Export findings for code review tools |
+| Option              | What it does                                         |
+| ------------------- | ---------------------------------------------------- |
+| `--dry-run`         | Preview scope and estimated cost without model calls |
+| `--mechanical-only` | Run local checks without an API key                  |
+| `--output json`     | Save findings for scripts and agents                 |
+| `--output sarif`    | Export findings for code review tools                |
 
 Run `taste-lint scan --help` for all options. See the [scan guide](https://github.com/mblode/taste-lint/blob/main/docs/SCANS.md), [usage reference](https://github.com/mblode/taste-lint/blob/main/docs/USAGE.md), and [changelog](https://github.com/mblode/taste-lint/blob/main/CHANGELOG.md) for more.
 

@@ -41,6 +41,11 @@ export const extractSource = (
 };
 
 export const SUPPORTED_GLOBS = [
+  "**/*.html",
+  "**/*.htm",
+  "**/llms.txt",
+  "**/llms-full.txt",
+  "**/robots.txt",
   "**/*.md",
   "**/*.mdx",
   "**/*.tsx",
