@@ -131,13 +131,13 @@ it.each([
     /needs scope.include/,
   ],
   [
-    "source rule with a question",
+    "source question without a candidate filter",
     {
-      mechanical: { regex: "x" },
+      mechanical: undefined,
       scope: { include: ["**/*.tsx"] },
       unit: ["source"],
     },
-    /no question/,
+    /mechanical candidate section/,
   ],
   [
     "thresholds order",

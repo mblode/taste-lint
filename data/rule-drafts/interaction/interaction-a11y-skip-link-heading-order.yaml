@@ -1,3 +1,4 @@
+# Requires composed page/layout evidence; a file-local main tag cannot prove absence.
 # Ported from mblode/agent-skills skills/ui-design/rules/a11y-skip-link-heading-order.md by scripts/port-rules.ts.
 # Keys listed in handWritten are preserved on re-run; everything else is regenerated.
 id: interaction-a11y-skip-link-heading-order
@@ -21,4 +22,4 @@ mechanical:
 severity: minor
 fix:
   hint: Include a skip link and keep heading levels sequential. Without both, keyboard and screen reader users walk the whole header on every page and lose the outline they navigate by.
-status: review-only
+status: draft

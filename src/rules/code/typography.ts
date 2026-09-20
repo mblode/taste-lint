@@ -11,11 +11,32 @@ import {
   sizeOrAbstain,
   UnresolvedError,
 } from "../../reduce/mechanical.js";
-import type { Rule } from "../../types.js";
+import type { Question, Rule } from "../../types.js";
 import { codeRule } from "./rule.js";
 
 const MODULE = "src/rules/code/typography.ts";
 const AUDIT = "skills/typography-audit/rules";
+const BODY_QUESTION: Question = {
+  context: ["element", "role"],
+  criteria: {
+    false: {
+      examples: [
+        "2026 · Open source",
+        "View this page as plain text",
+        "{project.period} · {project.tag}",
+      ],
+      what: "Metadata, caption, short control description, or unresolved text",
+    },
+    true: {
+      examples: [
+        "This guide explains how to configure and deploy your application.",
+      ],
+      what: "Substantive body prose",
+    },
+  },
+  instructions:
+    "The numeric style candidate was checked by code. Does TEXT contain substantive running prose rather than a caption, metadata, a short control description, or unresolved template expressions? Return false for dates, tags, project periods, menu descriptions, and text whose actual meaning is unavailable. Do not judge or calculate font sizes or spacing.",
+};
 const BODY_ROLES = new Set(["body", "list-item", "cell"]);
 
 // Colour classes that quiet an element rather than emphasise it.
@@ -46,6 +67,7 @@ export const TYPOGRAPHY_RULES: Rule[] = [
     },
     hint: "Body text reads at 15 to 19px on a phone and 18 to 24px on desktop. Keep 12 and 13px for captions and metadata nobody has to act on.",
     id: "typography-body-below-15px",
+    question: BODY_QUESTION,
     source: {
       line: 7,
       path: `${AUDIT}/size-body-text.md`,
@@ -71,6 +93,7 @@ export const TYPOGRAPHY_RULES: Rule[] = [
     },
     hint: "Remove the tracking from body text. Letter-spacing belongs to uppercase and small caps; if small text is hard to read, make it bigger.",
     id: "typography-letterspaced-body",
+    question: BODY_QUESTION,
     source: {
       line: 7,
       path: `${AUDIT}/spacing-letterspacing-body.md`,

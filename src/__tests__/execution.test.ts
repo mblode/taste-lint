@@ -226,3 +226,35 @@ it("propagates recorder failure without relabeling successful provider output", 
   expect(evaluate.calls).toHaveLength(1);
   expect(seen).toMatchObject([{ status: "ok" }]);
 });
+
+it("does not turn a form candidate into a defect without Jev", async () => {
+  const { loadRules, resolveRulesDir } = await import("../rules/load.js");
+  const selected = loadRules(resolveRulesDir(), {
+    only: ["interaction-no-disable-while-submitting"],
+  });
+  const source = {
+    ...unit(
+      "form",
+      "const Form = () => <form><button disabled={isSubmitting}>Send</button></form>;"
+    ),
+    file: "form.tsx",
+    kind: "source" as const,
+  };
+  const evaluate = fakeEvaluate(() => 0.01);
+  const result = await judge([source], selected, {
+    cache: cache(),
+    config: config("."),
+    evaluate,
+    model: "jev-latest",
+  });
+  expect(evaluate.calls).toHaveLength(1);
+  expect(result.mechanical).toHaveLength(0);
+  const oversized = { ...source, text: `${source.text}${"x".repeat(100_000)}` };
+  const preview = prepareJudgement([oversized], selected, {
+    cache: cache(),
+    config: config("."),
+    model: "jev-latest",
+  });
+  expect(preview.jobs).toHaveLength(0);
+  expect(preview.plan.unknowns[0]?.reason).toContain("context budget");
+});

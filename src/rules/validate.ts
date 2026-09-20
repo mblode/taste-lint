@@ -108,11 +108,11 @@ export const validateRule = (
   const mech =
     r.mechanical === undefined ? undefined : mechanical(file, r.mechanical);
   const q = r.question === undefined ? undefined : question(file, r.question);
-  // Jev never sees a whole file: a source rule is mechanical and nothing else.
-  if (unit.includes("source") && (q || !mech || unit.length > 1)) {
+  // Source questions require a candidate filter and bounded complete-file context.
+  if (unit.includes("source") && (!mech || unit.length > 1)) {
     fail(
       file,
-      "unit source needs a mechanical section, no question and no other unit kind"
+      "unit source needs a mechanical candidate section and no other unit kind"
     );
   }
   const status = oneOf(file, "status", r.status ?? "active", RULE_STATUSES);
