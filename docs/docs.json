@@ -4,12 +4,7 @@
     "default": "system"
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "description": "Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.",
   "favicon": "/favicon.svg",
@@ -42,20 +37,11 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
+        "pages": ["index", "quickstart"]
       },
       {
         "group": "Guides",
-        "pages": [
-          "scans",
-          "usage",
-          "design",
-          "typesafe",
-          "skill-packs"
-        ]
+        "pages": ["scans", "usage", "design", "typesafe", "skill-packs"]
       }
     ]
   }
