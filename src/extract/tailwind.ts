@@ -331,3 +331,74 @@ const resolveLeading = (
 // Split a className string into classes.
 export const splitClasses = (value: string): string[] =>
   value.split(/\s+/u).filter(Boolean);
+
+/** Only explicit pixel font tokens establish a scale for this comparison.
+ * Relative lengths need a rendered root size; other families need their own
+ * theme evidence. Neither is inferred from Tailwind's default typography.
+ */
+export const compareScale = (
+  classes: string[],
+  theme: Record<string, string> = {}
+): {
+  matches: {
+    className: string;
+    token: string;
+    stepPx: number;
+    difference: number;
+  }[];
+  unresolved: string[];
+} => {
+  const matches: ReturnType<typeof compareScale>["matches"] = [];
+  const unresolved: string[] = [];
+  for (const className of classes) {
+    const { base, variants } = stripVariants(className);
+    const candidate = base.match(
+      /^(text|p[xytrblse]?|m[xytrblse]?|gap(?:-[xy])?|space-[xy]|rounded(?:-[a-z]+)?|leading|w|h|size|inset|top|bottom|left|right)-\[(-?(?:\d+(?:\.\d+)?|\.\d+))px\]$/u
+    );
+    if (!candidate || Math.abs(Number(candidate[2])) <= 2) {
+      continue;
+    }
+    if (candidate[1] !== "text") {
+      unresolved.push(
+        `${className}: ${candidate[1]} scale family is unsupported`
+      );
+      continue;
+    }
+    const entries = Object.entries(theme);
+    if (!entries.length) {
+      unresolved.push(`${className}: no explicitly declared font scale`);
+      continue;
+    }
+    const value = Number(candidate[2]);
+    const resolved = entries.flatMap(([name, raw]) => {
+      if (
+        !/^[\w-]+$/u.test(name) ||
+        !/^(?:\d+(?:\.\d+)?|\.\d+)px$/u.test(raw)
+      ) {
+        return [];
+      }
+      const stepPx = Number(raw.slice(0, -2));
+      return Number.isFinite(stepPx) && stepPx > 0
+        ? [{ difference: Math.abs(value - stepPx), name, stepPx }]
+        : [];
+    });
+    const nearest = resolved.toSorted(
+      (a, b) => a.difference - b.difference || a.name.localeCompare(b.name)
+    )[0];
+    const tolerance =
+      Number.EPSILON * Math.max(1, Math.abs(value), nearest?.stepPx ?? 0);
+    if (nearest && nearest.difference <= 1 + tolerance) {
+      matches.push({
+        className,
+        difference: Math.min(nearest.difference, 1),
+        stepPx: nearest.stepPx,
+        token: [...variants, `text-${nearest.name}`].join(":"),
+      });
+    } else if (resolved.length < entries.length) {
+      unresolved.push(
+        `${className}: declared font scale contains unresolved values`
+      );
+    }
+  }
+  return { matches, unresolved };
+};

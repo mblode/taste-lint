@@ -451,6 +451,7 @@ export const extractTsx = (
           docType,
           dynamic: classInfo.dynamic || undefined,
           element: name,
+          fontScale: config?.tailwind.theme,
           interpolated: classInfo.interpolated || undefined,
           role,
         },

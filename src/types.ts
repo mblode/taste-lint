@@ -206,6 +206,8 @@ export interface WritingContext {
 }
 
 export interface UnitContext {
+  /** Explicit font-size tokens from taste-lint.config.json, never inferred defaults. */
+  fontScale?: Record<string, string>;
   section?: string;
   writingFacts?: string;
   writingProfile?: string;

@@ -71,6 +71,14 @@ Version 2 samples include source text and the full rule rubric, with examples an
 
 Label export rejects malformed corpus data, omits null labels, and refuses to overwrite an existing corpus file. It never invents human labels. Use held-out evidence before promoting rules. Mocks and scan volume do not establish semantic accuracy. Personal facts and profile checks stay available through `lint --writing-context`. scan does not load private profiles on its own.
 
+## Near-scale values
+
+`craft-near-duplicate-scale` compares parsed JSX font-size classes against the explicit `tailwind.theme` mapping in `taste-lint.config.json`. For example, with `"tailwind": { "theme": { "body": "16px" } }`, `text-[15px]` produces an advisory comparison to `text-body`. Exact matches also qualify; values farther than 1px do not.
+
+This check currently supports declared pixel font tokens only. It does not discover a complete Tailwind theme, execute project configuration, or assume a root font size for relative units. Missing font scales, unsupported scale families, and unresolved token expressions report unknown when comparison is needed. Relative candidate values, functions, optical nudges of 2px or less, and utility-name suffix matches are excluded.
+
+A near-scale comparison does not prove that the size is a mistake. Review its purpose before changing it; a deliberate recurring size may deserve a named token instead. The broader `craft-arbitrary-value-class` remains an advisory style preference, not a calibrated defect detector.
+
 ## Architecture adapter
 
 Generate a report with the target repository's dependency-cruiser install, then import it:

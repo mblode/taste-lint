@@ -1,8 +1,54 @@
 import { expect, it } from "vitest";
 
-import { resolveTypography } from "../extract/tailwind.js";
+import { compareScale, resolveTypography } from "../extract/tailwind.js";
 import type { Unit } from "../types.js";
 import { check } from "./helpers.js";
+
+it("does not substitute defaults or relative lengths for declared pixel tokens", () => {
+  expect(compareScale(["text-[15px]"]).unresolved).toHaveLength(1);
+  expect(compareScale(["text-[15px]"], { sm: "20px" }).matches).toEqual([]);
+  for (const value of [
+    "1rem",
+    "1em",
+    "var(--body)",
+    "calc(16px)",
+    "16",
+    "0px",
+  ]) {
+    expect(
+      compareScale(["text-[15px]"], { body: value }).unresolved
+    ).toHaveLength(1);
+  }
+  const comparison = compareScale(["hover:text-[15px]"], {
+    body: "16px",
+    sm: "14px",
+  });
+  expect(comparison.matches).toEqual([
+    {
+      className: "hover:text-[15px]",
+      difference: 1,
+      stepPx: 16,
+      token: "hover:text-body",
+    },
+  ]);
+  expect(
+    compareScale(["text-[15px]"], { body: "16px", other: "var(--other)" })
+      .matches
+  ).toHaveLength(1);
+  expect(
+    compareScale(["text-[20px]"], { body: "16px", other: "var(--other)" })
+      .unresolved
+  ).toHaveLength(1);
+});
+
+it("includes the decimal one-pixel boundary without widening the scale threshold", () => {
+  expect(
+    compareScale(["text-[15.1px]"], { body: "16.1px" }).matches
+  ).toMatchObject([{ difference: 1 }]);
+  expect(
+    compareScale(["text-[15.1px]"], { body: "16.10000001px" }).matches
+  ).toEqual([]);
+});
 
 it("resolves the default scale, arbitrary values and shorthand leading", () => {
   expect(resolveTypography(["text-sm"])).toMatchObject({
