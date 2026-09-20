@@ -27,7 +27,7 @@ export function registerInitCommand(program: Command): void {
         process.stdout.write("Agent instructions: AGENTS.md\n");
       }
       process.stdout.write(
-        `\nRun ${result.packageManager} run check:taste for local checks.\nSet AI_GATEWAY_API_KEY, then run ${result.packageManager} run taste for AI checks.\n`
+        `\nSet AI_GATEWAY_API_KEY, then run ${result.packageManager} run taste.\n`
       );
       if (options.install === false) {
         process.stdout.write(

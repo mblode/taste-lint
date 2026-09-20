@@ -26,7 +26,7 @@ it("previews detected setup without writing or installing", () => {
     agentAdded: true,
     packageManager: "pnpm",
     profile: "product",
-    scriptsAdded: ["check:taste", "taste"],
+    scriptsAdded: ["taste"],
   });
   expect(fs.readFileSync(path.join(root, "package.json"), "utf-8")).toBe(
     before
@@ -85,4 +85,16 @@ it("rejects invalid input before writes and skips existing dependencies", () => 
   expect(() => initProject({ dryRun: true, pm: "bad", root })).toThrow(
     "Choose --pm"
   );
+});
+it("upgrades the old generated no-AI script without changing custom scripts", () => {
+  const root = project({
+    scripts: {
+      "check:taste": "taste-lint scan . --profile product --mechanical-only",
+    },
+  });
+  initProject({ install: false, root });
+  expect(
+    JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8"))
+      .scripts["check:taste"]
+  ).toBe("taste-lint scan . --profile product");
 });

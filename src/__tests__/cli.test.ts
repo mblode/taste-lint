@@ -40,7 +40,6 @@ it("keeps piped JSON clean and threshold policy consistent", () => {
     "--root",
     root,
     "note.md",
-    "--mechanical-only",
     "--only",
     "typography-straight-quotes",
     "--results-dir",
@@ -70,4 +69,11 @@ it("fails on missing targets and exposes help without credentials", () => {
   expect(missing.status).toBe(1);
   expect(run("--version").status).toBe(0);
   expect(run("lint", "--help").stdout).toContain("--progress");
+});
+it("rejects the removed no-AI mode", () => {
+  for (const command of ["scan", "lint"]) {
+    const result = run(command, ".", "--mechanical-only", "--output=json");
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout).code).toBe("INVALID_ARGUMENT");
+  }
 });

@@ -67,7 +67,6 @@ Installs the `taste-lint` skill for Claude Code, Codex, Cursor and OpenCode: how
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--dry-run` |  | Plan and print units, requests and estimated cost without calling Jev |
-| `--mechanical-only` |  | Skip every Jev-backed rule; no key needed |
 | `--only <ids>` |  | Comma-separated rule ids |
 | `--exclude <globs>` |  | Comma-separated globs to skip, added to `taste-lint.config.json` |
 | `--fail-on <severity>` | `minor` | Lowest severity that fails the run |
@@ -108,7 +107,7 @@ Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. T
 
 ## Project setup
 
-Run `npx taste-lint@latest init` in a directory containing package.json. Setup detects the package manager from packageManager or a lockfile, installs Taste Lint as a development dependency, and adds `check:taste` for local checks and `taste` for AI scans. React, Next.js, Vue, Svelte, and Astro dependencies select the product profile; other projects start with writing. You can edit the scripts to choose another profile.
+Run `npx taste-lint@latest init` in a directory containing package.json. Setup detects the package manager from packageManager or a lockfile, installs Taste Lint as a development dependency, and adds `taste` to run the Jev-powered scan. React, Next.js, Vue, Svelte, and Astro dependencies select the product profile; other projects start with writing. You can edit the scripts to choose another profile.
 
 Existing scripts and dependencies are preserved. Repeating setup adds only missing scripts. Options:
 

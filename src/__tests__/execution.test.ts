@@ -177,19 +177,18 @@ it("skips the explicitly excluded document types before scheduling polish checks
   });
 });
 
-it("treats disabled model rules as skipped, never pending", async () => {
+it("keeps unevaluated model rules pending instead of skipping them", async () => {
   const result = await judge([unit("a")], [rule()], {
     cache: cache(),
     config: config("."),
-    mechanicalOnly: true,
     model: "jev-latest",
   });
   expect(result.coverage.byRule[rule().id]).toMatchObject({
-    eligible: 0,
-    pending: 0,
-    skipped: 1,
+    eligible: 1,
+    pending: 1,
+    skipped: 0,
   });
-  expect(result.skipped.get("a")?.[rule().id]).toBe("mechanical_only");
+  expect(result.skipped.get("a")?.[rule().id]).toBeUndefined();
 });
 
 it("keeps the sentence threshold independent of quoted versus unquoted prose", async () => {

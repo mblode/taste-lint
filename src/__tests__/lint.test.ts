@@ -130,15 +130,15 @@ it("refuses to run Jev rules without a key or an injected evaluate", async () =>
   await expect(
     runLint({ apiKey: undefined, resultsDir, root, rulesDir, targets: ["."] })
   ).rejects.toThrow(/AI_GATEWAY_API_KEY/);
-  const mechanical = await runLint({
-    mechanicalOnly: true,
+  const preview = await runLint({
+    dryRun: true,
     resultsDir,
     root,
     rulesDir,
     targets: ["."],
   });
-  expect(mechanical.usage.requests).toBe(0);
-  expect(mechanical.findings.every((f) => f.tier === "mechanical")).toBe(true);
+  expect(preview.usage.requests).toBe(0);
+  expect(preview.status).toBe("dry-run");
 });
 
 it("prints request payloads with sorted keys and renders SARIF", async () => {
@@ -183,7 +183,7 @@ it("honours smartQuotesAtBuild and suppression comments", async () => {
     'export const N = () => (\n  <>\n    {/* taste-lint-ignore: typography-straight-quotes */}\n    <p>A "quoted" line</p>\n    <p>Another "quoted" line</p>\n  </>\n);\n'
   );
   const result = await runLint({
-    mechanicalOnly: true,
+    only: ["typography-straight-quotes"],
     resultsDir,
     root,
     rulesDir,

@@ -37,7 +37,6 @@ const lintFix = (root: string) =>
   runLint(
     {
       fix: true,
-      mechanicalOnly: true,
       resultsDir: path.join(root, "results"),
       root,
       rulesDir: path.join(FIXTURES, "rules"),

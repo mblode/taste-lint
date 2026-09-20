@@ -141,7 +141,7 @@ Repository file discovery respects Git ignore rules, including nested ignore fil
 
 ## Search and agent discovery
 
-`taste-lint scan . --profile discovery --mechanical-only` checks existing static HTML, robots.txt and llms.txt artifacts. It validates page titles, empty descriptions/canonicals, conflicting canonical declarations, JSON-LD syntax, sitemap directive URLs, and agent-index structure and size. Common email-template directories are excluded. All new discovery checks are advisory.
+`taste-lint scan . --profile discovery` checks existing static HTML, robots.txt and llms.txt artifacts. It validates page titles, empty descriptions/canonicals, conflicting canonical declarations, JSON-LD syntax, sitemap directive URLs, and agent-index structure and size. Common email-template directories are excluded. All new discovery checks are advisory.
 
 These checks do not evaluate Next.js metadata source as deployed HTML, fetch URLs, validate schema.org eligibility, or infer missing generated routes. Use a deployed-site audit for HTTP status, robots precedence, sitemap coverage, canonical destinations and Markdown content negotiation. An empty discovery scan is incomplete, not evidence that a site passed. Point scans at actual artifacts and exclude unrelated saved pages.
 

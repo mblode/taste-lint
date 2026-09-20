@@ -34,7 +34,6 @@ export const registerScanCommand = (program: Command): void => {
     )
     .option("--exclude <globs>", "Additional comma-separated exclusions")
     .option("--dry-run", "Preview scope and cost without provider calls")
-    .option("--mechanical-only", "Run deterministic checks only")
     .option("--model <id>", "Evaluation model", "jev-latest")
     .option(
       "--results-dir <path>",

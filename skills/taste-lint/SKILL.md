@@ -18,7 +18,6 @@ Is not: the rules themselves (they ship inside the package and trace back to the
 | --- | --- |
 | `taste-lint lint <paths> --dry-run` | Units, requests and estimated cost, no calls. Always first. |
 | `taste-lint lint <paths>` | The run. Needs the user’s `AI_GATEWAY_API_KEY` (Vercel AI Gateway). Results land in `results/lint-<timestamp>.jsonl`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
-| `taste-lint lint <paths> --mechanical-only` | Regex and value checks only, no key. |
 | `taste-lint lint <paths> --output json` | For scripts: findings, scorecard and usage on stdout, and an error as a `{ error, code, message }` envelope instead of text. `--output sarif` for code scanning. |
 | `taste-lint lint --url <url>` | Computed styles through style-capture and a local Chromium; `--capture file.json` lints a saved capture. |
 | `taste-lint eval` and `taste-lint tune` | Precision, recall and calibration per rule on the labelled corpus; `tune --write` is the only thing that promotes a rule. |

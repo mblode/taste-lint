@@ -50,7 +50,6 @@ export interface LintOptions {
   exclude?: string[];
   dryRun?: boolean;
   printRequests?: boolean;
-  mechanicalOnly?: boolean;
   noCache?: boolean;
   limitUnits?: number;
   failOn?: Severity;
@@ -188,22 +187,17 @@ export const runLint = async (
   const judgeOptions = {
     cache,
     config,
-    mechanicalOnly: options.mechanicalOnly,
     model,
   };
   const prepared = prepareJudgement(units, rules, judgeOptions);
   let evaluate = ctx.evaluate;
   let recorder: RecorderHandle | undefined;
-  if (
-    !options.dryRun &&
-    !options.mechanicalOnly &&
-    prepared.pending.length > 0
-  ) {
+  if (!options.dryRun && prepared.pending.length > 0) {
     evaluate ??= evaluateFromEnv(options.apiKey);
     if (!evaluate) {
       throw new InputError(
         "MISSING_CREDENTIALS",
-        `${KEY_HINT} Or run with --dry-run or --mechanical-only.`
+        `${KEY_HINT} Use --dry-run to preview without calling Jev.`
       );
     }
   } else {

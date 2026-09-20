@@ -144,7 +144,6 @@ it("runs whole-file source rules and points the finding at the first match", asy
   copyFixtures(root, ["card.tsx"]);
   const result = await runLint(
     {
-      mechanicalOnly: true,
       only: ["interaction-labels-and-autocomplete"],
       resultsDir: path.join(root, "results"),
       root,
