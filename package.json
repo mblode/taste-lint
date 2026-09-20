@@ -1,6 +1,6 @@
 {
   "name": "taste-lint",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Taste linter: copy and typography rules from agent-skills answered by TypeSafe Jev probabilities, with mechanical checks, calibration and a scorecard",
   "keywords": [
     "copywriting",
