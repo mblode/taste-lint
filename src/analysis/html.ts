@@ -25,7 +25,7 @@ export const htmlElements = (source: string): HtmlElement[] => {
       "tagName" in node &&
       node.namespaceURI === "http://www.w3.org/1999/xhtml" &&
       node.sourceCodeLocation &&
-      ["title", "meta", "link", "script"].includes(node.tagName)
+      ["title", "meta", "link", "script", "img"].includes(node.tagName)
     ) {
       output.push({
         attrs: Object.fromEntries(node.attrs.map((a) => [a.name, a.value])),

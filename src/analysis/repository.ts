@@ -29,6 +29,7 @@ export interface ImportFact {
 
 export interface SourceFacts {
   html?: HtmlElement[];
+  images?: { offset: number; attributes: string[]; spread: boolean }[];
   document?: DocumentNode;
   imports?: ImportFact[];
   parseError?: string;
@@ -167,6 +168,13 @@ export const sourceFacts = (
   const facts: SourceFacts = { repository };
   if (/\.html?$/.test(file)) {
     facts.html = htmlElements(text);
+    facts.images = facts.html
+      .filter((element) => element.tag === "img")
+      .map((element) => ({
+        attributes: Object.keys(element.attrs),
+        offset: element.offset,
+        spread: false,
+      }));
   }
   if (/\.mdx?$/.test(file) || /(?:^|\/)llms(?:-full)?\.txt$/.test(file)) {
     facts.document = fromMarkdown(
@@ -184,6 +192,41 @@ export const sourceFacts = (
       } else {
         facts.imports = [];
         importsFrom(parsed.program, facts.imports);
+        facts.images = [];
+        const visit = (value: unknown): void => {
+          if (Array.isArray(value)) {
+            for (const child of value) {
+              visit(child);
+            }
+            return;
+          }
+          if (!value || typeof value !== "object") {
+            return;
+          }
+          const node = value as {
+            type?: string;
+            name?: { name?: string };
+            start: number;
+            attributes: { type: string; name: { name: string } }[];
+          };
+          if (node.type === "JSXOpeningElement" && node.name?.name === "img") {
+            facts.images?.push({
+              attributes: node.attributes
+                .filter((a) => a.type === "JSXAttribute")
+                .map((a) => a.name.name),
+              offset: node.start,
+              spread: node.attributes.some(
+                (a) => a.type === "JSXSpreadAttribute"
+              ),
+            });
+          }
+          for (const [key, child] of Object.entries(node)) {
+            if (key !== "comments") {
+              visit(child);
+            }
+          }
+        };
+        visit(parsed.program);
       }
     } catch {
       facts.parseError = "Source could not be parsed";

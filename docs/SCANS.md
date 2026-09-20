@@ -148,3 +148,11 @@ These checks do not evaluate Next.js metadata source as deployed HTML, fetch URL
 The source-pattern rules `craft-affordance-mismatch` and `craft-virtualize-large-lists` have moved to `data/rule-drafts`: hover styling does not prove an inert interaction, and a mapped list does not establish its size. Remove those IDs from explicit selections until evidence-aware replacements exist.
 
 Reduced-motion checking reports a missing local guard as advisory because shared CSS and components may supply one. It no longer treats unrelated reduced-motion classes as proof that animation is guarded. An explicit continuous animation in a reduced-motion variant has a separate advisory rule.
+
+### Source evidence
+
+Source rules may use a mechanical candidate filter followed by a Jev question. A candidate such as a form tag is not a finding until Jev evaluates the supplied code. Source judgments receive at most 6,000 estimated tokens of complete source; oversized candidates report unknown instead of using a truncated file. These questions remain advisory until calibrated.
+
+Image attribute checks parse JSX and HTML rather than matching comment or string examples. Spread attributes and dimensions supplied by styles remain unresolved. The file-local skip-link rule is retired because inherited layouts require composed-page evidence.
+
+Body-size and letter-spacing checks measure styles in code, then ask Jev whether the text is substantive prose. Captions, metadata, and short control descriptions are excluded by that judgment. These semantic checks remain advisory.

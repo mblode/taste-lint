@@ -5,6 +5,7 @@ import { charsPerTokenFor, estimateTokens } from "../lib/tokens.js";
 import type { ContextKey, Rule, Unit } from "../types.js";
 
 export const STATE_TOKEN_CAP = 1500;
+const SOURCE_TOKEN_CAP = 6000;
 
 export const buildState = (
   unit: Unit,
@@ -22,7 +23,7 @@ export const buildState = (
   const budgetFor = (label: string): number =>
     Math.max(
       0,
-      STATE_TOKEN_CAP -
+      (unit.kind === "source" ? SOURCE_TOKEN_CAP : STATE_TOKEN_CAP) -
         estimateTokens(lines.join("\n"), perToken) -
         estimateTokens(label, perToken)
     );

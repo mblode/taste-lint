@@ -207,6 +207,20 @@ export const planRequests = (
         negatives.set(unit.id, ids);
         continue;
       }
+      if (
+        unit.kind === "source" &&
+        rule.question &&
+        buildState(unit, [rule]).truncated
+      ) {
+        unknowns.push({
+          file: unit.file,
+          line: unit.line,
+          reason: "Source exceeds the semantic context budget",
+          ruleId: rule.id,
+          unitId: unit.id,
+        });
+        continue;
+      }
       if (rule.tier === "mechanical") {
         mechanical.push(mechanicalFinding(rule, unit, hit));
       } else {

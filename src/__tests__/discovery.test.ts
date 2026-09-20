@@ -159,3 +159,33 @@ it("does not send embedded product names in ordinary sentences to the title-case
     runMechanical(rule.mechanical!, { ...u, text: "Copy Task Number" }).fired
   ).toBe(true);
 });
+
+it("checks actual images rather than tags inside comments and strings", () => {
+  const image = check("interaction-a11y-image-alt-text");
+  expect(
+    image(
+      unit(
+        "image.tsx",
+        '/* <img> */ const example = "<img>"; const view = <img alt="" width={100} height={100} />;'
+      )
+    ).fired
+  ).toBe(false);
+  expect(
+    image(unit("image.tsx", "const view = <img src='photo.jpg' />;")).fired
+  ).toBe(true);
+  expect(
+    image(unit("image.html", '<!-- <img> --><img alt="" src="photo.jpg">'))
+      .fired
+  ).toBe(false);
+  expect(() =>
+    image(unit("image.tsx", "const view = <img {...props} />;"))
+  ).toThrow(UnresolvedError);
+  expect(
+    check("craft-image-dimensions-and-priority")(
+      unit(
+        "image.tsx",
+        "/* <img> */ const view = <img width={1200} height={630} />;"
+      )
+    ).fired
+  ).toBe(false);
+});
