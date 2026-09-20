@@ -32,7 +32,6 @@ export interface JudgeOptions {
   cache: AnswerCache;
   /** Absent means answers come from the cache only (a dry run). */
   evaluate?: Evaluate;
-  mechanicalOnly?: boolean;
   recorder?: RecorderHandle;
   onProgress?: (progress: Progress) => void;
   /** Narrow or drop a job before it is prepared (eval keeps labelled rules only). */
@@ -59,25 +58,8 @@ export const prepareJudgement = (
   rules: Rule[],
   options: JudgeOptions
 ) => {
-  const plan = planRequests(
-    units,
-    options.mechanicalOnly
-      ? rules.filter((r) => r.tier === "mechanical")
-      : rules,
-    options.config
-  );
-  if (options.mechanicalOnly) {
-    for (const unit of units) {
-      const skipped = plan.skipped.get(unit.id) ?? {};
-      for (const rule of rules) {
-        if (rule.tier !== "mechanical") {
-          skipped[rule.id] = "mechanical_only";
-        }
-      }
-      plan.skipped.set(unit.id, skipped);
-    }
-  }
-  let jobs = options.mechanicalOnly ? [] : plan.jobs;
+  const plan = planRequests(units, rules, options.config);
+  let jobs = plan.jobs;
   if (options.jobFilter) {
     jobs = jobs
       .map((job) => options.jobFilter?.(job) ?? null)

@@ -21,7 +21,6 @@ it("does not report a clean scan when JSX cannot be parsed", async () => {
     "export const App = () => <div"
   );
   const options = {
-    mechanicalOnly: true,
     only: ["typography-straight-quotes"],
     root,
     targets: ["broken.tsx"],
@@ -42,7 +41,6 @@ it("does not report a clean lint when exclusions remove every input", async () =
   fs.writeFileSync(path.join(root, "page.md"), "Hello.");
   const result = await runLint({
     exclude: ["**/*.md"],
-    mechanicalOnly: true,
     root,
     targets: ["."],
   });

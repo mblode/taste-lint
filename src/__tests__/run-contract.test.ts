@@ -14,7 +14,6 @@ const fixture = () => {
   roots.push(root);
   fs.writeFileSync(path.join(root, "note.md"), 'A "quoted" word.\n');
   return {
-    mechanicalOnly: true,
     only: ["typography-straight-quotes"],
     resultsDir: path.join(root, "results"),
     root,
@@ -49,7 +48,6 @@ it("validates nested config before extracting or calling a provider", () => {
 it("can finish entirely from cache without credentials", async () => {
   const opts = {
     ...fixture(),
-    mechanicalOnly: false,
     only: ["copywriting-generic-framing"],
   };
   const { fakeEvaluate } = await import("./helpers.js");
@@ -63,7 +61,6 @@ it("can finish entirely from cache without credentials", async () => {
 it("preserves every same-category finding while bounding the human view", async () => {
   const opts = {
     ...fixture(),
-    mechanicalOnly: false,
     only: ["copywriting-unnatural-polish", "copywriting-generic-language"],
   };
   const { fakeEvaluate } = await import("./helpers.js");

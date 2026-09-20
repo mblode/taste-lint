@@ -41,7 +41,6 @@ Quickstart:
   taste-lint scan .
 
 Preview: taste-lint scan . --dry-run
-Without a key: taste-lint scan . --mechanical-only
 Get a key: https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys
 `
   );

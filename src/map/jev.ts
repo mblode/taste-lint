@@ -18,7 +18,7 @@ export const DEFAULT_MODEL = "jev-latest";
 /** The gateway's id for Jev; a `--model` with a slash in it is passed through. */
 export const GATEWAY_MODEL = "typesafe-ai/jev";
 export const KEY_HINT =
-  "Set AI_GATEWAY_API_KEY to your Vercel AI Gateway key, then rerun. Create a key at https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys. Use --mechanical-only for lint/scan without a key.";
+  "Set AI_GATEWAY_API_KEY to your Vercel AI Gateway key, then rerun. Create a key at https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys.";
 const MAX_RETRY_AFTER_MS = 30_000;
 
 export class ProviderError extends Error {

@@ -4,7 +4,7 @@
 
 **Catch AI slop before you ship.**
 
-Scan your project with local checks and [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction).
+Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction).
 
 <p align="center">
   <a href="https://www.npmjs.com/package/taste-lint"><img alt="npm version" src="https://img.shields.io/npm/v/taste-lint?style=flat&colorA=000000&colorB=000000" /></a>
@@ -19,7 +19,7 @@ Scan your project with local checks and [Jev by TypeSafe AI](https://docs.typesa
 npx taste-lint@latest init
 ```
 
-Requires Node 24.11 or later. Run from your project directory to install locally and add check scripts.
+Requires Node 24.11 or later. Run from your project directory to install locally and add a scan script.
 
 ## Quickstart
 
@@ -32,7 +32,7 @@ npm run taste
 
 No account or config for taste-lint. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Answers are cached for repeat runs.
 
-Run `npm run check:taste` for local checks without a key. Use your package manager in place of npm. Add `--agent` to init for agent instructions, or `--dry-run` to preview setup.
+Use your package manager in place of npm. Add `--agent` to init for agent instructions, or `--dry-run` to preview setup.
 
 ## What it checks
 
@@ -44,12 +44,11 @@ Rules draw on [Agent Skills](https://github.com/mblode/agent-skills) and [Taste 
 
 ## Useful options
 
-| Option              | What it does                                         |
-| ------------------- | ---------------------------------------------------- |
-| `--dry-run`         | Preview scope and estimated cost without model calls |
-| `--mechanical-only` | Run local checks without an API key                  |
-| `--output json`     | Save findings for scripts and agents                 |
-| `--output sarif`    | Export findings for code review tools                |
+| Option           | What it does                                         |
+| ---------------- | ---------------------------------------------------- |
+| `--dry-run`      | Preview scope and estimated cost without model calls |
+| `--output json`  | Save findings for scripts and agents                 |
+| `--output sarif` | Export findings for code review tools                |
 
 Run `taste-lint scan --help` for all options. See the [scan guide](https://github.com/mblode/taste-lint/blob/main/docs/SCANS.md), [usage reference](https://github.com/mblode/taste-lint/blob/main/docs/USAGE.md), and [changelog](https://github.com/mblode/taste-lint/blob/main/CHANGELOG.md) for more.
 

@@ -38,7 +38,6 @@ afterEach(() => {
   }
 });
 const optionsFor = (root: string) => ({
-  mechanicalOnly: true,
   only: ["typography-straight-quotes"],
   profile: "writing",
   resultsDir: path.join(root, "results"),
@@ -278,7 +277,6 @@ it("exercises the packaged scan CLI and SARIF fingerprints", () => {
       root,
       "--profile",
       "writing",
-      "--mechanical-only",
       "--only",
       "typography-straight-quotes",
       "--output",

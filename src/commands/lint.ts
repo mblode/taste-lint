@@ -40,7 +40,6 @@ export function registerLintCommand(program: Command): void {
       "--writing-context <file>",
       "Explicit JSON facts/profile/instructions for personal writing; sent to Jev on live runs"
     )
-    .option("--mechanical-only", "Skip every Jev-backed rule")
     .option(
       "--no-cache",
       "Ignore cached answers (new answers are still recorded)"
@@ -75,7 +74,6 @@ export function registerLintCommand(program: Command): void {
           exclude?: string;
           dryRun?: boolean;
           printRequests?: boolean;
-          mechanicalOnly?: boolean;
           cache: boolean;
           limitUnits?: string;
           failOn: string;
@@ -169,7 +167,6 @@ export function registerLintCommand(program: Command): void {
             failOn: options.failOn as Severity,
             fix: options.fix,
             limitUnits,
-            mechanicalOnly: options.mechanicalOnly,
             model: options.model,
             noCache: !options.cache,
             only: options.only

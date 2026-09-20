@@ -271,7 +271,6 @@ it("reports source-only repository findings and unknowns without provider calls"
       '{"main":"dist/index.js","scripts":{"build":"tsdown"},"exports":{".":"./index.js","import":"./index.js"}}',
   });
   const result = await runLint({
-    mechanicalOnly: true,
     only: ["dx-exports-mixed-keys", "dx-package-entry-target"],
     root: fixture.root,
     targets: ["package.json"],

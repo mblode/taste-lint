@@ -26,7 +26,6 @@ export interface ScanOptions {
   only?: string[];
   exclude?: string[];
   dryRun?: boolean;
-  mechanicalOnly?: boolean;
   resultsDir?: string;
   model?: string;
   baseline?: string;
@@ -79,7 +78,6 @@ export const runScan = async (
     config: { ...config, root: undefined },
     exclude,
     graph: graph?.digest,
-    mechanicalOnly: !!options.mechanicalOnly,
     model: options.model ?? "jev-latest",
     profile,
     root,
@@ -111,7 +109,6 @@ export const runScan = async (
       docTypes: profile.docTypes,
       dryRun: options.dryRun,
       exclude,
-      mechanicalOnly: options.mechanicalOnly,
       model: options.model,
       only: rules.map((r) => r.id),
       resultsDir: options.resultsDir,

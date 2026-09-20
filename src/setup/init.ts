@@ -17,8 +17,7 @@ const marker = "<!-- taste-lint -->";
 const agentText = `${marker}
 ## Taste Lint
 
-Run the local check with the project's check:taste script after editing copy or UI.
-For AI checks, preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
+Taste Lint uses Jev to judge copy and UI. Preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
 Fix act findings, review advisory findings in context, and recheck the edited files.
 Never invent a key or treat unknown checks as passes.
 <!-- /taste-lint -->
@@ -93,8 +92,16 @@ export function initProject(options: InitOptions) {
     : "writing";
   const scripts = { ...(manifest.scripts as Record<string, unknown>) };
   const added: string[] = [];
+  for (const oldProfile of ["product", "writing"]) {
+    if (
+      scripts["check:taste"] ===
+      `taste-lint scan . --profile ${oldProfile} --mechanical-only`
+    ) {
+      scripts["check:taste"] = `taste-lint scan . --profile ${oldProfile}`;
+      added.push("check:taste");
+    }
+  }
   for (const [name, command] of Object.entries({
-    "check:taste": `taste-lint scan . --profile ${profile} --mechanical-only`,
     taste: `taste-lint scan . --profile ${profile}`,
   })) {
     if (!(name in scripts)) {
@@ -107,6 +114,18 @@ export function initProject(options: InitOptions) {
     options.agent && fs.existsSync(agentPath)
       ? fs.readFileSync(agentPath, "utf-8")
       : "";
+  const legacyAgentText = `${marker}
+## Taste Lint
+
+Run the local check with the project's check:taste script after editing copy or UI.
+For AI checks, preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
+Fix act findings, review advisory findings in context, and recheck the edited files.
+Never invent a key or treat unknown checks as passes.
+<!-- /taste-lint -->
+`;
+  const upgradeAgent = Boolean(
+    options.agent && previousAgent.includes(legacyAgentText)
+  );
   const addAgent = Boolean(options.agent && !previousAgent.includes(marker));
   const needsDependency = !("taste-lint" in dependencies);
   const installArgs =
@@ -114,7 +133,7 @@ export function initProject(options: InitOptions) {
   installArgs.push(`taste-lint@^${pkg.version}`);
   const shouldInstall = needsDependency && options.install !== false;
   const result = {
-    agentAdded: addAgent,
+    agentAdded: addAgent || upgradeAgent,
     dryRun: Boolean(options.dryRun),
     installCommand: shouldInstall ? [pm, ...installArgs] : null,
     packageManager: pm,
@@ -146,6 +165,12 @@ export function initProject(options: InitOptions) {
   if (added.length > 0) {
     manifest.scripts = scripts;
     fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  }
+  if (upgradeAgent) {
+    fs.writeFileSync(
+      agentPath,
+      previousAgent.replace(legacyAgentText, agentText)
+    );
   }
   if (addAgent) {
     fs.writeFileSync(
