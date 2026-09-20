@@ -1,3 +1,8 @@
+---
+title: Taste-lint review and tidy
+hidden: true
+---
+
 # Taste-lint review and tidy
 
 Rating after this pass: **7/10**. This is an engineering judgment, not a measured accuracy score.

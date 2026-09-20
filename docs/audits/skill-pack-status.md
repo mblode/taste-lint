@@ -1,3 +1,8 @@
+---
+title: Skill pack implementation status
+hidden: true
+---
+
 # Skill pack implementation status
 
 This is an implementation ledger, not a claim that every sentence in every skill is now a lint rule. The [source discovery snapshot](skill-source-discovery.json) records each discovered entrypoint, rule, reference, and guideline with source headings and rule citations. Uncited sources remain `needs-triage`; a citation does not mean full semantic coverage.

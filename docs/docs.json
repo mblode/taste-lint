@@ -1,0 +1,62 @@
+{
+  "$schema": "https://blode.md/docs.json",
+  "appearance": {
+    "default": "system"
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "description": "Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.",
+  "favicon": "/favicon.svg",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "metadata": {
+    "timestamp": true
+  },
+  "name": "Taste Lint",
+  "slug": "taste-lint",
+  "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://blode.co"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/mblode/taste-lint"
+      },
+      {
+        "label": "npm",
+        "href": "https://www.npmjs.com/package/taste-lint"
+      }
+    ]
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "scans",
+          "usage",
+          "design",
+          "typesafe",
+          "skill-packs"
+        ]
+      }
+    ]
+  }
+}

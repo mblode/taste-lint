@@ -1,3 +1,8 @@
+---
+title: Codebase architecture rule candidates
+hidden: true
+---
+
 # Codebase architecture rule candidates
 
 Historical candidate audit, written before implementation. See [current implementation status](skill-pack-status.md) for shipped checks and remaining work.
