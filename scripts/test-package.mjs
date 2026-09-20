@@ -165,8 +165,51 @@ try {
   }
   assert.equal(failed?.status, 1, "A Jev run without a key must exit nonzero");
   assert.match(String(failed.stderr), /AI_GATEWAY_API_KEY/);
+  fs.writeFileSync(
+    path.join(project, "scale.tsx"),
+    'export const X = () => <p className="text-[15px] max-w-[900px]">Body</p>;'
+  );
+  const scaleScan = () =>
+    JSON.parse(
+      run(
+        process.execPath,
+        [
+          cli,
+          "scan",
+          "scale.tsx",
+          "--root",
+          project,
+          "--only",
+          "craft-near-duplicate-scale",
+          "--output",
+          "json",
+          "--results-dir",
+          path.join(temporary, "results"),
+        ],
+        consumer,
+        env
+      )
+    );
+  const missingScale = scaleScan();
+  assert.equal(missingScale.findings.length, 0);
+  assert.equal(missingScale.unknowns.length, 1);
+  assert.match(
+    missingScale.unknowns[0].reason,
+    /no explicitly declared font scale/
+  );
+  fs.writeFileSync(
+    path.join(project, "taste-lint.config.json"),
+    JSON.stringify({
+      tailwind: { theme: { body: "16px" } },
+    })
+  );
+  const declaredScale = scaleScan();
+  assert.equal(declaredScale.unknowns.length, 0);
+  assert.equal(declaredScale.findings.length, 1);
+  assert.match(declaredScale.findings[0].evidence, /text-body \(16px\)/);
+  assert.doesNotMatch(declaredScale.findings[0].evidence, /900px/);
   console.log(
-    "Packed artifact passed: rules, dry-run lint and key guard verified offline."
+    "Packed artifact passed: rules, dry-run lint, key guard and scale evidence verified offline."
   );
 } finally {
   fs.rmSync(temporary, { force: true, recursive: true });

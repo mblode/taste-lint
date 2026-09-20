@@ -161,3 +161,11 @@ Source rules may use a mechanical candidate filter followed by a Jev question. A
 Image attribute checks parse JSX and HTML rather than matching comment or string examples. Spread attributes and dimensions supplied by styles remain unresolved. The file-local skip-link rule is retired because inherited layouts require composed-page evidence.
 
 Body-size and letter-spacing checks measure styles in code, then ask Jev whether the text is substantive prose. Captions, metadata, and short control descriptions are excluded by that judgment. These semantic checks remain advisory.
+
+### Near-scale values
+
+`craft-near-duplicate-scale` compares parsed JSX font-size classes against the explicit `tailwind.theme` mapping in `taste-lint.config.json`. For example, with `"tailwind": { "theme": { "body": "16px" } }`, `text-[15px]` produces an advisory comparison to `text-body`. Exact matches also qualify; values farther than 1px do not.
+
+This check currently supports declared pixel font tokens only. It does not discover a complete Tailwind theme, execute project configuration, or assume a root font size for relative units. Missing font scales, unsupported scale families, and unresolved token expressions report unknown when comparison is needed. Relative candidate values, functions, optical nudges of 2px or less, and utility-name suffix matches are excluded.
+
+A near-scale comparison does not prove that the size is a mistake. Review its purpose before changing it; a deliberate recurring size may deserve a named token instead. The broader `craft-arbitrary-value-class` remains an advisory style preference, not a calibrated defect detector.

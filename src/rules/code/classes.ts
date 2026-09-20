@@ -2,7 +2,13 @@
 // design-system hygiene (the shadcn/lint rules) over an element's own class
 // list. Variants are stripped so `hover:ease-in` counts as `ease-in`.
 
-import { baseClass, hit, none } from "../../reduce/mechanical.js";
+import { compareScale } from "../../extract/tailwind.js";
+import {
+  baseClass,
+  hit,
+  none,
+  UnresolvedError,
+} from "../../reduce/mechanical.js";
 import type { Rule, Unit } from "../../types.js";
 import { codeRule } from "./rule.js";
 
@@ -71,6 +77,42 @@ const shadcn = (
   });
 
 export const CLASS_RULES: Rule[] = [
+  rule({
+    categoryId: "look-constraints",
+    check: (unit) => {
+      const compared = compareScale(unit.classes ?? [], unit.context.fontScale);
+      if (!compared.matches.length) {
+        if (compared.unresolved.length) {
+          throw new UnresolvedError(compared.unresolved.join("; "));
+        }
+        return none;
+      }
+      if (unit.context.dynamic) {
+        throw new UnresolvedError(
+          "Dynamic classes may override the near-scale candidate"
+        );
+      }
+      return hit(
+        compared.matches
+          .map(
+            ({ className, token, stepPx, difference }) =>
+              `${className} is ${difference}px from ${token} (${stepPx}px)`
+          )
+          .join("; ")
+      );
+    },
+    hint: "Review the matching font token before changing this value. If the difference is intentional or recurring, name the existing size in the theme instead of changing its appearance. This comparison does not establish design intent.",
+    id: "craft-near-duplicate-scale",
+    source: {
+      line: 10,
+      path: "skills/ui-design/rules/slop-near-duplicate-scale.md",
+      repo: "mblode/agent-skills",
+      ruleId: "slop-near-duplicate-scale",
+    },
+    status: "review-only",
+    title: "Arbitrary font size within 1px of a declared theme step",
+    unit: ["class-list"],
+  }),
   motion({
     categoryId: "easing-and-duration",
     check: (unit) => {

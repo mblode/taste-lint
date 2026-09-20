@@ -181,6 +181,17 @@ export const loadCorpus = (
         }
         const { docType, role } = r.context;
         if (
+          r.context.fontScale !== undefined &&
+          (!isRecord(r.context.fontScale) ||
+            Object.values(r.context.fontScale).some(
+              (value) => typeof value !== "string"
+            ))
+        ) {
+          throw new Error(
+            `Invalid corpus line ${where}: fontScale must map tokens to strings`
+          );
+        }
+        if (
           (docType !== undefined &&
             !DOC_TYPES.includes(docType as (typeof DOC_TYPES)[number])) ||
           (role !== undefined &&
