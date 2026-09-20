@@ -1,5 +1,11 @@
 # taste-lint
 
+## 0.0.4
+
+### Patch Changes
+
+- 39709c8: Add taste-lint init to detect the package manager, install locally, and add local and AI scan scripts. Setup supports a dry run, preserves existing scripts, and can append agent guidance.
+
 ## 0.0.3
 
 ### Patch Changes
