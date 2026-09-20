@@ -57,3 +57,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 ## Labeling scan samples
 
 Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md`: prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
+
+## TypeSafe integration
+
+Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev or TypeSafe integration. Read the live TypeSafe docs it points to before changing questions, state, API contracts, or confidence handling.
