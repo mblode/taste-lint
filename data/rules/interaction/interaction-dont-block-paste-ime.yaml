@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: Avoid handlers that prevent paste or aggressively filter keystrokes. Blocking paste breaks password managers and assistive input, and keystroke filters swallow the composition events IME users type with.
 status: review-only
+review:
+  applicability: A paste handler prevents the default input operation.
+  exceptions: Sanitizing handlers that read clipboardData and correctly insert the accepted value.
+  evidence: The complete paste handler and resulting input value, including composition handling.
+  verification: Paste representative values and use an input method editor; verify accepted input is retained.
+  sourceHash: 54ff41fb901d2cb32ab28cb64aac9b46a29a69b59b2424aebb4789f5bc2b5703

@@ -19,7 +19,11 @@ const severityTag = (f: Finding): string => {
 };
 
 export const formatFinding = (f: Finding): string => {
-  const head = `${severityTag(f)} ${f.ruleId} (p=${f.probability.toFixed(2)}) ${f.file}:${f.line}:${f.column}`;
+  const confidence =
+    f.assessment === "candidate"
+      ? "candidate; verification required"
+      : `p=${f.probability.toFixed(2)}`;
+  const head = `${severityTag(f)} ${f.ruleId} (${confidence}) ${f.file}:${f.line}:${f.column}`;
   const lines = [
     head,
     `    ${f.message}${f.also ? ` (also ${f.also.join(", ")})` : ""}`,
@@ -29,6 +33,12 @@ export const formatFinding = (f: Finding): string => {
   }
   if (f.fixHint) {
     lines.push(`    Fix: ${f.fixHint}`);
+  }
+  if (f.review) {
+    lines.push(
+      `    Requires: ${f.review.evidence}`,
+      `    Verify: ${f.review.verification}`
+    );
   }
   if (f.suppressed) {
     lines.push("    (suppressed)");

@@ -7,6 +7,7 @@ import { InputError } from "../lib/errors.js";
 import { RULE_STATUSES } from "../types.js";
 import type { Rule, Tuning, TuningEntry } from "../types.js";
 import { CODE_RULES } from "./code/index.js";
+import { isCandidateRule } from "./review.js";
 import { validateRule } from "./validate.js";
 
 // Walk up from this module to find the packaged data directory, so the CLI
@@ -150,6 +151,14 @@ export const loadRules = (
     }
     seen.add(rule.id);
     const overlay = tuning[rule.id];
+    if (
+      isCandidateRule(rule) &&
+      (rule.status === "active" || overlay?.status === "active")
+    ) {
+      throw new Error(
+        `Candidate-only rule ${rule.id} cannot be active; add an evidence-based check before promotion.`
+      );
+    }
     if (overlay) {
       if (overlay.act !== undefined) {
         if (!(overlay.act > rule.thresholds.review && overlay.act <= 1)) {

@@ -4,6 +4,7 @@
 
 import { RULE_STATUSES, SEVERITIES, UNIT_KINDS } from "../types.js";
 import type { Rule, Severity } from "../types.js";
+import { reviewProcedure } from "./review.js";
 import { CATEGORY_BY_ID } from "./taxonomy.js";
 import {
   fail,
@@ -66,6 +67,7 @@ export const validateRule = (
     "preconditions",
     "status",
     "handWritten",
+    "review",
   ]);
   const id = str(file, r, "id");
   if (!KEBAB.test(id)) {
@@ -142,6 +144,13 @@ export const validateRule = (
     r.preconditions === undefined
       ? undefined
       : preconditions(file, r.preconditions);
+  const review = reviewProcedure(r.review, file);
+  if (unit.includes("source") && mech && !q && status !== "draft" && !review) {
+    fail(
+      file,
+      "source candidates need review applicability, exceptions, evidence, and verification"
+    );
+  }
   const handWritten = optStrList(file, r, "handWritten") ?? [];
   return {
     categoryId,
@@ -153,6 +162,7 @@ export const validateRule = (
     mechanical: mech,
     preconditions: pre,
     question: q,
+    review,
     scope,
     severity,
     source,

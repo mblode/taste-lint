@@ -22,3 +22,9 @@ severity: major
 fix:
   hint: Set the primary language on `<html lang>` with a valid BCP 47 tag, and mark any inline passage in another language with its own `lang`. Without it, a screen reader reads everything with one pronunciation engine.
 status: review-only
+review:
+  applicability: The served document root lacks its language declaration.
+  exceptions: Attribute spreads, locale middleware, or the framework may supply lang at runtime.
+  evidence: The served html element for each supported locale.
+  verification: Inspect the served document and confirm lang matches its primary language, including localized routes.
+  sourceHash: 170c27f2745858d2ab62fa116a14db11bb9991ddce12280d38742816a2998ee0

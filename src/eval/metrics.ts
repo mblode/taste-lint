@@ -15,6 +15,7 @@ import type { JevJob } from "../map/plan.js";
 import { band } from "../reduce/bands.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
+import { abstainCandidates } from "./candidates.js";
 import { loadCorpus, resolveCorpusDir, unitFromItem } from "./corpus.js";
 import { corpusCoverage, pairedOutcomes } from "./coverage.js";
 
@@ -165,6 +166,7 @@ export const scoreItems = async (
       }
     }
   }
+  abstainCandidates(items, rules, probabilities, unknowns);
   return {
     pendingRequests: judgement.estimatedRequests,
     probabilities,

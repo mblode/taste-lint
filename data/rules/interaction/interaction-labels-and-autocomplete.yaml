@@ -21,3 +21,9 @@ severity: major
 fix:
   hint: Inputs require explicit labels and appropriate `type`, `name`, and `autocomplete` values. Without them users retype data the browser already has, and assistive tech has no name to announce.
 status: review-only
+review:
+  applicability: An input appears to rely on its placeholder as its label.
+  exceptions: An enclosing label, generated ID, or shared component can provide a persistent accessible name.
+  evidence: The enclosing markup and rendered accessible name, plus the field's intended input purpose.
+  verification: Enter a value so the placeholder disappears; confirm the field remains labeled and relevant autofill still works.
+  sourceHash: ef503cfa74b78af3be45e6e7302ddee8c9a20f4b2e3296ffea8610c6bfb26f7f

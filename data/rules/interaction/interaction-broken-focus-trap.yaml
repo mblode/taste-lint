@@ -23,3 +23,9 @@ fix:
     A hand-rolled dialog: Tab and Shift+Tab must cycle inside it and Esc must close it. Use a primitive that traps focus (Radix Dialog, React Aria, Headless UI, focus-trap-react) or wire the trap yourself.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: An open modal requires focus containment.
+  exceptions: Nonmodal dialogs and shared primitives that already contain focus.
+  evidence: The dialog wrapper, modal setting, and actual Tab and Shift+Tab behavior.
+  verification: Open the modal from its trigger; cycle focus in both directions and confirm Escape and focus restoration work.
+  sourceHash: ecb41c42149ff38a0fc49b4e3abfcb49a6e727113f87bd6c6478d6f8bd4e44d1

@@ -22,3 +22,9 @@ severity: minor
 fix:
   hint: Bumping `font-weight` on hover, focus, or selected nav items makes the label wider, so neighbours shift. The user sees the row jump rather than a state change. Use color, opacity, background, or underline for selected and hover; keep the weight stable.
 status: review-only
+review:
+  applicability: Interactive labels change font weight on hover or selection.
+  exceptions: Reserved label width, intentional selection indicators without reflow, and noninteractive body copy.
+  evidence: The control bounds and adjacent items in both states, including the actual loaded font.
+  verification: Hover and select with the font loaded; confirm labels and neighboring controls do not move.
+  sourceHash: 95d6ae7b2d3319f43af63e7f1a2c4416f680c78483c528eda0308eb3e4e4f271

@@ -23,3 +23,9 @@ fix:
     A client-side navigation never moves focus or announces the new content. After router.push, focus the new page heading or main region, or announce the change in an aria-live region.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A dynamic update changes information the user needs to perceive.
+  exceptions: Framework route focus, shared live-region providers, and updates that should not move focus.
+  evidence: The rendered update, focus management, announcement provider, and task context.
+  verification: Trigger the update with a screen reader; confirm it is perceivable without unnecessary focus theft or duplicate announcements.
+  sourceHash: a048816b3767ff40513c80315cb70cd10bda43e2ff431c105c4b1d5cd3510d85

@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: '"99.9% uptime", "10,000+ teams", "3x faster", a testimonial from Jane Doe, CEO at Acme, and a strip of logos nobody has heard of. Every one of these is a claim about the world, and a visitor who cannot check any of them learns that this page''s numbers are decoration. The damage is not aesthetic: it '
 status: review-only
+review:
+  applicability: User-facing marketing copy makes a factual claim or presents social proof.
+  exceptions: Clearly labeled placeholders, teaching examples, chart data, and claims supported by supplied evidence.
+  evidence: The exact claim and location, its displayed context, and a checkable source or an accountable owner.
+  verification: Verify the claim against its source or remove only the unsupported claim; preserve real evidence and clearly marked examples.
+  sourceHash: 0901fbcaeac7ed1d59328aa3012fb808332c4761ab4cb44c268433eb5a48d7f1

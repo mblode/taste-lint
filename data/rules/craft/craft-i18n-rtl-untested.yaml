@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: 'Arabic, Hebrew, Persian, and Urdu read right-to-left. A layout using physical properties (`margin-left`, `padding-right`, `text-align: left`, Tailwind `ml-2`, `pr-4`, `text-left`) does not flip when document direction is `rtl`: icons land on the wrong side, "forward" chevrons point backward, padding'
 status: review-only
+review:
+  applicability: A layout is intended to support right-to-left locales.
+  exceptions: Explicitly LTR-only products, fixed brand marks, and physical directions that should not mirror.
+  evidence: Locale policy, logical and physical styles, RTL tests, and the rendered layout.
+  verification: Exercise the task in an RTL locale; verify text, navigation, and directional icons while preserving fixed-direction assets.
+  sourceHash: fff00a214b53fd3d40c4dab0e2fe823193b3254ca0e425176f57e00706822f5c

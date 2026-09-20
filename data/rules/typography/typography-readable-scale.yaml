@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: Use body sizes and weights readable across desktop and mobile. Undersized or underweight body text slows scanning and tires readers.
 status: review-only
+review:
+  applicability: Base reading text sets a small size or light weight.
+  exceptions: Large-format prose can use a lighter weight; rem values depend on the resolved root size.
+  evidence: Computed size and weight of the affected body text at supported viewport sizes.
+  verification: Check the rendered paragraph with the real font; preserve intentional large display text.
+  sourceHash: b7c93aab2b0922786d9ff18c53ccefe9d127f7e8be14f7f2a10fb1f2b9c50086

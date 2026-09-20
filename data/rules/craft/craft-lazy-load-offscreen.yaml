@@ -26,3 +26,9 @@ fix:
     Never lazy-load the largest above-the-fold image; it delays the largest contentful paint. Load the hero eagerly (priority) and keep loading="lazy" for images below the fold.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A lazy-loaded image may be needed in the initial viewport.
+  exceptions: Below-the-fold covers or banners and images hidden until a later interaction.
+  evidence: Actual viewport position, responsive visibility, loading priority, and page performance traces.
+  verification: Load at supported viewport sizes under throttling and confirm the initial image loads promptly without eagerly loading offscreen content.
+  sourceHash: ee89307867a0159516cdcad42ff09ebb33e6512ff3b3e301aa0c6b99e243f5c6

@@ -23,3 +23,9 @@ fix:
     When a dialog closes, focus returns to the element that opened it. Keep the trigger ref and focus it on close (onCloseAutoFocus, finalFocus, returnFocusOnDeactivate) instead of leaving focus on body.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: Closing a modal or sheet should return the user to a meaningful focus location.
+  exceptions: Radix or react-aria defaults, explicit alternative focus targets, and navigation to a new route.
+  evidence: The primitive implementation, close handlers, trigger lifetime, and destination focus.
+  verification: Open and close by keyboard, Escape, and successful submission; confirm focus lands on the intended available control.
+  sourceHash: 47241f8dddee12c74d18ef8cd1c140a16aa6d9dd90184225de5e1e52508751eb

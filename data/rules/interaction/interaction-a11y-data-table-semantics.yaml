@@ -22,3 +22,9 @@ severity: major
 fix:
   hint: Tabular data needs a real `<table>` with `<caption>`, header cells, and `scope`. Divs styled as a grid carry no row/column relationships, so screen readers read cells as a flat list. (Layout-only grids use CSS, not `<table>`.)
 status: review-only
+review:
+  applicability: A table or grid presents data with row or column headers.
+  exceptions: Layout tables and shared components that supply header associations internally.
+  evidence: Rendered table semantics and associations, including imported table components.
+  verification: Navigate the table with assistive technology and confirm each data cell has its relevant header context.
+  sourceHash: 0db48967cd4251a7cdd56324405a30923cd27bfcb4a6a688bcb3ec5e8ac1fdc6

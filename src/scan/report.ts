@@ -1,5 +1,6 @@
 import { normaliseText } from "../extract/units.js";
 import { InputError } from "../lib/errors.js";
+import { reviewProcedure } from "../rules/review.js";
 import { SEVERITY_RANK } from "../types.js";
 import type { Finding, LintResult, Unit } from "../types.js";
 import type { ScanProfile } from "./profiles.js";
@@ -99,6 +100,9 @@ export const readReport = (file: string): ScanReport => {
         typeof f.ruleId === "string" &&
         typeof f.excerpt === "string" &&
         (f.context === undefined || typeof f.context === "string") &&
+        (f.assessment === undefined || f.assessment === "candidate") &&
+        (f.review === undefined ||
+          reviewProcedure(f.review, file) !== undefined) &&
         typeof f.fixHint === "string" &&
         Number.isInteger(f.line) &&
         Number.isInteger(f.endLine) &&
@@ -207,7 +211,7 @@ export const renderScan = (report: ScanReport, limit = 5): string => {
       .slice(0, limit)
       .map(
         (group) =>
-          `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].evidence}\n  ${group[0].fixHint}`
+          `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].evidence}\n  ${group[0].fixHint}${group[0].review ? `\n  Requires: ${group[0].review.evidence}\n  Verify: ${group[0].review.verification}` : ""}`
       ),
     ...(ranked.length > limit
       ? [

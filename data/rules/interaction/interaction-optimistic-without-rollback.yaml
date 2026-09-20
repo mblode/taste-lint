@@ -21,3 +21,9 @@ severity: major
 fix:
   hint: "`useOptimistic` shows the post-action state immediately (liked post, cart item added, renamed file). Contract: on server reject (422, 500, network error) the UI must roll back to real server state, or it lies and a reload reveals the truth, costing trust. Second half of the contract: optimistic upda"
 status: review-only
+review:
+  applicability: An optimistic update presents an unconfirmed server result.
+  exceptions: Framework action reversion or a query library may own rollback and error feedback.
+  evidence: The action or transition, authoritative state, failure path, and visible feedback.
+  verification: Force the server operation to fail; confirm the UI returns to truthful state and offers useful feedback.
+  sourceHash: 3a8fdc4ddf83d905d92c3955b1c544ba4fcb221223425c4122f7687b88268df1

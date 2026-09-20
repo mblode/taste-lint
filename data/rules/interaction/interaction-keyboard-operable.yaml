@@ -21,3 +21,9 @@ severity: major
 fix:
   hint: Pointer-only handlers are not acceptable for critical actions. Anything reachable only by pointer cannot be completed by keyboard, switch, or screen reader users at all.
 status: review-only
+review:
+  applicability: A custom interactive element has a pointer action.
+  exceptions: Native controls and library prop spreads or wrappers can provide keyboard behavior.
+  evidence: The resolved props, primitive implementation, and keyboard activation path.
+  verification: Reach the control with Tab and invoke its action using the appropriate keys without duplicate activation.
+  sourceHash: e471538d463ad9f256db46946bd532aa90d718246ff161a03d298bb535618bb8

@@ -20,3 +20,9 @@ severity: minor
 fix:
   hint: "A theme exists so that sizes, colours, and radii repeat across a product and the eye reads them as one system. When a file reaches for five or six one-off bracket values, the surface stops agreeing with the rest of the app: headings land at sizes no other heading uses, a card corner is 3px rounder t"
 status: review-only
+review:
+  applicability: A project has an explicit theme scale and source values may diverge from it.
+  exceptions: No theme means unknown; repeated occurrences of one value are not distinct decisions; legitimate dynamic values need separate review.
+  evidence: The real theme and distinct arbitrary values with file locations; count and compare values in code, never infer drift from @theme alone.
+  verification: Compare each value against the existing scale and inspect affected states after replacement, preserving values with a documented purpose.
+  sourceHash: f4a22bd2f0b14b278c5ee26fc13b7781ab786b0435b93992c3bd3f5c16903a72

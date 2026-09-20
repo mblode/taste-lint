@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: "A search icon, currency mark, or unit sitting beside the field as a sibling splits the hit target: clicks on the decoration do not focus the input, and the control reads as two widgets. Prefix and suffix decorations belong on top of the text input, with padding so the value does not collide, and the"
 status: review-only
+review:
+  applicability: A decorative affix appears to be part of a text input but does not focus it.
+  exceptions: Independent buttons for submit, clear, generation, or password visibility.
+  evidence: The affix role, pointer handling, label association, and actual hit area.
+  verification: Click or tap the decorative affix and confirm it focuses the input; preserve independent button actions.
+  sourceHash: 924cb987818a11e9687f38b9edd5a6108ce30bf01bf91464fecef0ec40b1f36c

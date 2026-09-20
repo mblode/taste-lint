@@ -25,6 +25,7 @@ export const toFinding = (
   message: rule.title,
   probability,
   ruleId: rule.id,
+  ...(rule.review ? { review: rule.review } : {}),
   severity: rule.severity,
   suppressed: false,
   tier: rule.tier,

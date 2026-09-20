@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: "A tooltip on a `disabled` button never reaches keyboard or screen-reader users: disabled controls are omitted from the tab order, so the reason the action is blocked is invisible. Mouse users see a hover hint; everyone else hits a dead control with no explanation."
 status: review-only
+review:
+  applicability: A disabled control relies on a tooltip to explain why it is unavailable.
+  exceptions: Focusable aria-disabled controls or a focusable wrapper with an associated explanation.
+  evidence: The actual trigger, focusability, accessible description, and behavior on touch.
+  verification: Reach the explanation by keyboard and touch while confirming the disabled action cannot execute.
+  sourceHash: 986e701811386c84b55d59af666e943125eb5121a94610ea7fb5fb5af1de4f1a

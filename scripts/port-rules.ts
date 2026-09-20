@@ -8,14 +8,16 @@
 // `impact`, `tags`, an Incorrect/Correct pair).
 //
 // A ui-design rule whose detection is one rg command JavaScript can run
-// (optionally piped through `xargs rg --files-without-match`) ships as a
-// mechanical rule over the whole file (`unit: [source]`), review-only, with
-// `--write`. Everything else (loops, PCRE-only syntax, rendered or rubric
+// (optionally piped through `xargs rg --files-without-match`) generates a
+// candidate scaffold over the whole file (`unit: [source]`), draft, with
+// `--write`. A reviewed evidence procedure is required before shipping.
+// Everything else (loops, PCRE-only syntax, rendered or rubric
 // checks, the copy and typography sources that need a hand-written question)
 // is written as a draft under data/rule-drafts, which the loader never reads.
 // Existing rule files keep every key listed in `handWritten`; `--check` exits
 // 1 when a regeneration would change a traced key or a source has moved.
 
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -396,7 +398,7 @@ for (const { skill, folder, dialect } of SKILLS) {
           : ["paragraph", "heading", "jsx-text", "attr-string"],
     };
     const notes = generated.portNotes as string[];
-    let shippable = false;
+    let searchable = false;
     if (dialect === "ui-design") {
       const rg = firstRgCommand(body);
       const translated = rg ? translateRegex(rg.pattern) : null;
@@ -430,9 +432,11 @@ for (const { skill, folder, dialect } of SKILLS) {
         };
         generated.unit = ["source"];
         generated.scope ??= { include: ["**/*.tsx", "**/*.jsx"] };
-        generated.status = "review-only";
+        notes.push(
+          "Candidate search only; preserve applicability, exceptions, required evidence, and verification before shipping."
+        );
         generated.fix = { hint: firstParagraph(body).slice(0, 300) };
-        shippable = true;
+        searchable = true;
       } else if (rg && !translated) {
         notes.push(
           `rg pattern uses PCRE features JavaScript lacks: ${rg.pattern}`
@@ -450,7 +454,7 @@ for (const { skill, folder, dialect } of SKILLS) {
         body.match(
           /\*\*False-positive guards:\*\*\n([\s\S]*?)(?:\n\n|\n\*\*)/
         )?.[1] ?? body.match(/```\n\n([^\n#*][^\n]+)\n/)?.[1];
-      if (!shippable) {
+      if (!searchable) {
         generated.question = {
           context: ["element", "docType"],
           criteria: {
@@ -491,9 +495,7 @@ for (const { skill, folder, dialect } of SKILLS) {
         c.examples = ["TODO"];
       }
     }
-    if (shippable) {
-      delete generated.portNotes;
-    }
+
     const target = path.join(args.out, domain, `${id}.yaml`);
     let existing: Record<string, unknown> | null = null;
     if (fs.existsSync(target)) {
@@ -563,11 +565,12 @@ for (const { skill, folder, dialect } of SKILLS) {
       }
       continue;
     }
-    if (shippable) {
+    if (searchable) {
       ported += 1;
       if (!args.check && args.write) {
-        fs.mkdirSync(path.dirname(target), { recursive: true });
-        fs.writeFileSync(target, outText);
+        const draft = path.join(args.draftsOut, domain, `${id}.yaml`);
+        fs.mkdirSync(path.dirname(draft), { recursive: true });
+        fs.writeFileSync(draft, outText);
         written += 1;
       }
       continue;
@@ -608,6 +611,7 @@ if (args.check) {
       id: string;
       handWritten?: string[];
       mechanical?: { regex?: string };
+      review?: { sourceHash?: string };
       source: { repo: string; path: string; line: number; ruleId?: string };
     };
     if (rule.source.repo !== "mblode/agent-skills") {
@@ -621,6 +625,16 @@ if (args.check) {
     }
     checked += 1;
     const sourceText = fs.readFileSync(sourceFile, "utf-8");
+    if (
+      rule.review?.sourceHash &&
+      rule.review.sourceHash !==
+        createHash("sha256").update(sourceText).digest("hex")
+    ) {
+      changed += 1;
+      problems.push(
+        `${rel}: evidence procedure source changed; review applicability, exceptions, evidence, and verification before updating review.sourceHash`
+      );
+    }
     const { fm } = parseFrontmatter(sourceText);
     const cited = sourceText.split("\n")[rule.source.line - 1];
     if (cited === undefined || cited.trim() === "") {
@@ -659,7 +673,7 @@ if (problems.length > 0) {
   process.stderr.write(`${problems.join("\n")}\n`);
 }
 process.stdout.write(
-  `${args.check ? `${checked} shipped rules checked against the source; ${changed} drifted` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${ported} mechanical port${ported === 1 ? "" : "s"} and ${available} draft${available === 1 ? "" : "s"} available (pass --write to generate); ${unmapped} source rules have no category mapping\n`
+  `${args.check ? `${checked} shipped rules checked against the source; ${changed} drifted` : `wrote ${written} rule file${written === 1 ? "" : "s"}`}; ${ported} candidate scaffold${ported === 1 ? "" : "s"} and ${available} draft${available === 1 ? "" : "s"} available (pass --write to generate); ${unmapped} source rules have no category mapping\n`
 );
 if (args.check && (changed > 0 || problems.length > 0)) {
   process.exit(1);

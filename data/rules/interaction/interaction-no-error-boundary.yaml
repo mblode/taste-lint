@@ -25,3 +25,9 @@ fix:
     A thrown error in an async tree with no ancestor boundary unmounts the whole route. Wrap the fetching subtree in an ErrorBoundary (or add error.tsx to the route segment) so a failed query degrades in place.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A rendered async tree can throw an error requiring a recovery surface.
+  exceptions: Ancestor error boundaries, inherited route error files, and local nonthrowing error handling.
+  evidence: The component ancestry, route error conventions, and the actual failure propagation path.
+  verification: Force the relevant failure; confirm a usable recovery appears and unrelated UI and entered data are preserved.
+  sourceHash: d799e08e7c33ea18fee714de6639dc62feda4dc63de1a1b12e0aed8ca69ad8e9

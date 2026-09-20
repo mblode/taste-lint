@@ -49,8 +49,10 @@ export const renderSarif = (
                 : {}),
             },
             properties: {
+              assessment: f.assessment,
               band: f.band,
               probability: f.probability,
+              review: f.review,
               severity: f.severity,
             },
             ruleId: f.ruleId,

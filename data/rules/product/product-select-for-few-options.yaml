@@ -22,3 +22,9 @@ fix:
 # a modal opened from a handler; the finding is a candidate for a person.
 status: review-only
 handWritten: [mechanical, fix, status]
+review:
+  applicability: A select presents two or three static, mutually exclusive choices.
+  exceptions: Dynamically loaded options, dependent choices, or a documented platform constraint can require a select.
+  evidence: The complete option source, dynamic branches, and the task requiring comparison.
+  verification: Confirm all choices remain available and selection, keyboard input, and form submission work.
+  sourceHash: e575cc8c2c06ae38542bd068a9f4d1871714391c543b5caf0dbb8ae1847a2f77

@@ -21,3 +21,9 @@ severity: minor
 fix:
   hint: A hover tooltip that contains a link, button, or input cannot be used with a keyboard or a touch screen, and it vanishes when the pointer moves to reach the inner control. Users see an action they cannot activate reliably.
 status: review-only
+review:
+  applicability: Hover tooltip content contains an interactive control.
+  exceptions: Keyboard-operable popovers and menus, or decorative noninteractive icons.
+  evidence: The primitive implementation, open mechanism, focus handling, and nested controls.
+  verification: Reach and operate every nested action by keyboard and touch, with predictable dismissal.
+  sourceHash: 2767c22f7d256217e842ed75b4c843b69f7679d5733048bf85cf40d3df039af2

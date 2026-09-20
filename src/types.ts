@@ -143,7 +143,17 @@ export interface Preconditions {
   smartQuotesAtBuild?: false;
 }
 
+export interface ReviewProcedure {
+  applicability: string;
+  exceptions: string;
+  evidence: string;
+  verification: string;
+  /** Digest of the source document when the procedure was reviewed. */
+  sourceHash?: string;
+}
+
 export interface Rule {
+  review?: ReviewProcedure;
   id: string;
   title: string;
   categoryId: string;
@@ -266,6 +276,9 @@ export interface MechanicalHit {
 }
 
 export interface Finding {
+  /** Candidate probability describes the pattern match, not a proven defect. */
+  assessment?: "candidate";
+  review?: ReviewProcedure;
   ruleId: string;
   categoryId: string;
   domain: Domain;

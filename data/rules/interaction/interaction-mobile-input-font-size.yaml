@@ -22,3 +22,9 @@ severity: minor
 fix:
   hint: "Set input text to at least 16px on mobile and avoid autofocus on touch-first flows. iOS zooms the viewport in on any field below 16px and does not zoom back out, leaving the user panned into a form they now have to scroll sideways. Do not stop that zoom with `maximum-scale=1` or `user-scalable=no`: "
 status: review-only
+review:
+  applicability: An input used on touch devices may render with small text.
+  exceptions: Pointer-fine media queries and explicitly desktop-only surfaces.
+  evidence: Computed input size, media queries, supported devices, and viewport configuration.
+  verification: Focus the field on supported mobile Safari and verify unwanted zoom does not obscure the task.
+  sourceHash: 949bb935cb20213772fb475ae04e339ebb1412db925c61f6e7e1e49a2096de22
