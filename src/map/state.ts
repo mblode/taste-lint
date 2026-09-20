@@ -1,5 +1,5 @@
 // Build the Jev state string for a unit from only the context keys the
-// batched questions asked for. Numbers never enter the state.
+// batched questions asked for. Code owns measurements; Jev interprets context.
 
 import { charsPerTokenFor, estimateTokens } from "../lib/tokens.js";
 import type { ContextKey, Rule, Unit } from "../types.js";

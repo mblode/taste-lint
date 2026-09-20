@@ -8,7 +8,7 @@ hidden: true
 Verified against TypeSafe's official documentation on September 20, 2026. These are concrete contracts, not a claim of certification or universal best practice.
 
 - [Introduction](https://docs.typesafe.ai/introduction): independent, atomic questions share a state and are composed by code. Taste-lint keeps one rule per judgment and batches independent questions. Request sharing never merges source provenance.
-- [Noul](https://docs.typesafe.ai/primitives/noul): the number is the probability of yes. It is not severity, a quality score, or the separate confidence field returned by other primitives. A high value must mean the named defect is present. The report preserves individual probabilities before presentation grouping.
+- [Noul](https://docs.typesafe.ai/primitives/noul): the number is the probability of yes. It is not severity, a quality score, or the separate confidence field returned by other primitives. A high value must mean the named condition is present; an advisory styling judgment is not proof of a defect. The report preserves individual probabilities before presentation grouping.
 - [How to build](https://docs.typesafe.ai/concepts/how-to-build-with-system-one): deterministic work stays in code; state supplies relevant context. Applicability, counting, thresholds and fixes remain deterministic. Existing labeled text state is retained to preserve cache semantics. Changing it to structured state requires an evaluation and deliberate cache invalidation, not a cosmetic migration.
 - [Confidence](https://docs.typesafe.ai/confidence): action thresholds depend on the domain and stakes. Jev rules remain review-only until the existing corpus/tuning gate supports promotion. The diagnostic agent-labeled sample is not sufficient evidence to change thresholds.
 - [API reference](https://docs.typesafe.ai/api): direct requests use POST /v1/systemone and bearer authentication. The adapter validates probabilities and usage, retries 429 and 529 with bounded backoff, and does not retry authentication errors. Tests cover overload, malformed responses and attempts. Provider bodies and credentials are never persisted.
@@ -24,6 +24,12 @@ Preparation decides applicability once. Execution consumes the prepared work, co
 `usage.requests` counts successful logical requests; `usage.attempts` counts HTTP attempts reported by the adapter (one assumed per call for a custom evaluator without telemetry); `usage.cached` counts reused answers; `usage.sharedAnswers` counts answers fanned out within the same run. Cost covers known successful usage and is not a guarantee about provider billing for failed attempts. Cache writes are atomic; a write failure does not erase an answer already received.
 
 Default text output shows at most 20 act examples and 10 review examples, with omitted counts and a full report path. `--verbose` expands the view. `--progress` enables throttled plain progress on stderr when piped; TTY runs show it automatically. Structured stdout stays parseable, including expected argument and config errors. Incomplete reports include a shell-quoted rerun command with absolute root/results paths, without repeating fixes or bypassing the cache.
+
+## Contextual style review
+
+Code selects literal arbitrary utilities. Jev judges whether they express reusable visual styling or an intentional constraint, using bounded local JSX context. The judgment does not assume an existing theme token or calculate size differences. Questions using this context are isolated from unrelated copy and typography questions. The existing cache, samples and corpus replay preserve the same state.
+
+`data/corpus/semantic-style.jsonl` contains eight synthetic AI-labeled development examples. Use `taste-lint eval --only craft-arbitrary-value-class` to inspect them. They check the contract; they are not a real-project holdout or sufficient evidence for promotion. Model-free tests separately verify candidate selection, context limits, cache invalidation and provider failures.
 
 ## Checks
 

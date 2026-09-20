@@ -131,6 +131,7 @@ export const planRequests = (
       applied.add(rule.id);
       eligible.set(unit.id, applied);
       if (
+        rule.tier === "jev" &&
         rule.question?.context?.includes("section") &&
         (!unit.context.section || buildState(unit, [rule]).truncated)
       ) {
@@ -205,6 +206,21 @@ export const planRequests = (
         const ids = negatives.get(unit.id) ?? new Set<string>();
         ids.add(rule.id);
         negatives.set(unit.id, ids);
+        continue;
+      }
+      if (
+        rule.question?.context?.includes("section") &&
+        (!unit.context.section || buildState(unit, [rule]).truncated)
+      ) {
+        unknowns.push({
+          file: unit.file,
+          line: unit.line,
+          reason: unit.context.section
+            ? "Section comparison exceeds the context budget"
+            : "Missing section context",
+          ruleId: rule.id,
+          unitId: unit.id,
+        });
         continue;
       }
       if (
