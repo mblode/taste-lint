@@ -5,7 +5,7 @@ description: How Jev by TypeSafe AI powers judgment calls.
 
 # TypeSafe / Jev
 
-Verified against TypeSafe's official documentation on 20 September 2026. These are concrete contracts, not a claim of certification or universal best practice.
+Verified against TypeSafe’s official documentation on 20 September 2026. These are concrete contracts, not a claim of certification or universal best practice.
 
 - [Introduction](https://docs.typesafe.ai/introduction): independent, atomic questions share a state and are composed by code. Taste-lint keeps one rule per judgment and batches independent questions. Request sharing never merges source provenance.
 - [Noul](https://docs.typesafe.ai/primitives/noul): the number is the probability of yes. It is not severity, a quality score, or the separate confidence field returned by other primitives. A high value must mean the named condition is present; an advisory styling judgment is not proof of a defect. The report preserves individual probabilities before presentation grouping.
@@ -13,7 +13,7 @@ Verified against TypeSafe's official documentation on 20 September 2026. These a
 - [Confidence](https://docs.typesafe.ai/confidence): action thresholds depend on the domain and stakes. Jev rules stay review-only until the existing corpus/tuning gate supports promotion. The diagnostic agent-labelled sample is not enough evidence to change thresholds.
 - [API reference](https://docs.typesafe.ai/api): direct requests use POST /v1/systemone and bearer authentication. The adapter validates probabilities and usage, retries 429 and 529 with bounded backoff, and does not retry authentication errors. Tests cover overload, malformed responses, and attempts. Provider bodies and credentials are never persisted.
 
-The Vercel gateway is a separate transport contract. TypeSafe's direct API docs do not certify the gateway's evaluation route. The existing adapter and its wire-format tests remain the owner. No new SDK or provider dependency was added.
+The Vercel gateway is a separate transport contract. TypeSafe’s direct API docs do not certify the gateway’s evaluation route. The existing adapter and its wire-format tests remain the owner. No new SDK or provider dependency was added.
 
 ## Run contract
 

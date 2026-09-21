@@ -6,6 +6,7 @@ import { corpusCoverage, renderCoverage } from "../eval/coverage.js";
 import { runEval } from "../eval/metrics.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
+import { labelsToCorpus } from "../scan/samples.js";
 
 export function registerEvalCommand(program: Command): void {
   const command = program
@@ -89,6 +90,18 @@ export function registerEvalCommand(program: Command): void {
         options.output === "json"
           ? `${JSON.stringify(coverage, null, 2)}\n`
           : renderCoverage(coverage)
+      );
+    });
+  command
+    .command("labels <samples>")
+    .description(
+      "Convert a labelled sample file from lint --samples into a corpus JSONL"
+    )
+    .requiredOption("--out <file>", "New corpus JSONL file")
+    .option("--rules <path>", "Rules directory used to validate labels")
+    .action((file: string, options: { out: string; rules?: string }) => {
+      process.stdout.write(
+        `Exported ${labelsToCorpus(file, options.out, options.rules)} labels.\n`
       );
     });
 }

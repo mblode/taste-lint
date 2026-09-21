@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DOC_TYPES } from "../types.js";
-import type { ArchitecturePolicy, Config, DocType } from "../types.js";
+import type { Config, DocType } from "../types.js";
 import { InputError } from "./errors.js";
 import { matchesAny, toPosix } from "./glob.js";
 
@@ -75,7 +75,6 @@ const detectSmartQuotesAtBuild = (root: string): boolean =>
   });
 
 export interface UserConfig {
-  architecture?: ArchitecturePolicy;
   $schema?: string;
   exclude?: string[];
   smartQuotesAtBuild?: boolean;
@@ -125,61 +124,9 @@ export function validateConfig(raw: unknown): asserts raw is UserConfig {
       "docTypes",
       "components",
       "tailwind",
-      "architecture",
     ],
     ""
   );
-  if (value.architecture !== undefined) {
-    const policy = object(value.architecture, "architecture");
-    keys(
-      policy,
-      ["boundaries", "deprecatedImports", "generated"],
-      "architecture."
-    );
-    if (policy.generated !== undefined) {
-      strings(policy.generated, "architecture.generated");
-    }
-    if (policy.deprecatedImports !== undefined) {
-      const deprecated = object(
-        policy.deprecatedImports,
-        "architecture.deprecatedImports"
-      );
-      for (const [key, replacement] of Object.entries(deprecated)) {
-        if (typeof replacement !== "string" || !replacement.trim()) {
-          invalid(
-            `architecture.deprecatedImports.${key}`,
-            "a nonempty replacement"
-          );
-        }
-      }
-    }
-    if (policy.boundaries !== undefined) {
-      if (!Array.isArray(policy.boundaries)) {
-        invalid("architecture.boundaries", "an array");
-      }
-      for (const [i, rawBoundary] of (
-        policy.boundaries as unknown[]
-      ).entries()) {
-        const boundary = object(rawBoundary, `architecture.boundaries[${i}]`);
-        keys(
-          boundary,
-          ["from", "disallow", "reason"],
-          `architecture.boundaries[${i}].`
-        );
-        for (const key of ["from", "disallow", "reason"]) {
-          if (
-            typeof boundary[key] !== "string" ||
-            !(boundary[key] as string).trim()
-          ) {
-            invalid(
-              `architecture.boundaries[${i}].${key}`,
-              "a nonempty string"
-            );
-          }
-        }
-      }
-    }
-  }
   if (value.$schema !== undefined && typeof value.$schema !== "string") {
     invalid("$schema", "a string");
   }
@@ -266,7 +213,6 @@ export const loadConfig = (
     }
   }
   return {
-    architecture: user.architecture,
     components: {
       skip: [...DEFAULT_SKIP, ...(user.components?.skip ?? [])],
       unwrap: [...DEFAULT_UNWRAP, ...(user.components?.unwrap ?? [])],

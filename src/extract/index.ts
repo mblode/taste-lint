@@ -9,7 +9,7 @@ import { extractTsx } from "./tsx.js";
 import { LineIndex, makeUnit } from "./units.js";
 
 export const extractFile = (config: Config, relativeFile: string): Unit[] => {
-  const repository = new Repository(config.root, config.architecture);
+  const repository = new Repository(config.root);
   const source = fs.readFileSync(path.join(config.root, relativeFile), "utf-8");
   return extractSource(config, relativeFile, source, repository);
 };
@@ -41,11 +41,6 @@ export const extractSource = (
 };
 
 export const SUPPORTED_GLOBS = [
-  "**/*.html",
-  "**/*.htm",
-  "**/llms.txt",
-  "**/llms-full.txt",
-  "**/robots.txt",
   "**/*.md",
   "**/*.mdx",
   "**/*.tsx",

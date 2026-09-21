@@ -323,7 +323,6 @@ export const TYPOGRAPHY_RULES: Rule[] = [
     preconditions: {
       docType: [
         "readme",
-        "personal",
         "tutorial",
         "howto",
         "reference",

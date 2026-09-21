@@ -1,20 +1,19 @@
 # taste-lint
 
-npm workspace and Turborepo: Node 24 TypeScript ESM CLI package in `packages/cli`, Next.js landing page in `apps/web`. CLI source and rules remain in root `src/` and `data/`. A taste linter: copy, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training`, answered as calibrated probabilities by TypeSafe Jev where a judgement is needed and by a regex or a resolved value where one decides.
+npm workspace and Turborepo: a Node 24 TypeScript ESM CLI in `packages/cli` and a Next.js landing page in `apps/web`. CLI source and rules live in root `src/` and `data/`. A taste linter: copy, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training`. A regex or a measured value decides where one can; TypeSafe Jev answers with a probability where a judgement is needed.
 
 ## Commands
 
 ```bash
 npm ci
-npm run dev:web                                   # localhost:3000/taste-lint
-npm run build                                     # CLI and web through Turbo
-npm run build:cli                                 # only the published CLI
+npm run build:cli                                  # only the published CLI
 npm run check && npm run typecheck                 # edit loop
 npx vitest run src/__tests__/rules.test.ts --reporter=dot   # one suite, quiet
+npm run taste                                      # lint this repo with its own rules; CI runs it
 npm run verify                                     # lint, types, tests, build, packed smoke test
-npm run verify:full                                # verify plus rules check; CI runs this and port-rules --check
+npm run verify:full                                # verify plus rules check and taste; CI runs this and port-rules --check
 npm run fix                                        # ultracite autofix; scope it when unrelated changes exist
-node dist/cli.js lint <paths> --dry-run            # units, requests, estimated cost; no calls
+node dist/cli.js lint --profile product --dry-run  # units, requests, estimated cost; no calls
 node dist/cli.js rules check                       # validate data/rules
 node dist/cli.js schema                            # every command, flag and default as JSON
 npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule still matches its source
@@ -22,28 +21,39 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Setup facts
 
-- Scans use Jev for semantic judgments and code for deterministic checks. Uncached Jev work requires AI_GATEWAY_API_KEY (legacy TYPESAFE_API_KEY remains supported). Dry runs preview without model calls; cached judgments can be reused. Tests inject fake evaluators and never call a model.
-- `scripts/*.ts` run with `node --experimental-strip-types` (the npm scripts do this). Node 22 runs the build and tests but not `fs.globSync` edge cases the package relies on; use Node 24 for anything you will report.
-- `port-rules --check` and the taste-training baseline expect sibling checkouts at `../agent-skills` and `../taste-training`. The baseline command and its expected counts are in the review log of `docs/plans/taste-lint-taste-linter.md`.
-- Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish --workspace taste-lint` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
+- `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines.
+- Mechanical rules run without a key. Uncached Jev work needs `AI_GATEWAY_API_KEY` (legacy `TYPESAFE_API_KEY` still works). `--dry-run` plans without calls. Tests inject fake evaluators and never call a model.
+- `scripts/*.ts` run with `node --experimental-strip-types`. Use Node 24 for anything you will report.
+- `port-rules --check` expects a sibling checkout at `../agent-skills`.
+- Releases: `npm run changeset` with every user-facing change. On `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges.
 - Results and the answer cache write to `results/` (ignored). A rerun over unchanged files reports `0 requests`; delete `results/cache` to force live answers.
-- Public docs: https://blode.co/taste-lint/docs. In-repo ALL-CAPS `docs/*.md` copies stay hidden; prefer the matching MDX pages for readers.
+- Public docs are the MDX files in `docs/`, published at https://blode.co/taste-lint/docs. There are no hidden copies.
 
 ## Gotchas
 
-- `npm run fix` can change semantics: it unescapes `U+2014` into a literal em dash (which the house test then rejects) and turns `split("")` into a spread over code points. Build such strings with `String.fromCodePoint` and index UTF-16 with a loop.
-- `taste-lint rules check` prints `N active rules`; active means not draft. Most of the pack is `review-only` on purpose: pattern ports until someone has watched them on a real codebase, Jev rules until `tune --write` promotes them on labelled data. A `review-only` rule never fails a run.
-- `taste-lint lint --dry-run` exits 1 on any act-band mechanical finding, so the fixtures (deliberate straight quotes) fail it by design; their counts are asserted in `src/__tests__/lint.test.ts`.
-- `taste-lint eval` without `--include-weak` skips every item whose category maps to more than one rule, which today is every typography rule.
-- `port-rules --check` compares only `source` and, when not hand-written, `mechanical`; it does not notice a changed hint or severity. `--write` regenerates every unshipped source rule as a draft under `data/rule-drafts/`; prune before committing.
-- A rule that counts, compares or measures is a code rule in `src/rules/code/`, not YAML: Jev cannot count, do arithmetic, compare dates or read hex colours.
-- A YAML rule writes only what cannot be derived. The loader fills `tier`, `domain` and `scope.include` (see `docs/DESIGN.md`); writing them is a validation error.
+- `npm run fix` can change semantics: it unescapes `U+2014` into a literal em dash (which the house test rejects) and turns `split("")` into a spread over code points.
+- `rules check` prints `N active rules`; active means not draft. Most of the pack is `review-only` on purpose. A `review-only` rule never fails a run, and the tty report only counts its findings unless `--verbose`.
+- `lint --dry-run` exits 1 on any act-band mechanical finding, so the fixtures (deliberate straight quotes) fail it by design. Their counts are asserted in `src/__tests__/lint.test.ts`.
+- `eval` without `--include-weak` skips every item whose category maps to more than one rule.
+- `port-rules --check` compares only `source` and, when not hand-written, `mechanical`. `--write` regenerates every unshipped source rule as a draft under `data/rule-drafts/`; prune before committing.
+- A rule that counts, compares or measures is a code rule in `src/rules/code/`, not YAML. Jev cannot count, do arithmetic, compare dates or read hex colours.
+- A YAML rule writes only what cannot be derived. The loader fills `tier`, `domain` and `scope.include`; writing them is a validation error.
 
 ## Adding a rule
 
-1. YAML under `data/rules/<domain>/<id>.yaml` with `id` equal to the filename: `id`, `title`, `categoryId`, `source`, `unit`, then `mechanical` (regex, phrases, `absent`) or `question` or both, `severity`, `fix.hint`, `status`. A `source` rule also names `scope.include`. Look at `data/rules/copywriting/copywriting-canned-phrasing.yaml` (both) and `data/rules/interaction/interaction-no-error-state.yaml` (source).
+1. YAML under `data/rules/<domain>/<id>.yaml` with `id` equal to the filename: `id`, `title`, `categoryId`, `source`, `unit`, then `mechanical` (regex, phrases, `absent`) or `question` or both, `severity`, `fix.hint`, `status`. A `source` rule also names `scope.include`. See `data/rules/copywriting/copywriting-canned-phrasing.yaml` (both) and `data/rules/interaction/interaction-no-error-state.yaml` (source).
 2. Anything that counts or measures: a `codeRule` in `src/rules/code/typography.ts` or `classes.ts`, with a unit test through `check(id)` from `src/__tests__/helpers.ts`.
 3. `node dist/cli.js rules check`, then `npm run verify:full`. A Jev-backed rule ships `review-only`; only `tune --write` promotes it.
+
+## Promoting a rule
+
+Rule count is not the metric. Precision on real repositories is. Prove one Jev rule at a time:
+
+1. `node dist/cli.js lint <real repo> --profile product --only <rule> --samples results/blind.json` exports blind samples.
+2. Label them (`scripts/prepare-labels.mjs` prepares the file for an agent session; never read predictions while labelling).
+3. `node dist/cli.js eval labels results/blind.json --out data/corpus/<name>.jsonl`, then `eval --only <rule>` and `tune --write`.
+
+A wrong finding is corpus evidence: add the unit with the correct label instead of lowering a threshold by hand.
 
 ## Invariants
 
@@ -52,15 +62,8 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 - Severity says how bad a finding is if real. The Jev probability says how sure. Never move one to express the other.
 - Abstain is not fail: a rule whose precondition or value is unresolved reports `unknown` with a reason.
 - No em dashes anywhere: source, rule YAML, docs, SARIF, commit messages. The house test scans for them.
+- The repo passes its own lint. `npm run taste` runs in CI and in the pre-commit hook; fix the copy, not the rule.
 
 ## Contracts
 
-`docs/DESIGN.md` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary.
-
-## Labeling scan samples
-
-Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md` (https://blode.co/taste-lint/docs/scans): prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
-
-## TypeSafe integration
-
-Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev or TypeSafe integration. Read the live TypeSafe docs it points to before changing questions, state, API contracts, or confidence handling.
+`docs/design.mdx` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary. `docs/typesafe.mdx`: the Jev integration. Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev, and read the live TypeSafe docs before changing questions, state or confidence handling.

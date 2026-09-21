@@ -30,7 +30,6 @@ preconditions:
       ui,
       unknown,
       readme,
-      personal,
     ]
   smartQuotesAtBuild: false
 status: active

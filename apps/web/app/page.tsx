@@ -39,7 +39,7 @@ export default function Home() {
           <h2 className="max-w-[30ch] text-3xl font-medium tracking-tight text-balance sm:text-4xl">
             Catch AI slop before you ship.
           </h2>
-          <p className="mt-5 max-w-[56ch] text-base leading-7 text-pretty">
+          <p className="mt-5 max-w-[56ch] text-base leading-6 text-pretty">
             A CLI for reviewing AI-generated UI, copy, typography and motion.
           </p>
           <div className="mt-8">
@@ -64,6 +64,7 @@ export default function Home() {
             >
               <code>
                 {
+                  // taste-lint-ignore: typography-straight-quotes
                   '<button className="transition-all" type="button">\n  Save changes\n</button>'
                 }
               </code>
@@ -131,15 +132,9 @@ export default function Home() {
             </a>
             <a
               className="inline-flex min-h-12 items-center underline underline-offset-4"
-              href="/taste-lint/docs/scans"
+              href="/taste-lint/docs/usage"
             >
               Profiles and findings
-            </a>
-            <a
-              className="inline-flex min-h-12 items-center underline underline-offset-4"
-              href="/taste-lint/docs/page-audits"
-            >
-              Page audits
             </a>
           </div>
         </section>

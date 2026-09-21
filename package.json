@@ -22,14 +22,15 @@
     "port-rules": "node --experimental-strip-types scripts/port-rules.ts",
     "seed-corpus": "npm run build && node --experimental-strip-types scripts/seed-corpus.ts",
     "verify": "npm run check && npm run build && npm run typecheck && npm test && npm run test:package",
-    "verify:full": "npm run verify && node dist/cli.js rules check",
+    "verify:full": "npm run verify && node dist/cli.js rules check && npm run taste",
     "build:cli": "turbo run build --filter=taste-lint",
     "build:web": "turbo run build --filter=@taste-lint/web",
     "dev:cli": "turbo run dev --filter=taste-lint",
     "dev:web": "turbo run dev --filter=@taste-lint/web",
     "typecheck:cli": "turbo run typecheck --filter=taste-lint",
     "test:cli": "turbo run test --filter=taste-lint",
-    "check:web": "npm run typecheck --workspace @taste-lint/web && npm run test --workspace @taste-lint/web"
+    "check:web": "npm run typecheck --workspace @taste-lint/web && npm run test --workspace @taste-lint/web",
+    "taste": "node dist/cli.js lint --profile all --dry-run"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

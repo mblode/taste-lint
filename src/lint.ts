@@ -12,7 +12,6 @@ import { InputError } from "./lib/errors.js";
 import { collectFiles } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
-import { validateWritingContext } from "./lib/writing-context.js";
 import { chunkQuestions } from "./map/batch.js";
 import { AnswerCache } from "./map/cache.js";
 import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "./map/jev.js";
@@ -24,8 +23,10 @@ import type { FixFunction } from "./reduce/fixes.js";
 import { buildScorecard } from "./reduce/scorecard.js";
 import { applySuppressions } from "./reduce/suppress.js";
 import { loadRules, resolveRulesDir } from "./rules/load.js";
+import { changedLines, touchesChange } from "./scan/git.js";
+import { profileFor, profileIncludes, profileRules } from "./scan/profiles.js";
+import type { ProfileName } from "./scan/profiles.js";
 import type {
-  WritingContext,
   DocType,
   Evaluate,
   Progress,
@@ -41,10 +42,12 @@ import { SEVERITY_RANK, STRUCTURAL_KINDS } from "./types.js";
 
 export interface LintOptions {
   docTypes?: { glob: string; type: DocType }[];
-  advisoryRules?: string[];
-  writingContext?: WritingContext;
   root: string;
   targets: string[];
+  /** Scope files and rule domains; rules keep their own status. */
+  profile?: ProfileName;
+  /** Report only findings on lines changed since this Git revision. */
+  since?: string;
   rulesDir?: string;
   only?: string[];
   exclude?: string[];
@@ -69,7 +72,8 @@ export interface LintContext {
   onEvidence?: (
     units: Unit[],
     answers: Map<string, Record<string, number>>,
-    negatives: Map<string, Set<string>>
+    negatives: Map<string, Set<string>>,
+    rules: Rule[]
   ) => void;
 }
 
@@ -89,11 +93,15 @@ export const runLint = async (
   const stdout = ctx.stdout ?? ((t: string) => process.stdout.write(t));
   const config = loadConfig(options.root, options.docTypes);
   const rulesDir = resolveRulesDir(options.rulesDir);
-  const rules = loadRules(rulesDir, { only: options.only });
-  for (const rule of rules) {
-    if (options.advisoryRules?.includes(rule.id)) {
-      rule.status = "review-only";
-    }
+  const profile = options.profile ? profileFor(options.profile) : undefined;
+  const loaded = loadRules(rulesDir, { only: options.only });
+  const rules =
+    profile && !options.only?.length ? profileRules(profile, loaded) : loaded;
+  if (rules.length === 0) {
+    throw new InputError(
+      "EMPTY_RULE_SELECTION",
+      "No rules match the selected profile and ids."
+    );
   }
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
@@ -105,13 +113,17 @@ export const runLint = async (
           config.root,
           options.targets,
           SUPPORTED_GLOBS,
-          [...config.exclude, ...(options.exclude ?? [])],
+          [
+            ...config.exclude,
+            ...(options.exclude ?? []),
+            ...(profile?.exclude ?? []),
+          ],
           scan
-        )
+        ).filter((file) => !profile || profileIncludes(profile, file))
       : [];
   let units: Unit[] = [];
   const sources = new Map<string, string[]>();
-  const repository = new Repository(config.root, config.architecture);
+  const repository = new Repository(config.root);
   for (const file of files) {
     const source = fs.readFileSync(path.join(config.root, file), "utf-8");
     units.push(...extractSource(config, file, source, repository));
@@ -119,18 +131,6 @@ export const runLint = async (
   }
   if (options.extraUnits) {
     units.push(...options.extraUnits);
-  }
-  if (options.writingContext) {
-    const writing = validateWritingContext(options.writingContext);
-    for (const unit of units) {
-      if (unit.context.docType === "personal") {
-        Object.assign(unit.context, {
-          writingFacts: writing.facts,
-          writingInstructions: writing.instructions,
-          writingProfile: writing.profile,
-        });
-      }
-    }
   }
   if (options.limitUnits !== undefined) {
     units = units.slice(0, options.limitUnits);
@@ -163,6 +163,9 @@ export const runLint = async (
     scope.diagnostics.push(
       `Could not fully parse ${file}; analysis is incomplete.`
     );
+  }
+  if (profile) {
+    scope.diagnostics.push(`Profile ${profile.name}: ${profile.objective}.`);
   }
   if (units.length === 0) {
     scope.diagnostics.push(
@@ -227,7 +230,7 @@ export const runLint = async (
     onProgress: ctx.onProgress,
     recorder,
   });
-  ctx.onEvidence?.(units, judgement.answers, judgement.negatives);
+  ctx.onEvidence?.(units, judgement.answers, judgement.negatives, rules);
   const status: LintResult["status"] = options.dryRun
     ? "dry-run"
     : judgement.usage.errors > 0 || parseFailures.size > 0 || units.length === 0
@@ -238,7 +241,15 @@ export const runLint = async (
   const { unknowns, usage } = judgement;
   recorder?.summary({ findings: findings.length, status, usage });
 
-  const ruleFindings = dedupeExact(applySuppressions(findings, rules, sources));
+  let ruleFindings = dedupeExact(applySuppressions(findings, rules, sources));
+  if (options.since) {
+    // Analysis keeps whole files for context; only changed lines are reported.
+    const diff = changedLines(config.root, options.since);
+    ruleFindings = ruleFindings.filter((f) =>
+      touchesChange(diff, f.file, f.line, f.endLine ?? f.line)
+    );
+    scope.diagnostics.push(`Reporting lines changed since ${diff.base}.`);
+  }
   findings = dedupe(ruleFindings);
 
   if (options.fix && !options.dryRun) {

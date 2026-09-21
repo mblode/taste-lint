@@ -47,11 +47,13 @@ export const formatFinding = (f: Finding): string => {
 };
 
 const scorecardTable = (scorecard: Scorecard): string => {
-  const rows = Object.entries(scorecard.byCategory).map(
-    ([id, c]) =>
-      `  ${id.padEnd(26)} ${String(c.act).padStart(4)} act ${String(c.review).padStart(4)} review ${String(c.suppressed).padStart(3)} suppressed ${String(c.unknown).padStart(4)} unknown`
-  );
-  return ["Scorecard", ...rows].join("\n");
+  const rows = Object.entries(scorecard.byCategory)
+    .filter(([, c]) => c.act + c.review + c.suppressed + c.unknown > 0)
+    .map(
+      ([id, c]) =>
+        `  ${id.padEnd(26)} ${String(c.act).padStart(4)} act ${String(c.review).padStart(4)} review ${String(c.suppressed).padStart(3)} suppressed ${String(c.unknown).padStart(4)} unknown`
+    );
+  return rows.length ? ["Scorecard", ...rows].join("\n") : "Scorecard: clean";
 };
 
 export const renderTty = (
@@ -62,13 +64,11 @@ export const renderTty = (
   const candidates = result.findings.filter(
     (f) => options.verbose || !f.suppressed
   );
-  const actExamples = candidates.filter((f) => f.band === "act").slice(0, 20);
-  const reviewExamples = candidates
-    .filter((f) => f.band === "review")
-    .slice(0, 10);
-  const visible = options.verbose
-    ? candidates
-    : [...actExamples, ...reviewExamples];
+  // Act findings are the report. Review notes are a reading list: counted by
+  // rule here, listed only with --verbose.
+  const actFindings = candidates.filter((f) => f.band === "act");
+  const reviewFindings = candidates.filter((f) => f.band === "review");
+  const visible = options.verbose ? candidates : actFindings.slice(0, 20);
   if (result.summary) {
     out.push(
       `Summary: ${result.summary.act} act, ${result.summary.review} review, ${result.summary.unknown} unknown; ${result.summary.failing} failing rule findings (fail-on ${result.summary.failOn}).`
@@ -97,9 +97,24 @@ export const renderTty = (
       .map(([id, n]) => `${id}: ${n}`)
       .join(", ")}`
   );
-  if (visible.length < candidates.length) {
+  if (!options.verbose && actFindings.length > visible.length) {
     out.push(
-      `${candidates.length - visible.length} findings omitted from this view; use --verbose for every finding.`
+      `${actFindings.length - visible.length} more act findings; use --verbose for every finding.`
+    );
+  }
+  if (!options.verbose && reviewFindings.length > 0) {
+    const byRule = new Map<string, number>();
+    for (const f of reviewFindings) {
+      byRule.set(f.ruleId, (byRule.get(f.ruleId) ?? 0) + 1);
+    }
+    out.push(
+      `${reviewFindings.length} review note${reviewFindings.length === 1 ? "" : "s"} from ${byRule.size} rule${byRule.size === 1 ? "" : "s"} (never fail a run; use --verbose to list): ${[
+        ...byRule,
+      ]
+        .toSorted((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 5)
+        .map(([id, n]) => `${id} ${n}`)
+        .join(", ")}${byRule.size > 5 ? ", ..." : ""}`
     );
   }
   if (result.reportPath) {
