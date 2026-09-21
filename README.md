@@ -1,6 +1,6 @@
 <div align="center">
 
-# Taste Lint
+# [Taste Lint](https://blode.co/taste-lint)
 
 **Catch AI slop before you ship.**
 
@@ -9,6 +9,12 @@ Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introductio
 <p align="center">
   <a href="https://www.npmjs.com/package/taste-lint"><img alt="npm version" src="https://img.shields.io/npm/v/taste-lint?style=flat&colorA=000000&colorB=000000" /></a>
   <a href="https://github.com/mblode/taste-lint/blob/main/LICENSE.md"><img alt="MIT license" src="https://img.shields.io/npm/l/taste-lint?style=flat&colorA=000000&colorB=000000" /></a>
+</p>
+
+<p align="center">
+  <a href="https://blode.co/taste-lint/docs">
+    <img alt="Read the docs" src="https://raw.githubusercontent.com/mblode/taste-lint/main/.github/assets/documentation.svg" width="200" height="48" />
+  </a>
 </p>
 
 </div>
@@ -37,6 +43,7 @@ Use your package manager in place of npm. Pass `--agent` to init for agent instr
 ## What it checks
 
 - **Product interfaces:** error recovery, empty states, confirmation labels, unsupported claims, and broad CSS transitions.
+- **Whole pages:** agent-assisted UI, typography, copy, interaction, motion and SEO audits. Run `taste-lint scan guide` for the workflow.
 - **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
 - **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
 
@@ -46,7 +53,7 @@ The default scan focuses on six checks and shows five prioritized groups. Use `-
 
 ## Docs
 
-[taste-lint.blode.md](https://taste-lint.blode.md)
+[Read the docs](https://blode.co/taste-lint/docs)
 
 `taste-lint scan --help` lists every option. `--dry-run` previews scope and cost. `--output json` and `--output sarif` are for scripts and code review.
 

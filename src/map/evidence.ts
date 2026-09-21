@@ -6,6 +6,9 @@ export const missingEvidence = (unit: Unit, rule: Rule): string | undefined => {
   if (!rule.question) {
     return undefined;
   }
+  if (unit.kind === "audit" && unit.context.audit?.missing) {
+    return unit.context.audit.missing;
+  }
   const keys = rule.question.context ?? [];
   if (keys.includes("section")) {
     if (!unit.context.section) {

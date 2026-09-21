@@ -1,0 +1,8 @@
+results/
+.work/
+.turbo/
+**/.next/
+**/node_modules/
+**/*.tsbuildinfo
+.env*
+.git/

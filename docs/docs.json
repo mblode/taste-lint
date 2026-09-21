@@ -8,10 +8,6 @@
   },
   "description": "Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.",
   "favicon": "/favicon.svg",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
-  },
   "metadata": {
     "timestamp": true
   },
@@ -21,7 +17,7 @@
     "links": [
       {
         "label": "Website",
-        "href": "https://blode.co"
+        "href": "https://blode.co/taste-lint"
       },
       {
         "label": "GitHub",
@@ -41,8 +37,19 @@
       },
       {
         "group": "Guides",
-        "pages": ["scans", "usage", "design", "typesafe", "skill-packs"]
+        "pages": [
+          "scans",
+          "page-audits",
+          "usage",
+          "design",
+          "typesafe",
+          "skill-packs"
+        ]
       }
     ]
+  },
+  "seo": {
+    "siteUrl": "https://blode.co/taste-lint/docs",
+    "siteName": "Matthew Blode"
   }
 }

@@ -1,3 +1,4 @@
+import { Option } from "commander";
 import type { Command } from "commander";
 
 import { loadCorpus, resolveCorpusDir } from "../eval/corpus.js";
@@ -18,9 +19,17 @@ export function registerEvalCommand(program: Command): void {
       "Corpus directory (default: packaged data/corpus)"
     )
     .option("--rules <path>", "Rules directory")
-    .option("--output <format>", "text or json", "text")
+    .addOption(
+      new Option("--output <format>", "Output format")
+        .choices(["text", "json"])
+        .default("text")
+    )
     .option("--only <ids>", "Comma-separated rule ids")
-    .option("--split <name>", "dev, holdout or all", "all")
+    .addOption(
+      new Option("--split <name>", "Evaluation split")
+        .choices(["dev", "holdout", "all"])
+        .default("all")
+    )
     .option("--include-weak", "Include manifest-weak labels")
     .option(
       "--check",
@@ -31,12 +40,6 @@ export function registerEvalCommand(program: Command): void {
     .option("--results-dir <path>", "Where logs and cache live")
     .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
-      if (!["text", "json"].includes(options.output)) {
-        throw new Error("--output must be text or json");
-      }
-      if (!["dev", "holdout", "all"].includes(options.split)) {
-        throw new Error("--split must be dev, holdout or all");
-      }
       const result = await runEval({
         check: options.check,
         corpusDir: options.corpus,
@@ -67,11 +70,12 @@ export function registerEvalCommand(program: Command): void {
     .option("--corpus <path>", "Corpus directory")
     .option("--rules <path>", "Rules directory")
     .option("--include-weak", "Include weak labels")
-    .option("--output <format>", "text or json", "text")
+    .addOption(
+      new Option("--output <format>", "Output format")
+        .choices(["text", "json"])
+        .default("text")
+    )
     .action((options) => {
-      if (!["text", "json"].includes(options.output)) {
-        throw new Error("--output must be text or json");
-      }
       const rulesDir = resolveRulesDir(options.rules);
       const rules = loadRules(rulesDir);
       const items = loadCorpus(resolveCorpusDir(options.corpus), rules, {

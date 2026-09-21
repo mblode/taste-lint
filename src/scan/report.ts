@@ -1,3 +1,7 @@
+import { savedAudit } from "../audit/input.js";
+import { renderAuditRegion } from "../audit/report.js";
+import type { AuditRecord } from "../audit/types.js";
+import { AUDIT_LENSES } from "../audit/types.js";
 import { normaliseText } from "../extract/units.js";
 import { InputError } from "../lib/errors.js";
 import { reviewProcedure } from "../rules/review.js";
@@ -7,6 +11,14 @@ import type { ScanProfile } from "./profiles.js";
 import { hash, object, readJson } from "./storage.js";
 
 export interface ScanFinding extends Finding {
+  audit?: {
+    lens: string;
+    region: string;
+    proposalId?: string;
+    consequence?: string;
+    preserve: string;
+    verification: string;
+  };
   fingerprint: string;
   excerpt: string;
   /** Local source context for review; not a generated explanation. */
@@ -16,6 +28,7 @@ export interface ScanFinding extends Finding {
   origin: "taste-lint" | "dependency-cruiser";
 }
 export interface ScanReport {
+  audit?: AuditRecord;
   version: 1;
   kind: "taste-lint-scan";
   root: string;
@@ -114,6 +127,28 @@ export const readReport = (file: string): ScanReport => {
       "Expected a version 1 taste-lint scan report."
     );
   }
+  if (raw.audit !== undefined) {
+    savedAudit(raw.audit);
+  }
+  for (const finding of raw.findings) {
+    if (
+      finding.audit !== undefined &&
+      (!object(finding.audit) ||
+        !AUDIT_LENSES.includes(
+          finding.audit.lens as (typeof AUDIT_LENSES)[number]
+        ) ||
+        typeof finding.audit.region !== "string" ||
+        typeof finding.audit.preserve !== "string" ||
+        typeof finding.audit.verification !== "string" ||
+        (finding.audit.proposalId !== undefined &&
+          typeof finding.audit.proposalId !== "string"))
+    ) {
+      throw new InputError(
+        "INVALID_SCAN_REPORT",
+        "Invalid page finding metadata."
+      );
+    }
+  }
   return raw as unknown as ScanReport;
 };
 export type Decisions = Record<
@@ -178,7 +213,7 @@ export const reconcile = (
           : "unverified",
     }));
 };
-const priority = (a: ScanFinding, b: ScanFinding): number =>
+export const priority = (a: ScanFinding, b: ScanFinding): number =>
   Number(b.band === "act") - Number(a.band === "act") ||
   SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
   b.probability - a.probability ||
@@ -192,9 +227,12 @@ export const renderScan = (report: ScanReport, limit = 5): string => {
   for (const finding of report.findings.filter((f) =>
     visible.has(f.fingerprint)
   )) {
-    const list = groups.get(finding.ruleId) ?? [];
+    const groupKey = report.audit
+      ? (finding.audit?.region ?? "document")
+      : finding.ruleId;
+    const list = groups.get(groupKey) ?? [];
     list.push(finding);
-    groups.set(finding.ruleId, list);
+    groups.set(groupKey, list);
   }
   const ranked = [...groups.values()]
     .map((group) => group.toSorted(priority))
@@ -202,20 +240,30 @@ export const renderScan = (report: ScanReport, limit = 5): string => {
   const s = report.summary;
   const coverage = Object.values(report.coverage?.byRule ?? {});
   return [
-    `${report.profile.name}: ${report.status}; ${report.files.length} files`,
+    report.audit
+      ? `Page audit: ${report.status}; 1 page state`
+      : `${report.profile.name}: ${report.status}; ${report.files.length} files`,
     `${s.visible} visible checks (${s.failing} failing, ${s.review} review); ${s.total} total; ${s.dismissed} dismissed; ${s.unknown} unknown`,
     ...report.diagnostics,
+    ...(report.audit
+      ? [
+          `Page: ${report.audit.page.url} (${report.audit.page.state}, ${report.audit.page.viewport.width}x${report.audit.page.viewport.height})`,
+          `Purpose: ${report.audit.brief.purpose}`,
+          `Lens review by ${report.audit.observer.name}: ${report.audit.coverage.map((c) => `${c.lens}: ${c.status}, ${c.evaluated} checks answered, ${c.unknown} unknown`).join("; ")}`,
+        ]
+      : []),
     `Rule coverage: ${coverage.filter((r) => r.eligible === 0).length} with no applicable inputs; ${coverage.filter((r) => r.eligible > 0 && r.negative === r.eligible).length} with all applicable checks negative; ${coverage.filter((r) => r.pending > 0).length} with pending evaluations`,
     `${s.new} new; ${s.existing} existing; ${s.resolved} resolved; ${s.unverified} unverified`,
     ...ranked
       .slice(0, limit)
-      .map(
-        (group) =>
-          `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].evidence}\n  ${group[0].fixHint}${group[0].review ? `\n  Requires: ${group[0].review.evidence}\n  Verify: ${group[0].review.verification}` : ""}`
+      .map((group) =>
+        report.audit
+          ? renderAuditRegion(group)
+          : `${group[0].ruleId}: ${group.length} checks in ${new Set(group.map((f) => f.file)).size} files\n  ${group[0].file}:${group[0].line} ${group[0].message}\n  ${group[0].evidence}\n  ${group[0].fixHint}${group[0].review ? `\n  Requires: ${group[0].review.evidence}\n  Verify: ${group[0].review.verification}` : ""}`
       ),
     ...(ranked.length > limit
       ? [
-          `${ranked.length - limit} further rule groups are available in the JSON report.`,
+          `${ranked.length - limit} further ${report.audit ? "page regions" : "rule groups"} are available in the JSON report.`,
         ]
       : []),
     ...(report.estimated

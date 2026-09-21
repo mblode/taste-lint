@@ -157,6 +157,9 @@ export const profileRules = (
     if (profile.name === "all") {
       return true;
     }
+    if (rule.unit.every((kind) => kind === "audit")) {
+      return false;
+    }
     if (profile.name === "discovery") {
       return rule.domain === "seo" || rule.id.startsWith("authoring-llms-");
     }

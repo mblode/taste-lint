@@ -1,6 +1,7 @@
 // Shared type definitions. See docs/DESIGN.md for the contracts.
 
 import type { SourceFacts } from "./analysis/repository.js";
+import type { AuditUnitContext } from "./audit/types.js";
 
 export const DOMAINS = [
   "typography",
@@ -23,6 +24,7 @@ export const UNIT_KINDS = [
   "attr-string",
   "class-list",
   "element",
+  "audit",
   /** The whole file, for mechanical-only regex rules over raw source. */
   "source",
   /** A file that did not parse; carries the error and nothing else. */
@@ -209,13 +211,10 @@ export interface NeighbourSummary {
   typography?: ResolvedTypography;
 }
 
-export interface WritingContext {
-  facts?: string;
-  profile?: string;
-  instructions?: string;
-}
+export type { WritingContext } from "./lib/writing-context.js";
 
 export interface UnitContext {
+  audit?: AuditUnitContext;
   /** Explicit font-size tokens from taste-lint.config.json, never inferred defaults. */
   fontScale?: Record<string, string>;
   section?: string;

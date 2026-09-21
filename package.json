@@ -1,74 +1,35 @@
 {
-  "name": "taste-lint",
-  "version": "0.0.11",
-  "description": "Taste linter: copy and typography rules from agent-skills answered by TypeSafe Jev probabilities, with mechanical checks, calibration and a scorecard",
-  "keywords": [
-    "copywriting",
-    "design",
-    "jev",
-    "lint",
-    "taste",
-    "typesafe",
-    "typography"
-  ],
-  "homepage": "https://taste-lint.blode.md",
-  "bugs": {
-    "url": "https://github.com/mblode/taste-lint/issues"
-  },
-  "license": "MIT",
-  "author": "Matthew Blode",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mblode/taste-lint.git"
-  },
-  "bin": {
-    "taste-lint": "dist/cli.js"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE.md",
-    "data"
+  "name": "taste-lint-repo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
     "start": "node dist/cli.js",
-    "typecheck": "tsc -p tsconfig.typecheck.json",
-    "test": "vitest run",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "release": "npm run build && changeset publish",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "prepare": "lefthook install",
+    "prepare": "node scripts/prepare.mjs",
     "test:package": "node scripts/test-package.mjs",
     "port-rules": "node --experimental-strip-types scripts/port-rules.ts",
     "seed-corpus": "npm run build && node --experimental-strip-types scripts/seed-corpus.ts",
     "verify": "npm run check && npm run build && npm run typecheck && npm test && npm run test:package",
-    "verify:full": "npm run verify && node dist/cli.js rules check"
-  },
-  "dependencies": {
-    "commander": "^15.0.0",
-    "mdast-util-from-markdown": "^2.0.3",
-    "mdast-util-gfm": "^3.1.0",
-    "mdast-util-mdx": "^3.0.0",
-    "mdast-util-to-string": "^4.0.0",
-    "micromark-extension-gfm": "^3.0.0",
-    "micromark-extension-mdxjs": "^3.0.0",
-    "oxc-parser": "^0.150.0",
-    "parse5": "^8.0.1",
-    "yaml": "^2.9.1"
+    "verify:full": "npm run verify && node dist/cli.js rules check",
+    "build:cli": "turbo run build --filter=taste-lint",
+    "build:web": "turbo run build --filter=@taste-lint/web",
+    "dev:cli": "turbo run dev --filter=taste-lint",
+    "dev:web": "turbo run dev --filter=@taste-lint/web",
+    "typecheck:cli": "turbo run typecheck --filter=taste-lint",
+    "test:cli": "turbo run test --filter=taste-lint",
+    "check:web": "npm run typecheck --workspace @taste-lint/web && npm run test --workspace @taste-lint/web"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
@@ -78,11 +39,13 @@
     "oxfmt": "^0.58.0",
     "oxlint": "^1.73.0",
     "tsdown": "^0.22.5",
+    "turbo": "^2.8.0",
     "typescript": "7.0.2",
     "ultracite": "7.9.3",
     "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=24.11"
-  }
+  },
+  "packageManager": "npm@11.19.0"
 }

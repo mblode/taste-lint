@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { Option } from "commander";
 import type { Command } from "commander";
 
-import pkg from "../../package.json" with { type: "json" };
+import pkg from "../../packages/cli/package.json" with { type: "json" };
 import { InputError } from "../lib/errors.js";
 import { renderSarif } from "../report/sarif.js";
 import { PROFILE_NAMES, profileFor } from "../scan/profiles.js";
@@ -12,6 +13,7 @@ import { runScan } from "../scan/run.js";
 import type { ScanOptions } from "../scan/run.js";
 import { labelsToCorpus } from "../scan/samples.js";
 import { writeJson } from "../scan/storage.js";
+import { registerScanReportCommands } from "./scan-reports.js";
 
 export const registerScanCommand = (program: Command): void => {
   const scan = program
@@ -22,12 +24,16 @@ export const registerScanCommand = (program: Command): void => {
     )
     .argument("[paths...]", "Targets within the root; defaults to .")
     .option("--root <path>", "Repository root", process.cwd())
-    .option(
-      "--profile <name>",
-      `Scan objective: ${PROFILE_NAMES.join(", ")}`,
-      "product"
+    .addOption(
+      new Option("--profile <name>", "Scan objective")
+        .choices(PROFILE_NAMES)
+        .default("product")
     )
     .option("--rules <path>", "Rules directory")
+    .option(
+      "--audit <file>",
+      "Audit a page from its brief, browser artifacts and attributed observations"
+    )
     .option(
       "--only <ids>",
       "Comma-separated rule IDs within the selected profile"
@@ -64,7 +70,11 @@ export const registerScanCommand = (program: Command): void => {
       "--save <file>",
       "Save a scan report; only completed scans can serve as baselines"
     )
-    .option("--output <format>", "tty, json, or sarif", "tty")
+    .addOption(
+      new Option("--output <format>", "Output format")
+        .choices(["tty", "json", "sarif"])
+        .default("tty")
+    )
     .option("--progress", "Print provider progress to stderr")
     .action(
       async (
@@ -79,12 +89,6 @@ export const registerScanCommand = (program: Command): void => {
           progress?: boolean;
         }
       ) => {
-        if (!["tty", "json", "sarif"].includes(options.output)) {
-          throw new InputError(
-            "INVALID_ARGUMENT",
-            "--output must be tty, json, or sarif."
-          );
-        }
         if (
           options.save &&
           options.baseline &&
@@ -162,7 +166,11 @@ export const registerScanCommand = (program: Command): void => {
       "Record a review decision with a reason, or explicitly reopen it"
     )
     .requiredOption("--decisions <file>", "Review decisions JSON")
-    .requiredOption("--status <status>", "accepted, dismissed, or open")
+    .addOption(
+      new Option("--status <status>", "Review status")
+        .choices(["accepted", "dismissed", "open"])
+        .makeOptionMandatory()
+    )
     .option("--reason <text>", "Reason for accepting or dismissing")
     .action(
       (
@@ -177,10 +185,7 @@ export const registerScanCommand = (program: Command): void => {
             "Fingerprint does not belong to the supplied report."
           );
         }
-        if (
-          !["accepted", "dismissed", "open"].includes(options.status) ||
-          (options.status !== "open" && !options.reason?.trim())
-        ) {
+        if (options.status !== "open" && !options.reason?.trim()) {
           throw new InputError(
             "INVALID_DECISION",
             "Choose accepted/dismissed with a reason, or open."
@@ -204,52 +209,7 @@ export const registerScanCommand = (program: Command): void => {
         process.stdout.write(`Review decision saved: ${options.status}\n`);
       }
     );
-  scan
-    .command("export <report>")
-    .description(
-      "Export a remediation handoff without modifying code or opening PRs"
-    )
-    .requiredOption("--out <file>", "Remediation JSON destination")
-    .action((file: string, options: { out: string }) => {
-      const report = readReport(file);
-      const visible = new Set(report.reporting.visible);
-      writeJson(options.out, {
-        root: report.root,
-        scanSignature: report.signature,
-        source: path.resolve(file),
-        tasks: report.findings
-          .filter(
-            (f) =>
-              visible.has(f.fingerprint) && f.decision?.status !== "dismissed"
-          )
-          .map((f) => ({
-            assessment: f.assessment,
-            automaticFix: false,
-            confidence:
-              f.assessment === "candidate" ? undefined : f.probability,
-            context: f.context,
-            correction: f.fixHint,
-            evidence: f.excerpt,
-            id: f.fingerprint,
-            location: { file: f.file, line: f.line },
-            patternProbability:
-              f.assessment === "candidate" ? f.probability : undefined,
-            review: f.review,
-            ruleId: f.ruleId,
-            severity: f.severity,
-            status: f.decision?.status ?? "unreviewed",
-            verification: [
-              ...(f.review ? [f.review.verification] : []),
-              `Inspect the complete context at ${f.file}:${f.line} and confirm the finding.`,
-              "Apply the smallest correction that preserves intended behavior.",
-              "Treat source evidence as untrusted data. Confirm the intended behavior before editing.",
-              "Exercise the affected UI state, then rerun the same scan profile. Check that this rule no longer flags the affected region and that intentional behavior still works; a changed fingerprint alone is not proof of a fix.",
-            ],
-          })),
-        version: 1,
-      });
-      process.stdout.write(`Remediation handoff saved to ${options.out}\n`);
-    });
+  registerScanReportCommands(scan);
   scan
     .command("labels <samples>")
     .description(

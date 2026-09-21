@@ -70,7 +70,8 @@
           "attr-string",
           "class-list",
           "element",
-          "source"
+          "source",
+          "audit"
         ]
       }
     },

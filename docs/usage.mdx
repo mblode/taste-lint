@@ -108,6 +108,8 @@ See [TypeSafe](/typesafe) for the Jev contracts. See [skill packs](/skill-packs)
 
 Use `taste-lint scan . --profile product --dry-run` to preview a focused scan. [Scans](/scans) covers profiles, baselines, review decisions, changed-code SARIF, calibration samples, graph-tool reports, and remediation exports.
 
+Run `taste-lint schema` to discover commands as JSON. It includes positional arguments, required options, value types, allowed choices and defaults. An option's `required` field describes whether it must be supplied; `value` describes whether the flag takes a value. Negated flags such as `--no-install` include their positive option name and default.
+
 ## Project setup
 
 Run `npx taste-lint@latest init` in a directory with package.json. Setup detects the package manager from packageManager or a lockfile, installs Taste Lint as a development dependency, and adds `taste` to run the scan. React, Next.js, Vue, Svelte, and Astro dependencies select the product profile. Other projects start with writing. You can edit the scripts to choose another profile.

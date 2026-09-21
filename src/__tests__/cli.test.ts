@@ -77,3 +77,83 @@ it("rejects the removed no-AI mode", () => {
     expect(JSON.parse(result.stdout).code).toBe("INVALID_ARGUMENT");
   }
 });
+
+it("describes required arguments, option values and choices for agents", () => {
+  const result = run("schema");
+  expect(result.status).toBe(0);
+  const commands = JSON.parse(result.stdout);
+  const scan = commands.find((c: { command: string }) => c.command === "scan");
+  expect(scan.arguments).toEqual([
+    expect.objectContaining({
+      name: "paths",
+      required: false,
+      type: "string[]",
+      variadic: true,
+    }),
+  ]);
+  const verify = scan.commands.find(
+    (c: { command: string }) => c.command === "verify"
+  );
+  expect(verify.arguments).toEqual([
+    expect.objectContaining({
+      name: "before",
+      required: true,
+      type: "string",
+      variadic: false,
+    }),
+  ]);
+  expect(verify.options).toContainEqual(
+    expect.objectContaining({
+      flag: "--after",
+      flags: "--after <file>",
+      required: true,
+      type: "string",
+      value: "required",
+    })
+  );
+  expect(verify.options).toContainEqual(
+    expect.objectContaining({
+      enum: ["tty", "json"],
+      flag: "--output",
+      required: false,
+    })
+  );
+  const init = commands.find((c: { command: string }) => c.command === "init");
+  expect(init.options).toContainEqual(
+    expect.objectContaining({
+      default: true,
+      flag: "--no-install",
+      name: "install",
+      negate: true,
+      type: "boolean",
+      value: "none",
+    })
+  );
+  expect(init.options).toContainEqual(
+    expect.objectContaining({
+      enum: ["npm", "pnpm", "yarn", "bun"],
+      flag: "--pm",
+    })
+  );
+  // The same declarations enforce the contract before reading files or calling Jev.
+  const invalid = run("eval", "--split", "bogus", "--output", "json");
+  expect(invalid.status).toBe(1);
+  expect(JSON.parse(invalid.stdout)).toMatchObject({
+    code: "INVALID_ARGUMENT",
+    error: true,
+  });
+  const missing = run(
+    "scan",
+    "verify",
+    "--after",
+    "after.json",
+    "--evidence",
+    "evidence.json",
+    "--out",
+    "out.json",
+    "--output",
+    "json"
+  );
+  expect(missing.status).toBe(1);
+  expect(JSON.parse(missing.stdout).message).toContain("before");
+});

@@ -23,11 +23,18 @@ export interface ElementSnapshot {
   styles: Record<string, string>;
   tagName: string;
   text?: string;
+  visible?: boolean;
 }
 
 export interface CaptureResult {
   elements: Record<string, ElementSnapshot>;
-  metadata: { url: string; title?: string; capturedAt?: string };
+  metadata: {
+    url: string;
+    title?: string;
+    capturedAt?: string;
+    state?: string;
+    viewport?: { width: number; height: number };
+  };
   order: string[];
   rootElementId: string;
   rootOuterHtml: string;
@@ -36,20 +43,43 @@ export interface CaptureResult {
 }
 
 // Fail closed on anything that is not the v1 shape the walk below relies on.
+const record = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const strings = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string");
+const stringMap = (value: unknown): boolean =>
+  record(value) &&
+  Object.values(value).every((item) => typeof item === "string");
+
 export const assertCapture = (raw: unknown): CaptureResult => {
-  const c = raw as Partial<CaptureResult> | null;
   if (
-    typeof c !== "object" ||
-    c === null ||
-    c.version !== 1 ||
-    typeof c.elements !== "object" ||
-    c.elements === null ||
-    !Array.isArray(c.order) ||
-    !c.order.every((id) => typeof id === "string")
+    !record(raw) ||
+    raw.version !== 1 ||
+    !record(raw.elements) ||
+    !strings(raw.order)
   ) {
     throw new Error(
       "Unsupported capture: expected style-capture CaptureResult version 1 with elements and order"
     );
   }
-  return c as CaptureResult;
+  for (const [id, element] of Object.entries(raw.elements)) {
+    if (
+      !record(element) ||
+      !["id", "tagName", "selector"].every(
+        (key) => typeof element[key] === "string"
+      ) ||
+      !(element.parentId === null || typeof element.parentId === "string") ||
+      !strings(element.children) ||
+      !strings(element.classList) ||
+      !stringMap(element.styles) ||
+      !stringMap(element.attributes) ||
+      (element.text !== undefined && typeof element.text !== "string") ||
+      (element.visible !== undefined && typeof element.visible !== "boolean")
+    ) {
+      throw new Error(
+        `Unsupported capture element ${id}: expected text identifiers, string maps for styles/attributes and string lists for children/classList`
+      );
+    }
+  }
+  return raw as unknown as CaptureResult;
 };

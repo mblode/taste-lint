@@ -18,7 +18,17 @@ const walk = (dir: string, keep: (file: string) => boolean): string[] => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const abs = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (!["node_modules", "dist", ".git", "results"].includes(entry.name)) {
+      if (
+        ![
+          "node_modules",
+          "dist",
+          ".git",
+          ".next",
+          ".turbo",
+          ".vercel",
+          "results",
+        ].includes(entry.name)
+      ) {
         out.push(...walk(abs, keep));
       }
     } else if (keep(abs)) {
@@ -33,7 +43,7 @@ describe("house rules", () => {
     const files = walk(
       root,
       (f) =>
-        /\.(ts|mjs|yaml|json|mdx?)$/.test(f) &&
+        /\.(tsx?|m?js|yaml|json|mdx?)$/.test(f) &&
         !f.includes(`${path.sep}data${path.sep}corpus${path.sep}`) &&
         !f.includes(`${path.sep}__tests__${path.sep}fixtures${path.sep}`) &&
         !f.endsWith("package-lock.json")

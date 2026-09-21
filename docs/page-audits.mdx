@@ -1,0 +1,50 @@
+---
+title: Page audits
+description: Review and improve a page across disciplines using real evidence and Jev.
+---
+
+# Page audits
+
+Run `taste-lint scan guide`, or ask your coding agent to audit a page using `node_modules/taste-lint/data/audit/SKILL.md`. It gathers the evidence, writes the audit input and uses Taste Lint to review proposed improvements across UI, typography, copywriting, interaction, motion and SEO.
+
+The audit starts with the page's purpose, audience and intended character. Findings include what to change, why it matters, what to preserve and how to check the result. The terminal groups findings by page region and consolidates repeated corrections. JSON and agent exports retain every finding.
+
+```sh
+taste-lint scan --audit results/audit/before/audit.json --dry-run
+taste-lint scan --audit results/audit/before/audit.json --save results/audit/before/report.json
+taste-lint scan export results/audit/before/report.json --out results/audit/handoff.json
+```
+
+Use the packaged `data/audit/example.json` and `data/audit/capture.js` as the input example and browser capture helper. Run from the source repository, or supply `--root`. The audit reads its named artifacts and source references; ordinary source scans remain available separately.
+
+For automation, `scan guide`, `scan export` and `scan verify` accept `--output json` before or after the subcommand. Exports name the page state and evidence artifacts, plus a source location when supplied. Locate the corresponding source before editing a finding without one.
+
+## Evidence and judgments
+
+Every audit names one URL, state and viewport. Store its artifacts together in a private directory. Exact quotes must occur in the referenced text artifact. Source paths cannot escape the repository; artifacts cannot escape the audit directory, including through symlinks. Reports record artifact hashes and the observer's identity.
+
+Jev evaluates proposed problems and clean review summaries against the brief. It receives attributed text observations, not images. Screenshot interpretation belongs to the named reviewer. When a capture or full HTML document is supplied, existing computed typography and document SEO checks also run. A proposal whose evidence is missing or too large remains unknown. Page-audit rules remain advisory and are not calibrated quality scores.
+
+| Lens | Required observation kind |
+| --- | --- |
+| UI | Screenshot |
+| Typography | Computed styles or screenshot |
+| Copywriting | DOM, full document or screenshot |
+| Interaction | Recorded interaction |
+| Motion | Recorded motion |
+| SEO | Document or deployed-response observations saved as a document artifact |
+
+Each lens is explicitly reviewed, not assessed or not applicable with a reason. Missing lens reviews and unresolved evidence make a page audit incomplete (exit 2). Complete means the declared review ran; it does not establish exhaustive coverage or independent truth of the observer's claims. Public SEO checks are not automatically applicable to private application pages.
+
+## Verify repairs
+
+Preserve before artifacts. Capture the same state and viewport in a separate after directory, keeping the brief unchanged. Reassess the same proposals or record clean reviews, then save the after scan:
+
+```sh
+taste-lint scan --audit results/audit/after/audit.json --baseline results/audit/before/report.json --save results/audit/after/report.json
+taste-lint scan verify results/audit/before/report.json --after results/audit/after/report.json --evidence results/audit/after/verification.json --out results/audit/verified.json
+```
+
+The agent workflow documents the verification JSON. Every visible before finding needs a repeated procedure, result, preserved behavior and artifact references. Passed checks require appropriate fresh evidence; a static screenshot cannot verify motion or interaction. Stale hashes, changed page identity, incomplete scans, omitted checks and still-present findings prevent a successful verification claim. Disappeared findings remain unverified until these checks are recorded.
+
+Verification is attributed to the supplied observer. Taste Lint validates the record and artifact integrity; the coding agent performs the actual checks and edits. Reports and exports contain source and page evidence, so keep private artifacts out of Git.
