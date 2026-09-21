@@ -5,13 +5,13 @@ import { afterEach, expect, it } from "vitest";
 
 import { loadCorpus, unitFromItem } from "../eval/corpus.js";
 import { extractTsx } from "../extract/tsx.js";
+import { runLint } from "../lint.js";
 import { AnswerCache } from "../map/cache.js";
 import { ProviderError } from "../map/jev.js";
 import { judge } from "../map/judge.js";
 import { planRequests } from "../map/plan.js";
 import { buildState } from "../map/state.js";
 import { CLASS_RULES } from "../rules/code/classes.js";
-import { runScan } from "../scan/run.js";
 import { makeSamples } from "../scan/samples.js";
 import { config, fakeEvaluate, rule, temporary } from "./helpers.js";
 
@@ -147,25 +147,25 @@ it("lets Jev decide reporting and never falls back to a mechanical warning on pr
     root,
     targets: ["card.tsx"],
   };
-  const positive = await runScan(options, {
+  const positive = await runLint(options, {
     evaluate: fakeEvaluate(() => 0.9),
   });
-  expect(positive.report.findings).toMatchObject([
+  expect(positive.findings).toMatchObject([
     { band: "review", probability: 0.9, tier: "both" },
   ]);
-  const negative = await runScan(
+  const negative = await runLint(
     { ...options, resultsDir: path.join(root, "negative") },
     { evaluate: fakeEvaluate(() => 0.05) }
   );
-  expect(negative.report.findings).toHaveLength(0);
-  expect(negative.report.coverage?.byRule[style.id].answered).toBe(1);
-  const failed = await runScan(
+  expect(negative.findings).toHaveLength(0);
+  expect(negative.coverage?.byRule[style.id].answered).toBe(1);
+  const failed = await runLint(
     { ...options, resultsDir: path.join(root, "failed") },
     { evaluate: () => Promise.reject(new ProviderError("provider_error", 503)) }
   );
-  expect(failed.report.status).toBe("incomplete");
-  expect(failed.report.findings).toHaveLength(0);
-  expect(failed.report.unknowns).toMatchObject([
+  expect(failed.status).toBe("incomplete");
+  expect(failed.findings).toHaveLength(0);
+  expect(failed.unknowns).toMatchObject([
     { reason: "provider_error", ruleId: style.id },
   ]);
 });

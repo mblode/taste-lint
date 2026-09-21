@@ -7,13 +7,13 @@ import { loadCorpus } from "../eval/corpus.js";
 import { corpusCoverage } from "../eval/coverage.js";
 import { evaluateRules, runEval } from "../eval/metrics.js";
 import { extractTsx } from "../extract/tsx.js";
+import { runLint } from "../lint.js";
 import { ProviderError } from "../map/jev.js";
 import { planRequests } from "../map/plan.js";
 import { buildState } from "../map/state.js";
+import { renderTty } from "../report/tty.js";
 import { loadRules } from "../rules/load.js";
 import { profileFor, profileRules } from "../scan/profiles.js";
-import { renderScan } from "../scan/report.js";
-import { runScan } from "../scan/run.js";
 import { config, fakeEvaluate, temporary } from "./helpers.js";
 
 const dirs: string[] = [];
@@ -69,32 +69,54 @@ it("uses Jev for recovery even when an unrelated catch exists, and fails closed"
     targets: ["."],
   };
   const evaluate = fakeEvaluate(() => 0.9);
-  const first = await runScan(options, { evaluate });
+  const first = await runLint(options, { evaluate });
   expect(evaluate.calls).toHaveLength(1);
   expect(evaluate.calls[0].state).toContain("catch");
-  expect(first.report.findings).toHaveLength(1);
-  expect(first.report.findings[0].band).toBe("review");
-  const failed = await runScan(
+  expect(first.findings).toHaveLength(1);
+  expect(first.findings[0].band).toBe("review");
+  const failed = await runLint(
     { ...options, resultsDir: path.join(root, "failed") },
     { evaluate: () => Promise.reject(new ProviderError("provider_error", 503)) }
   );
-  expect(failed.report.findings).toHaveLength(0);
-  expect(failed.report.status).toBe("incomplete");
-  expect(failed.report.unknowns.length).toBeGreaterThan(0);
+  expect(failed.findings).toHaveLength(0);
+  expect(failed.status).toBe("incomplete");
+  expect(failed.unknowns.length).toBeGreaterThan(0);
 });
 
-it("keeps focused defaults small and broader policies explicitly selectable", () => {
-  const product = profileFor("product");
-  const selected = profileRules(product, rules);
-  expect(selected).toHaveLength(6);
-  expect(selected.some((r) => r.id === "craft-arbitrary-value-class")).toBe(
-    false
-  );
-  expect(selected.some((r) => r.id === "motion-duration-over-300ms")).toBe(
-    false
-  );
-  expect(profileRules(product, rules, true).length).toBeGreaterThan(6);
+it("scopes profiles by domain and never changes a rule's status", () => {
+  const product = profileRules(profileFor("product"), rules);
+  const ids = new Set(product.map((r) => r.id));
+  for (const id of [
+    "motion-transition-all",
+    "motion-duration-over-300ms",
+    "copywriting-click-here-links",
+    "typography-straight-quotes",
+    "copywriting-vague-error",
+  ]) {
+    expect(ids.has(id), id).toBe(true);
+  }
+  expect(ids.has("authoring-generic-verification")).toBe(false);
+  expect(ids.has("copywriting-readme-scaffold")).toBe(false);
+  const writing = profileRules(profileFor("writing"), rules);
+  expect(
+    writing.every((r) => ["copywriting", "typography"].includes(r.domain))
+  ).toBe(true);
+  expect(
+    writing.some((r) => r.id === "copywriting-document-broken-local-link")
+  ).toBe(false);
+  const instructions = profileRules(profileFor("instructions"), rules);
+  expect(
+    instructions.some((r) => r.id === "authoring-generic-verification")
+  ).toBe(true);
+  expect(
+    instructions.some((r) => r.id === "copywriting-document-broken-local-link")
+  ).toBe(true);
   expect(profileRules(profileFor("all"), rules)).toHaveLength(rules.length);
+  expect(
+    [...product, ...writing, ...instructions].every(
+      (r) => r.status === rules.find((x) => x.id === r.id)!.status
+    )
+  ).toBe(true);
 });
 
 it("measures visible findings and rejects a model that flags both paired variants", () => {
@@ -120,31 +142,32 @@ it("measures visible findings and rejects a model that flags both paired variant
   ).toBe(1);
 });
 
-it("prioritizes sparse major findings and limits display without losing report evidence", async () => {
+it("lists act findings and counts review notes by rule unless verbose", async () => {
   const root = temp();
   fs.writeFileSync(
     path.join(root, "page.tsx"),
     '<button className="transition-all">Open</button>'
   );
-  const { report } = await runScan({
+  const report = await runLint({
     only: ["motion-transition-all"],
     root,
     targets: ["."],
   });
   const original = report.findings[0];
-  report.findings = Array.from({ length: 7 }, (_, i) => ({
+  const findings = Array.from({ length: 7 }, (_, i) => ({
     ...original,
-    band: "review",
-    fingerprint: String(i),
-    probability: i === 6 ? 0.8 : 1,
+    band: i === 0 ? ("act" as const) : ("review" as const),
     ruleId: `rule-${i}`,
-    severity: i === 6 ? "major" : "minor",
   }));
-  report.reporting.visible = report.findings.map((f) => f.fingerprint);
-  const rendered = renderScan(report);
-  expect(rendered.indexOf("rule-6:")).toBeLessThan(rendered.indexOf("rule-0:"));
-  expect(rendered).toContain("2 further rule groups");
-  expect(report.findings).toHaveLength(7);
+  const rendered = renderTty({ ...report, findings, ruleFindings: findings });
+  expect(rendered).toContain("rule-0 ");
+  expect(rendered).not.toContain("[MINOR?] rule-1");
+  expect(rendered).toContain("6 review notes from 6 rules");
+  const verbose = renderTty(
+    { ...report, findings, ruleFindings: findings },
+    { verbose: true }
+  );
+  expect(verbose).toContain("[MINOR?] rule-1");
   expect(report.exitCode).toBe(1);
 });
 
@@ -228,7 +251,7 @@ it("stores the context that led to a finding for an agent to verify", async () =
     '<section role="dialog"><p>Delete project permanently?</p><button>Confirm</button></section>'
   );
   const evaluate = fakeEvaluate(() => 0.9);
-  const { report } = await runScan(
+  const report = await runLint(
     {
       only: ["copywriting-bare-confirm-label"],
       resultsDir: path.join(root, "results"),
@@ -237,9 +260,10 @@ it("stores the context that led to a finding for an agent to verify", async () =
     },
     { evaluate }
   );
-  const finding = report.findings[0];
-  expect(finding.context).toContain("Delete project permanently?");
-  expect(String(evaluate.calls[0].state)).toContain(finding.context);
+  expect(report.findings).toHaveLength(1);
+  expect(String(evaluate.calls[0].state)).toContain(
+    "Delete project permanently?"
+  );
 });
 
 it("fails the opt-in regression check on false positives and refuses incomplete or dry runs", async () => {

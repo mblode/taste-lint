@@ -40,9 +40,6 @@ try {
   );
   assert.ok(!packed.files.some((file) => file.path.startsWith("src/")));
   assert.ok(!packed.files.some((file) => file.path.startsWith("apps/")));
-  for (const name of ["SKILL.md", "example.json", "capture.js"]) {
-    assert.ok(packed.files.some((file) => file.path === `data/audit/${name}`));
-  }
   const consumer = path.join(temporary, "consumer");
   fs.mkdirSync(consumer);
   const manifest = JSON.parse(
@@ -126,15 +123,14 @@ try {
   );
   assert.match(dry, /No calls were made/);
   assert.match(dry, /2 requests would be sent/);
-  const scan = JSON.parse(
+  const profiled = JSON.parse(
     run(
       process.execPath,
       [
         cli,
-        "scan",
-        ".",
+        "lint",
         "--profile",
-        "all",
+        "writing",
         "--root",
         project,
         "--dry-run",
@@ -147,53 +143,9 @@ try {
       env
     )
   );
-  assert.equal(scan.kind, "taste-lint-scan");
-  assert.equal(scan.status, "dry-run");
-  assert.equal(scan.files.length, 1);
-  assert.match(
-    run(process.execPath, [cli, "scan", "guide"], consumer),
-    /Audit a page with Taste Lint/
-  );
-  const auditDir = path.join(project, "audit");
-  fs.mkdirSync(auditDir);
-  fs.writeFileSync(
-    path.join(auditDir, "page.html"),
-    "<!doctype html><html><head><title>Plans</title></head><body><h1>A powerful, seamless platform</h1></body></html>"
-  );
-  const audit = JSON.parse(
-    fs.readFileSync(path.join(installed, "data/audit/example.json"), "utf-8")
-  );
-  for (const review of audit.reviews) {
-    if (review.status === "not-assessed") {
-      review.status = "not-applicable";
-      review.summary = "Text-only packaging fixture; no browser quality claim.";
-    }
-  }
-  const auditFile = path.join(auditDir, "audit.json");
-  fs.writeFileSync(auditFile, JSON.stringify(audit));
-  const pagePreview = JSON.parse(
-    run(
-      process.execPath,
-      [
-        cli,
-        "scan",
-        "--audit",
-        auditFile,
-        "--root",
-        project,
-        "--dry-run",
-        "--output",
-        "json",
-        "--results-dir",
-        path.join(temporary, "audit-cache"),
-      ],
-      consumer,
-      env
-    )
-  );
-  assert.equal(pagePreview.status, "dry-run");
-  assert.equal(pagePreview.audit.coverage.length, 6);
-  assert.ok(pagePreview.estimated.requests >= 2);
+  assert.equal(profiled.status, "dry-run");
+  assert.equal(profiled.scope.files, 1);
+  assert.match(profiled.scope.diagnostics.join(" "), /Profile writing/);
   let failed;
   try {
     execFileSync(
@@ -230,7 +182,7 @@ try {
         process.execPath,
         [
           cli,
-          "scan",
+          "lint",
           "scale.tsx",
           "--root",
           project,
@@ -267,12 +219,15 @@ try {
     path.join(project, "policy.tsx"),
     `export const X = () => <p className="h-[var(--height)] pb-[calc(1rem+env(safe-area-inset-bottom))] text-sm leading-6">It's a longer piece of running text that should stay readable...</p>;`
   );
-  const policy = JSON.parse(
-    run(
+  // Mechanical typography rules block on product UI; no key is needed and the
+  // arbitrary-value question is never scheduled for var() or calc() values.
+  let policyRun;
+  try {
+    execFileSync(
       process.execPath,
       [
         cli,
-        "scan",
+        "lint",
         "policy.tsx",
         "--root",
         project,
@@ -283,15 +238,27 @@ try {
         "--results-dir",
         path.join(temporary, "results"),
       ],
-      consumer,
-      env
-    )
+      {
+        cwd: consumer,
+        encoding: "utf-8",
+        env,
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    );
+  } catch (error) {
+    policyRun = error;
+  }
+  assert.equal(
+    policyRun?.status,
+    1,
+    "Straight quotes and ellipses must fail the run"
   );
+  const policy = JSON.parse(policyRun.stdout);
   assert.equal(policy.status, "complete");
-  assert.equal(policy.summary.failing, 0);
-  assert.equal(policy.summary.review, 3);
+  assert.equal(policy.summary.failing, 3);
+  assert.equal(policy.summary.review, 0);
   assert.ok(
-    policy.findings.every((f) => f.ruleId !== "craft-arbitrary-value-class")
+    policy.ruleFindings.every((f) => f.ruleId !== "craft-arbitrary-value-class")
   );
   fs.writeFileSync(
     path.join(project, "style.tsx"),
@@ -302,7 +269,7 @@ try {
       process.execPath,
       [
         cli,
-        "scan",
+        "lint",
         "style.tsx",
         "--root",
         project,
@@ -322,7 +289,7 @@ try {
   assert.equal(stylePreview.findings.length, 0);
   assert.equal(stylePreview.estimated.requests, 1);
   console.log(
-    "Packed artifact passed: rules, dry-run lint, page audit and guide, key guard, scale evidence, semantic style planning and product policy verified offline."
+    "Packed artifact passed: rules, dry-run lint, profile scope, key guard, scale evidence and semantic style planning verified offline."
   );
 } finally {
   fs.rmSync(temporary, { force: true, recursive: true });

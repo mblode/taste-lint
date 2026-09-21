@@ -17,10 +17,9 @@ const marker = "<!-- taste-lint -->";
 const agentText = `${marker}
 ## Taste Lint
 
-Taste Lint uses Jev to judge copy and UI. Preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
-Fix act findings, review advisory findings in context, and recheck the edited files.
-Never invent a key or treat unknown checks as passes.
-For a whole-page audit and verified repairs, read node_modules/taste-lint/data/audit/SKILL.md.
+Run the taste script after editing copy or UI. Act findings fail the run and must be fixed in the copy or the classes, never by editing a rule.
+Review notes never fail a run; read them as suggestions. Unknown means a check could not decide, not a pass.
+Jev checks need a user-supplied AI_GATEWAY_API_KEY; add --dry-run to run only the mechanical checks. Never invent a key.
 Docs: https://blode.co/taste-lint/docs
 <!-- /taste-lint -->
 `;
@@ -94,17 +93,8 @@ export function initProject(options: InitOptions) {
     : "writing";
   const scripts = { ...(manifest.scripts as Record<string, unknown>) };
   const added: string[] = [];
-  for (const oldProfile of ["product", "writing"]) {
-    if (
-      scripts["check:taste"] ===
-      `taste-lint scan . --profile ${oldProfile} --mechanical-only`
-    ) {
-      scripts["check:taste"] = `taste-lint scan . --profile ${oldProfile}`;
-      added.push("check:taste");
-    }
-  }
   for (const [name, command] of Object.entries({
-    taste: `taste-lint scan . --profile ${profile}`,
+    taste: `taste-lint lint --profile ${profile}`,
   })) {
     if (!(name in scripts)) {
       scripts[name] = command;
@@ -116,18 +106,6 @@ export function initProject(options: InitOptions) {
     options.agent && fs.existsSync(agentPath)
       ? fs.readFileSync(agentPath, "utf-8")
       : "";
-  const legacyAgentText = `${marker}
-## Taste Lint
-
-Run the local check with the project's check:taste script after editing copy or UI.
-For AI checks, preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
-Fix act findings, review advisory findings in context, and recheck the edited files.
-Never invent a key or treat unknown checks as passes.
-<!-- /taste-lint -->
-`;
-  const upgradeAgent = Boolean(
-    options.agent && previousAgent.includes(legacyAgentText)
-  );
   const addAgent = Boolean(options.agent && !previousAgent.includes(marker));
   const needsDependency = !("taste-lint" in dependencies);
   const installArgs =
@@ -135,7 +113,7 @@ Never invent a key or treat unknown checks as passes.
   installArgs.push(`taste-lint@^${pkg.version}`);
   const shouldInstall = needsDependency && options.install !== false;
   const result = {
-    agentAdded: addAgent || upgradeAgent,
+    agentAdded: addAgent,
     dryRun: Boolean(options.dryRun),
     installCommand: shouldInstall ? [pm, ...installArgs] : null,
     packageManager: pm,
@@ -167,12 +145,6 @@ Never invent a key or treat unknown checks as passes.
   if (added.length > 0) {
     manifest.scripts = scripts;
     fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  }
-  if (upgradeAgent) {
-    fs.writeFileSync(
-      agentPath,
-      previousAgent.replace(legacyAgentText, agentText)
-    );
   }
   if (addAgent) {
     fs.writeFileSync(

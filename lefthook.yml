@@ -33,3 +33,13 @@ pre-commit:
     - name: evidence-contracts
       glob: "*.{ts,tsx}"
       run: npx vitest run src/__tests__/evidence.test.ts src/__tests__/tuning-safety.test.ts
+    - name: taste
+      glob: "*.{md,mdx,tsx,jsx,css}"
+      exclude:
+        - "LICENSE.md"
+        - "apps/web/fixtures/**"
+        - "src/__tests__/fixtures/**"
+        - "data/**"
+        - "docs/{plans,audits,evaluations,reviews}/**"
+      # The tool lints its own copy. Mechanical checks only, so no key is needed.
+      run: npx tsdown --silent && node dist/cli.js lint --dry-run {staged_files}

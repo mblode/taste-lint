@@ -70,8 +70,7 @@
           "attr-string",
           "class-list",
           "element",
-          "source",
-          "audit"
+          "source"
         ]
       }
     },
@@ -200,9 +199,6 @@
               "readme",
               "skill",
               "plan",
-              "personal",
-              "pr",
-              "slides",
               "unknown"
             ]
           }

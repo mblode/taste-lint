@@ -8,7 +8,6 @@ import { afterEach, expect, it } from "vitest";
 import { resolveTypography } from "../extract/tailwind.js";
 import { extractTsx } from "../extract/tsx.js";
 import { runLint } from "../lint.js";
-import { runScan } from "../scan/run.js";
 import type { Unit } from "../types.js";
 import { config, copyFixtures, FIXTURES, temporary, check } from "./helpers.js";
 
@@ -79,7 +78,7 @@ it("uses parsed JSX classes, ignores comments, and carries declared scale values
   expect(check("craft-near-duplicate-scale")(classes[0]).fired).toBe(true);
 });
 
-it("keeps missing scale evidence unknown and rejects baselines after theme changes", async () => {
+it("keeps missing scale evidence unknown until a font scale is declared", async () => {
   const root = temporary();
   folders.push(root);
   fs.writeFileSync(
@@ -92,9 +91,9 @@ it("keeps missing scale evidence unknown and rejects baselines after theme chang
     root,
     targets: ["app.tsx"],
   };
-  const missing = await runScan(options);
-  expect(missing.report.findings).toEqual([]);
-  expect(missing.report.unknowns).toMatchObject([
+  const missing = await runLint(options);
+  expect(missing.findings).toEqual([]);
+  expect(missing.unknowns).toMatchObject([
     { reason: expect.stringContaining("no explicitly declared font scale") },
   ]);
   const configFile = path.join(root, "taste-lint.config.json");
@@ -102,9 +101,9 @@ it("keeps missing scale evidence unknown and rejects baselines after theme chang
     configFile,
     JSON.stringify({ tailwind: { theme: { body: "16px" } } })
   );
-  const known = await runScan(options);
-  expect(known.report.unknowns).toEqual([]);
-  expect(known.report.findings).toMatchObject([
+  const known = await runLint(options);
+  expect(known.unknowns).toEqual([]);
+  expect(known.findings).toMatchObject([
     {
       band: "review",
       evidence: expect.stringContaining("text-body (16px)"),
@@ -112,20 +111,14 @@ it("keeps missing scale evidence unknown and rejects baselines after theme chang
       ruleId: "craft-near-duplicate-scale",
     },
   ]);
-  const baseline = path.join(root, "baseline.json");
-  fs.writeFileSync(baseline, JSON.stringify(known.report));
-  const warm = await runScan({ ...options, baseline });
-  expect(warm.report.usage.requests).toBe(0);
-  expect(warm.report.findings[0].lifecycle).toBe("existing");
+  const warm = await runLint(options);
+  expect(warm.usage.requests).toBe(0);
   fs.writeFileSync(
     configFile,
     JSON.stringify({ tailwind: { theme: { body: "20px" } } })
   );
-  await expect(runScan({ ...options, baseline })).rejects.toMatchObject({
-    code: "INCOMPATIBLE_BASELINE",
-  });
-  const changed = await runScan(options);
-  expect(changed.report.findings).toEqual([]);
+  const changed = await runLint(options);
+  expect(changed.findings).toEqual([]);
 });
 
 const folders: string[] = [];

@@ -6,16 +6,18 @@ import type { Command } from "commander";
 
 import { SUPPORTED_GLOBS } from "../extract/index.js";
 import { extractCapture, runStyleCapture } from "../extract/rendered.js";
-import { parseCaptureInput } from "../extract/style-capture-text.js";
 import { loadConfig } from "../lib/config.js";
 import { InputError } from "../lib/errors.js";
 import { collectFiles } from "../lib/glob.js";
-import { readWritingContext } from "../lib/writing-context.js";
 import { defaultResultsDir, runLint } from "../lint.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
 import { renderTty } from "../report/tty.js";
+import { PROFILE_NAMES } from "../scan/profiles.js";
+import type { ProfileName } from "../scan/profiles.js";
+import { makeSamples } from "../scan/samples.js";
+import { writeJson } from "../scan/storage.js";
 import { SEVERITIES } from "../types.js";
 import type { Severity } from "../types.js";
 
@@ -27,7 +29,6 @@ export function registerLintCommand(program: Command): void {
     .description("Lint files (or a rendered page) against the taste rules")
     .argument("[paths...]", "Files or directories to lint, relative to --root")
     .option("--root <path>", "Project root for globs and config", process.cwd())
-    .option("--rules <path>", "Rules directory (default: packaged data/rules)")
     .option("--only <ids>", "Comma-separated rule ids")
     .option(
       "--exclude <globs>",
@@ -38,15 +39,24 @@ export function registerLintCommand(program: Command): void {
       "--print-requests",
       "With --dry-run and --output tty, print request JSONL to stderr"
     )
+    .addOption(
+      new Option(
+        "--profile <name>",
+        "Scope: product (tsx, jsx, css), writing (md, mdx), instructions (AGENTS.md, skills, plans) or all"
+      ).choices(PROFILE_NAMES)
+    )
     .option(
-      "--writing-context <file>",
-      "Explicit JSON facts/profile/instructions for personal writing; sent to Jev on live runs"
+      "--since <ref>",
+      "Report only findings on lines changed since this Git revision"
+    )
+    .option(
+      "--samples <file>",
+      "Write blind labelling samples for the Jev rules that ran, without their predicted scores"
     )
     .option(
       "--no-cache",
       "Ignore cached answers (new answers are still recorded)"
     )
-    .option("--limit-units <n>", "Only consider the first n units")
     .addOption(
       new Option("--fail-on <severity>", "Lowest severity that fails the run")
         .choices(SEVERITIES)
@@ -68,20 +78,19 @@ export function registerLintCommand(program: Command): void {
     .option("--verbose", "Show suppressed findings and unknowns")
     .option("--url <url>", "Lint a rendered page through style-capture")
     .option("--selector <css>", "Root selector for --url", "body")
-    .option("--capture <file>", "Lint a saved style-capture CaptureResult JSON")
     .action(
       async (
         paths: string[],
         options: {
-          writingContext?: string;
+          profile?: ProfileName;
+          since?: string;
+          samples?: string;
           root: string;
-          rules?: string;
           only?: string;
           exclude?: string;
           dryRun?: boolean;
           printRequests?: boolean;
           cache: boolean;
-          limitUnits?: string;
           failOn: string;
           fix?: boolean;
           output: string;
@@ -91,26 +100,13 @@ export function registerLintCommand(program: Command): void {
           progress?: boolean;
           url?: string;
           selector: string;
-          capture?: string;
         }
       ) => {
-        if (paths.length === 0 && !options.url && !options.capture) {
+        const targets = paths.length === 0 && options.profile ? ["."] : paths;
+        if (targets.length === 0 && !options.url) {
           throw new InputError(
             "INVALID_ARGUMENT",
-            "Pass at least one path, --url or --capture"
-          );
-        }
-        const limitUnits =
-          options.limitUnits === undefined
-            ? undefined
-            : Number(options.limitUnits);
-        if (
-          limitUnits !== undefined &&
-          (!Number.isInteger(limitUnits) || limitUnits < 0)
-        ) {
-          throw new InputError(
-            "INVALID_ARGUMENT",
-            "--limit-units must be a non-negative integer"
+            "Pass at least one path, --profile or --url"
           );
         }
         if (
@@ -127,9 +123,9 @@ export function registerLintCommand(program: Command): void {
         }
         const config = { root: path.resolve(options.root) };
         // Rendered capture is the only path with remote work before runLint.
-        if (options.url || options.capture) {
+        if (options.url) {
           const resolved = loadConfig(config.root);
-          collectFiles(resolved.root, paths, SUPPORTED_GLOBS, [
+          collectFiles(resolved.root, targets, SUPPORTED_GLOBS, [
             ...resolved.exclude,
             ...(options.exclude
               ?.split(",")
@@ -137,19 +133,14 @@ export function registerLintCommand(program: Command): void {
               .filter(Boolean) ?? []),
           ]);
         }
-        let extraUnits;
-        if (options.capture) {
-          extraUnits = extractCapture(
-            parseCaptureInput(fs.readFileSync(options.capture, "utf-8")),
-            options.capture
-          );
-        } else if (options.url) {
-          extraUnits = extractCapture(
-            await runStyleCapture(options.url, options.selector),
-            options.url
-          );
-        }
+        const extraUnits = options.url
+          ? extractCapture(
+              await runStyleCapture(options.url, options.selector),
+              options.url
+            )
+          : undefined;
         let lastProgress = 0;
+        let samples: ReturnType<typeof makeSamples> = [];
         const result = await runLint(
           {
             dryRun: options.dryRun,
@@ -160,7 +151,6 @@ export function registerLintCommand(program: Command): void {
             extraUnits,
             failOn: options.failOn as Severity,
             fix: options.fix,
-            limitUnits,
             model: options.model,
             noCache: !options.cache,
             only: options.only
@@ -168,15 +158,25 @@ export function registerLintCommand(program: Command): void {
               .map((s) => s.trim())
               .filter(Boolean),
             printRequests: options.printRequests,
+            profile: options.profile,
             resultsDir: options.resultsDir,
             root: options.root,
-            rulesDir: options.rules,
-            targets: paths,
-            writingContext: options.writingContext
-              ? readWritingContext(options.writingContext)
-              : undefined,
+            since: options.since,
+            targets,
           },
           {
+            onEvidence: options.samples
+              ? (units, answers, negatives, rules) => {
+                  samples = makeSamples(
+                    units,
+                    rules,
+                    answers,
+                    negatives,
+                    3,
+                    path.basename(config.root)
+                  );
+                }
+              : undefined,
             onProgress: (progress) => {
               if (!(options.progress || process.stderr.isTTY)) {
                 return;
@@ -220,35 +220,34 @@ export function registerLintCommand(program: Command): void {
           "--output",
           options.output,
         ];
-        if (options.rules) {
-          retryArgs.push("--rules", path.resolve(options.rules));
-        }
         if (options.only) {
           retryArgs.push("--only", options.only);
         }
         if (options.exclude) {
           retryArgs.push("--exclude", options.exclude);
         }
-        if (options.limitUnits) {
-          retryArgs.push("--limit-units", options.limitUnits);
-        }
         if (options.url) {
           retryArgs.push("--url", options.url, "--selector", options.selector);
         }
-        if (options.capture) {
-          retryArgs.push("--capture", path.resolve(options.capture));
+        if (options.profile) {
+          retryArgs.push("--profile", options.profile);
         }
-        if (options.writingContext) {
-          retryArgs.push(
-            "--writing-context",
-            path.resolve(options.writingContext)
-          );
+        if (options.since) {
+          retryArgs.push("--since", options.since);
         }
-        retryArgs.push("--", ...paths);
+        retryArgs.push("--", ...targets);
         const rerun =
           result.status === "incomplete"
             ? retryArgs.map(quote).join(" ")
             : undefined;
+        if (options.samples) {
+          writeJson(options.samples, {
+            instructions:
+              "Blind review: set label true for a violation, false for acceptable, or leave null when uncertain. No predicted probabilities are included.",
+            samples,
+            version: 2,
+          });
+        }
         const reported = { ...result, reportPath, rerun };
         const json = renderJson(reported, result.manifest);
         if (reportPath) {

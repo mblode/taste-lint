@@ -1,0 +1,14 @@
+{
+  "$schema": "./data/config.schema.json",
+  "exclude": [
+    "LICENSE.md",
+    "apps/web/fixtures/**",
+    "src/__tests__/fixtures/**",
+    "data/**",
+    "docs/plans/**",
+    "docs/audits/**",
+    "docs/evaluations/**",
+    "docs/reviews/**",
+    ".changeset/**"
+  ]
+}
