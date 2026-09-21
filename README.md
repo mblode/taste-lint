@@ -19,31 +19,28 @@ Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introductio
 npx taste-lint@latest init
 ```
 
-Requires Node 24.11 or later. Run it from your project directory. Init installs locally and adds a scan script.
+Node 24.11+. Init adds a `taste` script.
 
 ## Quickstart
 
-Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). Then:
+Get a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys):
 
 ```bash
 export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
 npm run taste
 ```
 
-No taste-lint account or config. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Repeat runs reuse cached answers.
-
-Use your package manager in place of npm. Pass `--agent` to init for agent instructions, or `--dry-run` to preview setup.
+No account or config. Checks bill your key and cache between runs. `--dry-run` previews cost.
 
 ## What it checks
 
-- **Product interfaces:** error recovery, empty states, confirmation labels, unsupported claims, and broad CSS transitions.
-- **Whole pages:** agent-assisted UI, typography, copy, interaction, motion and SEO audits. Run `taste-lint scan guide` for the workflow.
-- **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
-- **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
+- **Product interfaces:** error recovery, empty states, confirmation labels, unsupported claims, CSS transitions.
+- **Whole pages:** typography, copy, interaction, motion, SEO, via `scan guide`.
+- **Text:** Markdown, MDX and READMEs (`--profile writing`), AGENTS.md and skills (`--profile instructions`).
 
-Rules come from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training). Local checks handle measurable rules. Jev judges meaning and returns probabilities. Uncalibrated AI rules stay advisory. Active findings can fail a run.
+Rules from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training). Code measures, Jev judges meaning, uncalibrated rules stay advisory.
 
-The default scan focuses on six checks and shows five prioritized groups. Use `--only <rule-id>` for a specific check or `--profile all` for the full catalog. Source checks do not replace reviewing the running interface.
+`--profile all` runs everything. Source checks never replace opening the page.
 
 ## Docs
 
@@ -52,8 +49,6 @@ The default scan focuses on six checks and shows five prioritized groups. Use `-
     <img alt="Read the docs" src="https://raw.githubusercontent.com/mblode/taste-lint/main/.github/assets/documentation.svg" width="200" height="48" />
   </a>
 </p>
-
-`taste-lint scan --help` lists every option. `--dry-run` previews scope and cost. `--output json` and `--output sarif` are for scripts and code review.
 
 ## License
 
