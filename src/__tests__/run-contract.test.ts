@@ -73,7 +73,8 @@ it("preserves every same-category finding while bounding the human view", async 
     unitId: `${i}`,
   }));
   const large = { ...result, findings, reportPath: "/tmp/full.json" };
-  expect(renderTty(large)).toContain("9990 findings omitted");
+  expect(renderTty(large)).toContain("10000 review notes from 1 rule");
+  expect(renderTty(large)).not.toContain("file-9999.md");
   expect(renderTty(large)).toContain("/tmp/full.json");
   expect(renderTty(large).length).toBeLessThan(15_000);
   expect(renderTty(large, { verbose: true })).toContain("file-9999.md");
@@ -101,7 +102,6 @@ it("keeps config schema fields and document types in sync", async () => {
   ]);
   const valid = {
     $schema: "schema.json",
-    architecture: { boundaries: [], deprecatedImports: {}, generated: [] },
     components: { skip: [], unwrap: [] },
     docTypes: [{ glob: "**/*.md", type: "reference" }],
     exclude: ["docs/**"],

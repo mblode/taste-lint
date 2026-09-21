@@ -43,7 +43,7 @@ it("preserves existing scripts and instructions and is idempotent", () => {
   const agents = fs.readFileSync(path.join(root, "AGENTS.md"), "utf-8");
   expect(JSON.parse(manifest).scripts).toEqual({
     "check:taste": "custom",
-    taste: "taste-lint scan . --profile writing",
+    taste: "taste-lint lint --profile writing",
     test: "vitest",
   });
   expect(agents).toContain("Keep this guidance.");
@@ -85,16 +85,4 @@ it("rejects invalid input before writes and skips existing dependencies", () => 
   expect(() => initProject({ dryRun: true, pm: "bad", root })).toThrow(
     "Choose --pm"
   );
-});
-it("upgrades the old generated no-AI script without changing custom scripts", () => {
-  const root = project({
-    scripts: {
-      "check:taste": "taste-lint scan . --profile product --mechanical-only",
-    },
-  });
-  initProject({ install: false, root });
-  expect(
-    JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8"))
-      .scripts["check:taste"]
-  ).toBe("taste-lint scan . --profile product");
 });

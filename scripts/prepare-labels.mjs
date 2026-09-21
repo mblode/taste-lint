@@ -21,7 +21,7 @@ const instructions = [
   "Change only sample labels. Preserve IDs, text, criteria, context, splits, and annotation metadata.",
   "Process the whole file in manageable batches; do not replace individual judgments with keyword matching.",
   "After reviewing every sample, set completed to the number of samples, including abstentions.",
-  "Import the completed file with taste-lint scan labels. Report boolean labels and abstentions separately.",
+  "Import the completed file with taste-lint eval labels. Report boolean labels and abstentions separately.",
 ].join("\n");
 fs.writeFileSync(
   output,

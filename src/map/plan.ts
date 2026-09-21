@@ -2,7 +2,6 @@
 
 import { LineIndex } from "../extract/units.js";
 import { matchesAny } from "../lib/glob.js";
-import { estimateTokens, charsPerTokenFor } from "../lib/tokens.js";
 import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
 import { isCandidateRule } from "../rules/review.js";
@@ -15,7 +14,7 @@ import type {
   Unknown,
 } from "../types.js";
 import { missingEvidence } from "./evidence.js";
-import { buildState, STATE_TOKEN_CAP } from "./state.js";
+import { buildState } from "./state.js";
 
 export interface JevJob {
   unit: Unit;
@@ -142,37 +141,6 @@ export const planRequests = (
       const applied = eligible.get(unit.id) ?? new Set<string>();
       applied.add(rule.id);
       eligible.set(unit.id, applied);
-      const writingKeys = [
-        "writingFacts",
-        "writingProfile",
-        "writingInstructions",
-      ] as const;
-      const requiredWriting = writingKeys.filter((key) =>
-        rule.question?.context?.includes(key)
-      );
-      if (requiredWriting.length) {
-        const missing = requiredWriting.filter((key) => !unit.context[key]);
-        const total = [
-          unit.text,
-          ...writingKeys.map((key) => unit.context[key] ?? ""),
-        ].join("\n");
-        if (
-          missing.length ||
-          estimateTokens(total, charsPerTokenFor(unit.kind)) >
-            STATE_TOKEN_CAP - 200
-        ) {
-          unknowns.push({
-            file: unit.file,
-            line: unit.line,
-            reason: missing.length
-              ? `Missing explicit writing context: ${missing.join(", ")}`
-              : "Writing comparison exceeds the context budget",
-            ruleId: rule.id,
-            unitId: unit.id,
-          });
-          continue;
-        }
-      }
       if (rule.tier === "jev") {
         const reason = missingEvidence(unit, rule);
         if (reason) {

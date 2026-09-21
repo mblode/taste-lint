@@ -114,8 +114,8 @@ describe("house rules", () => {
     expect(docTypeFor(config, "app/settings/page.tsx")).toBe("ui");
   });
 
-  it("names only existing paths in AGENTS.md and docs/DESIGN.md", () => {
-    const docs = ["AGENTS.md", "docs/DESIGN.md"]
+  it("names only existing paths in AGENTS.md and docs/design.mdx", () => {
+    const docs = ["AGENTS.md", "docs/design.mdx"]
       .map((f) => fs.readFileSync(path.join(root, f), "utf-8"))
       .join("\n");
     const paths = [

@@ -243,10 +243,9 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
 };
 
 // Which files a unit kind can come from. A rule names `scope.include` only
-// when the unit alone does not say (a `source` rule over .ts, .css or .html).
+// when the unit alone does not say (a `source` rule over .ts or .css).
 const INCLUDE_BY_KIND: Record<UnitKind, string[]> = {
   "attr-string": ["**/*.tsx", "**/*.jsx", "**/*.mdx"],
-  audit: ["**/*"],
   "class-list": ["**/*.tsx", "**/*.jsx"],
   element: ["**/*.tsx", "**/*.jsx"],
   file: [],

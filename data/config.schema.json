@@ -54,9 +54,6 @@
               "readme",
               "skill",
               "plan",
-              "personal",
-              "pr",
-              "slides",
               "unknown"
             ]
           }
@@ -71,47 +68,6 @@
         "theme": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "architecture": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "boundaries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["from", "disallow", "reason"],
-            "properties": {
-              "from": {
-                "type": "string",
-                "minLength": 1
-              },
-              "disallow": {
-                "type": "string",
-                "minLength": 1
-              },
-              "reason": {
-                "type": "string",
-                "minLength": 1
-              }
-            }
-          }
-        },
-        "deprecatedImports": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "generated": {
-          "type": "array",
-          "items": {
             "type": "string"
           }
         }

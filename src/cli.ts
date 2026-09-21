@@ -6,7 +6,6 @@ import { registerExtractCommand } from "./commands/extract.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerLintCommand } from "./commands/lint.js";
 import { registerRulesCommand } from "./commands/rules.js";
-import { registerScanCommand } from "./commands/scan.js";
 import { registerTuneCommand } from "./commands/tune.js";
 import { InputError } from "./lib/errors.js";
 import { ProviderError } from "./map/jev.js";
@@ -37,10 +36,9 @@ program
     "after",
     `
 Quickstart:
+  taste-lint lint --profile product --dry-run   # mechanical checks, no key
   export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
-  taste-lint scan .
-
-Preview: taste-lint scan . --dry-run
+  taste-lint lint --profile product             # adds Jev review notes
 Get a key: https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys
 Docs: https://blode.co/taste-lint/docs
 `
@@ -48,7 +46,6 @@ Docs: https://blode.co/taste-lint/docs
 
 registerLintCommand(program);
 registerInitCommand(program);
-registerScanCommand(program);
 registerExtractCommand(program);
 registerRulesCommand(program);
 registerEvalCommand(program);

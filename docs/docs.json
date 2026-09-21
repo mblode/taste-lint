@@ -6,7 +6,7 @@
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude"]
   },
-  "description": "Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.",
+  "description": "Catch AI slop before you ship. Lint product UI, writing and agent instructions.",
   "favicon": "/favicon.svg",
   "metadata": {
     "timestamp": true
@@ -37,14 +37,7 @@
       },
       {
         "group": "Guides",
-        "pages": [
-          "scans",
-          "page-audits",
-          "usage",
-          "design",
-          "typesafe",
-          "skill-packs"
-        ]
+        "pages": ["usage", "design", "typesafe"]
       }
     ]
   },

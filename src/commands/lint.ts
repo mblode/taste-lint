@@ -10,12 +10,15 @@ import { parseCaptureInput } from "../extract/style-capture-text.js";
 import { loadConfig } from "../lib/config.js";
 import { InputError } from "../lib/errors.js";
 import { collectFiles } from "../lib/glob.js";
-import { readWritingContext } from "../lib/writing-context.js";
 import { defaultResultsDir, runLint } from "../lint.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
 import { renderTty } from "../report/tty.js";
+import { PROFILE_NAMES } from "../scan/profiles.js";
+import type { ProfileName } from "../scan/profiles.js";
+import { makeSamples } from "../scan/samples.js";
+import { writeJson } from "../scan/storage.js";
 import { SEVERITIES } from "../types.js";
 import type { Severity } from "../types.js";
 
@@ -38,9 +41,19 @@ export function registerLintCommand(program: Command): void {
       "--print-requests",
       "With --dry-run and --output tty, print request JSONL to stderr"
     )
+    .addOption(
+      new Option(
+        "--profile <name>",
+        "Scope: product (tsx, jsx, css), writing (md, mdx, README), instructions (AGENTS.md, skills, plans) or all"
+      ).choices(PROFILE_NAMES)
+    )
     .option(
-      "--writing-context <file>",
-      "Explicit JSON facts/profile/instructions for personal writing; sent to Jev on live runs"
+      "--since <ref>",
+      "Report only findings on lines changed since this Git revision"
+    )
+    .option(
+      "--samples <file>",
+      "Write blind labelling samples for the Jev rules that ran, without their predicted scores"
     )
     .option(
       "--no-cache",
@@ -73,7 +86,9 @@ export function registerLintCommand(program: Command): void {
       async (
         paths: string[],
         options: {
-          writingContext?: string;
+          profile?: ProfileName;
+          since?: string;
+          samples?: string;
           root: string;
           rules?: string;
           only?: string;
@@ -94,10 +109,11 @@ export function registerLintCommand(program: Command): void {
           capture?: string;
         }
       ) => {
-        if (paths.length === 0 && !options.url && !options.capture) {
+        const targets = paths.length === 0 && options.profile ? ["."] : paths;
+        if (targets.length === 0 && !options.url && !options.capture) {
           throw new InputError(
             "INVALID_ARGUMENT",
-            "Pass at least one path, --url or --capture"
+            "Pass at least one path, --profile, --url or --capture"
           );
         }
         const limitUnits =
@@ -129,7 +145,7 @@ export function registerLintCommand(program: Command): void {
         // Rendered capture is the only path with remote work before runLint.
         if (options.url || options.capture) {
           const resolved = loadConfig(config.root);
-          collectFiles(resolved.root, paths, SUPPORTED_GLOBS, [
+          collectFiles(resolved.root, targets, SUPPORTED_GLOBS, [
             ...resolved.exclude,
             ...(options.exclude
               ?.split(",")
@@ -150,6 +166,7 @@ export function registerLintCommand(program: Command): void {
           );
         }
         let lastProgress = 0;
+        let samples: ReturnType<typeof makeSamples> = [];
         const result = await runLint(
           {
             dryRun: options.dryRun,
@@ -168,15 +185,26 @@ export function registerLintCommand(program: Command): void {
               .map((s) => s.trim())
               .filter(Boolean),
             printRequests: options.printRequests,
+            profile: options.profile,
             resultsDir: options.resultsDir,
             root: options.root,
             rulesDir: options.rules,
-            targets: paths,
-            writingContext: options.writingContext
-              ? readWritingContext(options.writingContext)
-              : undefined,
+            since: options.since,
+            targets,
           },
           {
+            onEvidence: options.samples
+              ? (units, answers, negatives, rules) => {
+                  samples = makeSamples(
+                    units,
+                    rules,
+                    answers,
+                    negatives,
+                    3,
+                    path.basename(config.root)
+                  );
+                }
+              : undefined,
             onProgress: (progress) => {
               if (!(options.progress || process.stderr.isTTY)) {
                 return;
@@ -238,17 +266,25 @@ export function registerLintCommand(program: Command): void {
         if (options.capture) {
           retryArgs.push("--capture", path.resolve(options.capture));
         }
-        if (options.writingContext) {
-          retryArgs.push(
-            "--writing-context",
-            path.resolve(options.writingContext)
-          );
+        if (options.profile) {
+          retryArgs.push("--profile", options.profile);
         }
-        retryArgs.push("--", ...paths);
+        if (options.since) {
+          retryArgs.push("--since", options.since);
+        }
+        retryArgs.push("--", ...targets);
         const rerun =
           result.status === "incomplete"
             ? retryArgs.map(quote).join(" ")
             : undefined;
+        if (options.samples) {
+          writeJson(options.samples, {
+            instructions:
+              "Blind review: set label true for a violation, false for acceptable, or leave null when uncertain. No predicted probabilities are included.",
+            samples,
+            version: 2,
+          });
+        }
         const reported = { ...result, reportPath, rerun };
         const json = renderJson(reported, result.manifest);
         if (reportPath) {

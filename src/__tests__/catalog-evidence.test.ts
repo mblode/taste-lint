@@ -8,13 +8,13 @@ import { parse, stringify } from "yaml";
 
 import { runEval } from "../eval/metrics.js";
 import { extractTsx } from "../extract/tsx.js";
+import { runLint } from "../lint.js";
 import { planRequests } from "../map/plan.js";
 import { renderSarif } from "../report/sarif.js";
 import { formatFinding } from "../report/tty.js";
 import { loadRules } from "../rules/load.js";
 import { isCandidateRule, reviewProcedure } from "../rules/review.js";
 import { validateRule } from "../rules/validate.js";
-import { runScan } from "../scan/run.js";
 import { config, fakeEvaluate, temporary } from "./helpers.js";
 
 const rules = loadRules(path.resolve("data/rules"));
@@ -75,7 +75,7 @@ it("does not turn a valid child form hook or primitive focus default into a conf
     'import {Dialog} from "./radix-wrapper"; export function Page(){return <Dialog>Content</Dialog>}'
   );
   const evaluate = fakeEvaluate(() => 1);
-  const { report } = await runScan(
+  const report = await runLint(
     {
       only: ["interaction-use-form-status-misuse", "interaction-not-restored"],
       resultsDir: path.join(root, "results"),
@@ -84,30 +84,9 @@ it("does not turn a valid child form hook or primitive focus default into a conf
     },
     { evaluate }
   );
-  expect(report.summary.failing).toBe(0);
+  expect(report.summary?.failing).toBe(0);
   expect(report.findings).toHaveLength(2);
   expect(evaluate.calls).toHaveLength(0);
-  const reportFile = path.join(root, "report.json");
-  const handoff = path.join(root, "handoff.json");
-  fs.writeFileSync(reportFile, JSON.stringify(report));
-  const exported = spawnSync(
-    process.execPath,
-    [
-      path.resolve("dist/cli.js"),
-      "scan",
-      "export",
-      reportFile,
-      "--out",
-      handoff,
-    ],
-    { encoding: "utf-8" }
-  );
-  expect(exported.status, exported.stderr).toBe(0);
-  const tasks = JSON.parse(fs.readFileSync(handoff, "utf-8")).tasks;
-  expect(tasks).toHaveLength(2);
-  expect(tasks[0].confidence).toBeUndefined();
-  expect(tasks[0].patternProbability).toBe(1);
-  expect(tasks[0].verification).toContain(tasks[0].review.verification);
   const sarif = JSON.parse(renderSarif(report, rules, "test"));
   expect(sarif.runs[0].results[0].properties.assessment).toBe("candidate");
   expect(sarif.runs[0].results[0].properties.review).toEqual(
@@ -211,7 +190,7 @@ it("splits individually complete questions when combined evidence would be trunc
     docType: "ui",
   }).find((u) => u.kind === "jsx-text")!;
   unit.context.headingAbove = "x ".repeat(2000);
-  unit.context.writingFacts = "y ".repeat(2000);
+  unit.context.section = "y ".repeat(2000);
   const first = {
     ...base,
     id: "first",
@@ -220,7 +199,7 @@ it("splits individually complete questions when combined evidence would be trunc
   const second = {
     ...base,
     id: "second",
-    question: { ...base.question!, context: ["writingFacts" as const] },
+    question: { ...base.question!, context: ["section" as const] },
   };
   const plan = planRequests([unit], [first, second], config("."));
   expect(plan.unknowns).toHaveLength(0);

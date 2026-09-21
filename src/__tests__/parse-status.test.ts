@@ -4,7 +4,6 @@ import path from "node:path";
 import { afterEach, expect, it } from "vitest";
 
 import { runLint } from "../lint.js";
-import { runScan } from "../scan/run.js";
 import { temporary } from "./helpers.js";
 
 const dirs: string[] = [];
@@ -31,9 +30,6 @@ it("does not report a clean scan when JSX cannot be parsed", async () => {
   expect(lint.scope?.diagnostics.join(" ")).toContain(
     "Could not fully parse broken.tsx"
   );
-  const scan = await runScan(options);
-  expect(scan.report.status).toBe("incomplete");
-  expect(scan.report.exitCode).toBe(2);
 });
 it("does not report a clean lint when exclusions remove every input", async () => {
   const root = temporary();

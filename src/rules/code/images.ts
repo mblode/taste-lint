@@ -47,7 +47,7 @@ export const IMAGE_RULES = [
       },
       hint: spec.hint,
       id: spec.id,
-      scope: { include: ["**/*.tsx", "**/*.jsx", "**/*.html"] },
+      scope: { include: ["**/*.tsx", "**/*.jsx"] },
       source: {
         line: 9,
         path: `skills/ui-design/rules/${spec.source}.md`,

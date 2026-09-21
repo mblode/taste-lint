@@ -60,14 +60,5 @@ export const buildState = (
   if (keys.has("section") && unit.context.section) {
     lines.push(`SECTION: ${clip("SECTION: ", unit.context.section)}`);
   }
-  for (const [key, label] of [
-    ["writingFacts", "SUPPLIED FACTS"],
-    ["writingProfile", "VOICE PROFILE"],
-    ["writingInstructions", "DRAFTING INSTRUCTIONS"],
-  ] as const) {
-    if (keys.has(key) && unit.context[key]) {
-      lines.push(`${label}: ${clip(`${label}: `, unit.context[key]!)}`);
-    }
-  }
   return { state: lines.join("\n"), truncated };
 };
