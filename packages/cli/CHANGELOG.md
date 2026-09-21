@@ -1,5 +1,27 @@
 # taste-lint
 
+## 0.1.0
+
+### Minor Changes
+
+- c4908dd: Add page audits with project intent, attributed evidence and Jev review across UI, typography, copywriting, interaction, motion and SEO. Connect rendered typography and document checks to saved scans, group improvements by region, and require fresh before/after verification records before treating repairs as resolved. Ship an agent workflow and capture helper.
+
+  Preserve audit context when exporting evaluation samples, validate capture fields and timestamps at the input boundary, and support JSON output for guide, export and verification commands. Repair handoffs identify real page evidence and optional source locations; successful repeated verification clears earlier incomplete exit codes.
+
+### Patch Changes
+
+- c4908dd: Point CLI help, setup instructions, SARIF reports, and the agent skill to https://blode.co/taste-lint/docs.
+- c4908dd: Expose positional arguments, required options, value types, allowed choices and negated defaults through `taste-lint schema`. Derive choices from the CLI parser so agents can discover and use valid commands without scraping help text. Document the rendering-browser requirements for measured page audits.
+- c4908dd: Add a README documentation button pointing to https://blode.co/taste-lint/docs.
+- c4908dd: Use the site name instead of SVG logos in the docs header.
+- c4908dd: Add the author, projects, GitHub, and npm links to the landing page footer.
+- c4908dd: Add human and agent install tabs to the hero, with AGENTS.md setup in the agent command.
+- c4908dd: Place the install command copy button inside the snippet box.
+- c4908dd: Explain Jev by TypeSafe AI in the landing page pitch and search metadata, highlighting contextual checks and probabilities.
+- c4908dd: Use Glide colours and Blode UI on the landing page, remove the placeholder logo, and shorten the copy.
+- c4908dd: Add the Taste Lint landing page and canonical docs under blode.co/taste-lint, with Turborepo builds for the CLI and web app.
+- c4908dd: Clarify search metadata, add the canonical social URL and docs discovery headers, and correct the software schema.
+
 ## 0.0.11
 
 ### Patch Changes
