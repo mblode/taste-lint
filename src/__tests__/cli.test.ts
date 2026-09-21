@@ -20,7 +20,7 @@ afterEach(() => {
 });
 it("returns JSON for parser and validation failures in either flag syntax", () => {
   for (const format of [["--output", "json"], ["--output=json"]]) {
-    for (const tail of [["--wat"], ["--limit-units", "bad"]]) {
+    for (const tail of [["--wat"], ["--fail-on", "bad"]]) {
       const result = run("lint", ".", "--dry-run", ...format, ...tail);
       expect(result.status).toBe(1);
       expect(JSON.parse(result.stdout)).toMatchObject({

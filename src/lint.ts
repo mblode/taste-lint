@@ -27,7 +27,6 @@ import { changedLines, touchesChange } from "./scan/git.js";
 import { profileFor, profileIncludes, profileRules } from "./scan/profiles.js";
 import type { ProfileName } from "./scan/profiles.js";
 import type {
-  DocType,
   Evaluate,
   Progress,
   ScanScope,
@@ -40,35 +39,56 @@ import type {
 } from "./types.js";
 import { SEVERITY_RANK, STRUCTURAL_KINDS } from "./types.js";
 
+/**
+ * Options for one lint run. Every field is optional: `runLint()` lints the
+ * current directory with every rule, no Jev calls until a key is present.
+ */
 export interface LintOptions {
-  docTypes?: { glob: string; type: DocType }[];
-  root: string;
-  targets: string[];
-  /** Scope files and rule domains; rules keep their own status. */
+  /** Project root that globs, `taste-lint.config.json` and reports resolve against. Default `process.cwd()`. */
+  root?: string;
+  /** Files or directories relative to `root`. Default `["."]`. */
+  targets?: string[];
+  /** Scope files and rule domains (`product`, `writing`, `instructions`, `all`); rules keep their own status. */
   profile?: ProfileName;
   /** Report only findings on lines changed since this Git revision. */
   since?: string;
+  /** Rules directory. Default: the packaged `data/rules`. */
   rulesDir?: string;
+  /** Rule ids to run; wins over `profile`. */
   only?: string[];
+  /** Globs to skip, added to the config file's `exclude`. */
   exclude?: string[];
+  /** Plan and estimate cost without calling Jev. */
   dryRun?: boolean;
+  /** With `dryRun`, write each planned Jev request as JSONL through `ctx.stdout`. */
   printRequests?: boolean;
+  /** Ignore cached answers; new answers are still recorded. */
   noCache?: boolean;
-  limitUnits?: number;
+  /** Lowest severity that fails the run. Default `minor`. */
   failOn?: Severity;
+  /** Apply the deterministic fixes to act-band findings in place. */
   fix?: boolean;
+  /** Where the answer cache and run logs live. Default `<cwd>/results`. */
   resultsDir?: string;
+  /** Jev model id. Default `jev-latest`. */
   model?: string;
+  /** Vercel AI Gateway key. Default: `AI_GATEWAY_API_KEY` from the environment. */
   apiKey?: string;
-  /** Extra units supplied by the caller (rendered mode). */
+  /** Extra units supplied by the caller, such as a rendered page capture. */
   extraUnits?: Unit[];
 }
 
+/** Hooks for embedding: inject an evaluator, redirect output, observe progress. */
 export interface LintContext {
+  /** Answers Jev questions. Tests inject a fake; the default reads the key from `options.apiKey` or the environment. */
   evaluate?: Evaluate;
+  /** Receives request JSONL from `printRequests`. Default `process.stdout`. */
   stdout?: (text: string) => void;
+  /** Receives fix notices. Default `process.stderr`. */
   stderr?: (text: string) => void;
+  /** Called at most every request with counts and elapsed time. */
   onProgress?: (progress: Progress) => void;
+  /** Called once with every unit, the Jev answers and the mechanical negatives, before findings are banded. */
   onEvidence?: (
     units: Unit[],
     answers: Map<string, Record<string, number>>,
@@ -79,19 +99,24 @@ export interface LintContext {
 
 export { defaultResultsDir } from "./lib/config.js";
 
-export const runLint = async (
-  options: LintOptions,
-  ctx: LintContext = {}
-): Promise<
-  LintResult & {
+/** What `runLint` resolves with: a report where the fields renderers treat as optional are always present. */
+export type LintRun = LintResult &
+  Required<
+    Pick<LintResult, "summary" | "ruleFindings" | "ruleScorecard" | "scope">
+  > & {
     rulesLoaded: Rule[];
     units: number;
     manifest: Record<string, unknown>;
-  }
-> => {
+  };
+
+export const runLint = async (
+  options: LintOptions = {},
+  ctx: LintContext = {}
+): Promise<LintRun> => {
   const stderr = ctx.stderr ?? ((t: string) => process.stderr.write(t));
   const stdout = ctx.stdout ?? ((t: string) => process.stdout.write(t));
-  const config = loadConfig(options.root, options.docTypes);
+  const targets = options.targets ?? ["."];
+  const config = loadConfig(options.root ?? process.cwd());
   const rulesDir = resolveRulesDir(options.rulesDir);
   const profile = options.profile ? profileFor(options.profile) : undefined;
   const loaded = loadRules(rulesDir, { only: options.only });
@@ -108,10 +133,10 @@ export const runLint = async (
 
   const scan = { excluded: 0, messages: [] as string[] };
   const files =
-    options.targets.length > 0
+    targets.length > 0
       ? collectFiles(
           config.root,
-          options.targets,
+          targets,
           SUPPORTED_GLOBS,
           [
             ...config.exclude,
@@ -121,7 +146,7 @@ export const runLint = async (
           scan
         ).filter((file) => !profile || profileIncludes(profile, file))
       : [];
-  let units: Unit[] = [];
+  const units: Unit[] = [];
   const sources = new Map<string, string[]>();
   const repository = new Repository(config.root);
   for (const file of files) {
@@ -131,9 +156,6 @@ export const runLint = async (
   }
   if (options.extraUnits) {
     units.push(...options.extraUnits);
-  }
-  if (options.limitUnits !== undefined) {
-    units = units.slice(0, options.limitUnits);
   }
 
   const scope: ScanScope = {
@@ -184,7 +206,7 @@ export const runLint = async (
     rules: rules.map((r) => r.id),
     scope,
     smart_quotes_at_build: config.smartQuotesAtBuild,
-    targets: options.targets,
+    targets,
   };
 
   const judgeOptions = {

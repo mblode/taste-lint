@@ -9,3 +9,4 @@ Make the default run block on real slop and cut the surface area that had run ah
 - The text report lists act findings and counts review notes by rule; `--verbose` lists them. Empty scorecard rows are hidden.
 - `init` writes `taste-lint lint --profile <name>`; `eval labels` replaces `scan labels`.
 - The repository lints itself in CI and in the pre-commit hook.
+- `lint` drops `--rules`, `--limit-units` and `--capture`; `rules discover` is removed. `runLint()` takes every option as optional (root defaults to the working directory, targets to `.`), documents each field, and resolves with a `LintRun` whose summary, rule findings, scorecard and scope are always present. The package exports only what scripts and embedders call.
