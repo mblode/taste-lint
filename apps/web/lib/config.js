@@ -4,7 +4,7 @@ export const asset = (path) => `${basePath}${path}`;
 export const siteConfig = {
   author: { name: "Matthew Blode", url: "https://blode.co" },
   description:
-    "Taste Lint checks the empty states, error messages, labels, type and motion in your source, against 174 rules from Taste Training and Agent Skills.",
+    "Lint AI-generated UI and copy from your terminal. Check error messages, empty states, typography and motion, with source evidence and suggested fixes.",
   links: {
     author: "https://blode.co",
     docs: `${basePath}/docs`,

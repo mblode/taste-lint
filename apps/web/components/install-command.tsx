@@ -1,10 +1,7 @@
 "use client";
 
-import { Tabs } from "@base-ui/react/tabs";
 import { CheckIcon, CopyIcon } from "blode-icons-react";
-import { Fragment, useState } from "react";
-
-import { Button } from "./ui/button.js";
+import { useState } from "react";
 
 const audiences = [
   {
@@ -38,10 +35,9 @@ function CommandPanel({ command }: { command: string }) {
         <code className="min-w-0 break-words px-3 py-2 font-mono text-base">
           {command}
         </code>
-        <Button
+        <button
           aria-label="Copy install command"
-          className="size-12 shrink-0 motion-reduce:transition-none"
-          variant="ghost"
+          className="inline-flex size-12 shrink-0 items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 [&_svg]:size-4"
           onClick={copy}
           type="button"
         >
@@ -50,7 +46,7 @@ function CommandPanel({ command }: { command: string }) {
           ) : (
             <CopyIcon aria-hidden="true" data-icon="inline-start" />
           )}
-        </Button>
+        </button>
       </div>
       <p
         aria-live="polite"
@@ -63,39 +59,33 @@ function CommandPanel({ command }: { command: string }) {
   );
 }
 
-// Adapted from StrataSync's hero-install: line tabs, divider, and both
-// commands in the served HTML so agents do not need to interact first.
+// Native radios provide selection and arrow-key navigation before hydration.
 export function InstallCommand() {
-  const [selectedAudience, setAudience] = useState("humans");
   return (
-    <Tabs.Root
-      className="flex min-w-0 flex-col gap-4"
-      onValueChange={setAudience}
-      value={selectedAudience}
-    >
-      <Tabs.List
-        aria-label="Install Taste Lint"
-        className="flex w-fit items-center gap-4"
-      >
-        {audiences.map((audience, index) => (
-          <Fragment key={audience.value}>
-            {index > 0 ? (
-              <span aria-hidden="true" className="h-4 w-px bg-border" />
-            ) : null}
-            <Tabs.Tab
-              className="relative min-h-12 px-0 text-base font-medium text-muted-foreground transition-colors hover:text-foreground data-active:text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-foreground after:opacity-0 data-active:after:opacity-100 motion-reduce:transition-none"
+    <div className="install-commands flex min-w-0 flex-col gap-4">
+      <fieldset className="flex w-fit items-center gap-4">
+        <legend className="sr-only">Install Taste Lint</legend>
+        {audiences.map((audience) => (
+          <label
+            className="relative flex min-h-12 cursor-pointer items-center text-base font-medium text-muted-foreground has-checked:text-foreground has-focus-visible:outline-2 has-focus-visible:outline-offset-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-foreground after:opacity-0 has-checked:after:opacity-100"
+            key={audience.value}
+          >
+            <input
+              className="sr-only"
+              type="radio"
+              name="install-audience"
               value={audience.value}
-            >
-              {audience.label}
-            </Tabs.Tab>
-          </Fragment>
+              defaultChecked={audience.value === "humans"}
+            />
+            {audience.label}
+          </label>
         ))}
-      </Tabs.List>
+      </fieldset>
       {audiences.map((audience) => (
-        <Tabs.Panel key={audience.value} value={audience.value} keepMounted>
-          <CommandPanel key={selectedAudience} command={audience.command} />
-        </Tabs.Panel>
+        <div key={audience.value} data-audience={audience.value}>
+          <CommandPanel command={audience.command} />
+        </div>
       ))}
-    </Tabs.Root>
+    </div>
   );
 }

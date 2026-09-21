@@ -13,7 +13,7 @@ export const siteGraph = {
       inLanguage: "en",
       isPartOf: { "@id": `${root}/#website` },
       mainEntity: { "@id": `${siteConfig.url}/#software` },
-      name: siteConfig.name,
+      name: siteConfig.title,
       url: siteConfig.url,
     },
     {
@@ -23,8 +23,10 @@ export const siteGraph = {
       author: { "@id": `${root}/#person` },
       description: siteConfig.description,
       image: `${siteConfig.url}/opengraph-image`,
+      installUrl: siteConfig.links.npm,
       license: siteConfig.links.license,
       name: siteConfig.name,
+      publisher: { "@id": `${root}/#organization` },
       sameAs: [
         siteConfig.links.github,
         "https://www.npmjs.com/package/taste-lint",

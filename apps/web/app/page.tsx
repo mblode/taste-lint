@@ -40,8 +40,7 @@ export default function Home() {
             Catch AI slop before you ship.
           </h2>
           <p className="mt-5 max-w-[56ch] text-base leading-7 text-pretty">
-            Design review on every commit, from the Taste Training and Agent
-            Skills rules.
+            A CLI for reviewing AI-generated UI, copy, typography and motion.
           </p>
           <div className="mt-8">
             <InstallCommand />
@@ -80,6 +79,70 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <section
+          aria-labelledby="checks-heading"
+          className="border-t px-(--row-padding) py-12 sm:py-16"
+        >
+          <h2
+            id="checks-heading"
+            className="text-3xl font-medium tracking-tight"
+          >
+            What Taste Lint checks
+          </h2>
+          <p className="mt-5 max-w-[56ch] leading-7">
+            Vague errors, empty states, generic labels, type and animation
+            choices. Each finding includes source evidence and a suggested fix.
+          </p>
+          <a
+            className="mt-6 inline-flex min-h-12 items-center underline underline-offset-4"
+            href="/taste-lint/docs/usage"
+          >
+            See rules and examples
+          </a>
+        </section>
+        <section
+          aria-labelledby="setup-heading"
+          className="border-t px-(--row-padding) py-12 sm:py-16"
+        >
+          <h2
+            id="setup-heading"
+            className="text-3xl font-medium tracking-tight"
+          >
+            Run your first review
+          </h2>
+          <p className="mt-5 max-w-[56ch] leading-7">
+            Requires Node.js 24.11+. Run the install command in your project,
+            then <code className="font-mono">npm run taste</code>.
+          </p>
+          <p className="mt-4 max-w-[56ch] leading-7">
+            MIT licensed. Uncached Jev checks bill your Vercel AI Gateway key.
+            Preview scope and cost with{" "}
+            <code className="font-mono">--dry-run</code>.
+          </p>
+          <p className="mt-4 max-w-[56ch] leading-7">
+            Review suggestions and test the page before applying fixes.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-x-8">
+            <a
+              className="inline-flex min-h-12 items-center underline underline-offset-4"
+              href="/taste-lint/docs/quickstart"
+            >
+              Setup guide
+            </a>
+            <a
+              className="inline-flex min-h-12 items-center underline underline-offset-4"
+              href="/taste-lint/docs/scans"
+            >
+              Profiles and findings
+            </a>
+            <a
+              className="inline-flex min-h-12 items-center underline underline-offset-4"
+              href="/taste-lint/docs/page-audits"
+            >
+              Page audits
+            </a>
+          </div>
+        </section>
       </main>
       <footer className="flex flex-col items-center justify-center gap-2 pt-16 pb-8 text-muted-foreground text-sm">
         <div className="flex items-center gap-1">
@@ -90,9 +153,11 @@ export default function Home() {
             rel="author"
           >
             <img
-              alt="Avatar of Matthew Blode"
+              alt=""
               className="rounded-full"
               height={20}
+              loading="lazy"
+              decoding="async"
               src={asset("/avatar-sm.png")}
               width={20}
             />
