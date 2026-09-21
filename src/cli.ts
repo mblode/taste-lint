@@ -1,6 +1,6 @@
 import { Command, CommanderError } from "commander";
 
-import pkg from "../package.json" with { type: "json" };
+import pkg from "../packages/cli/package.json" with { type: "json" };
 import { registerEvalCommand } from "./commands/eval.js";
 import { registerExtractCommand } from "./commands/extract.js";
 import { registerInitCommand } from "./commands/init.js";
@@ -42,7 +42,7 @@ Quickstart:
 
 Preview: taste-lint scan . --dry-run
 Get a key: https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys
-Docs: https://taste-lint.blode.md
+Docs: https://blode.co/taste-lint/docs
 `
   );
 
@@ -57,12 +57,33 @@ registerTuneCommand(program);
 // The command surface as JSON, so an agent discovers flags, defaults and
 // subcommands without scraping --help.
 const describe = (cmd: Command): Record<string, unknown> => ({
+  arguments: cmd.registeredArguments.map((arg) => ({
+    default: arg.defaultValue,
+    description: arg.description,
+    enum: arg.argChoices,
+    name: arg.name(),
+    required: arg.required,
+    type: arg.variadic ? "string[]" : "string",
+    variadic: arg.variadic,
+  })),
   command: cmd.name(),
   description: cmd.description(),
   options: cmd.options.map((opt) => ({
-    default: opt.defaultValue,
+    default: opt.defaultValue ?? (opt.negate ? true : undefined),
     description: opt.description,
+    enum: opt.argChoices,
     flag: opt.long,
+    flags: opt.flags,
+    name: opt.attributeName(),
+    negate: opt.negate,
+    required: opt.mandatory,
+    type:
+      opt.isBoolean() || opt.negate
+        ? "boolean"
+        : opt.variadic
+          ? "string[]"
+          : "string",
+    value: opt.required ? "required" : opt.optional ? "optional" : "none",
   })),
   ...(cmd.commands.length > 0 ? { commands: cmd.commands.map(describe) } : {}),
 });

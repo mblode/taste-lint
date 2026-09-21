@@ -2,7 +2,7 @@
 
 ## About this project
 
-- This is the [Blode.md](https://blode.md) site for taste-lint, published at https://taste-lint.blode.md
+- This is the [Blode.md](https://blode.md) site for taste-lint, published at https://blode.co/taste-lint/docs
 - Public pages are MDX files with YAML frontmatter next to `docs.json`
 - Run `npx blodemd dev docs --no-open` to preview locally
 - Run `npx blodemd validate docs` before publishing
@@ -22,7 +22,7 @@
 - Bold UI labels: Click **Settings**
 - Use code formatting for file names, commands, paths, JSON fields, and code references
 - No em dashes, and no spaced hyphen standing in for one
-- Point readers at https://taste-lint.blode.md, not raw GitHub `docs/*.md` paths
+- Point readers at https://blode.co/taste-lint/docs, not raw GitHub `docs/*.md` paths
 
 ## Content boundaries
 

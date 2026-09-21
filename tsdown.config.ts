@@ -4,6 +4,7 @@ export default defineConfig([
   {
     banner: { js: "#!/usr/bin/env node" },
     clean: true,
+    deps: { neverBundle: true },
     entry: { cli: "src/cli.ts" },
     format: ["esm"],
     outputOptions: {
@@ -14,6 +15,7 @@ export default defineConfig([
     target: "node24",
   },
   {
+    deps: { neverBundle: true },
     dts: true,
     entry: { index: "src/index.ts" },
     format: ["esm"],

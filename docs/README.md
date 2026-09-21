@@ -1,6 +1,6 @@
 # Taste Lint docs
 
-Public guides for [taste-lint](https://www.npmjs.com/package/taste-lint): [taste-lint.blode.md](https://taste-lint.blode.md).
+Public guides for [taste-lint](https://www.npmjs.com/package/taste-lint): [blode.co/taste-lint/docs](https://blode.co/taste-lint/docs).
 
 This folder is the Blode.md root (`docs.json` lives here). Git deploys from repo `mblode/taste-lint` with docs path `docs`.
 

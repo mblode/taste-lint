@@ -246,6 +246,7 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
 // when the unit alone does not say (a `source` rule over .ts, .css or .html).
 const INCLUDE_BY_KIND: Record<UnitKind, string[]> = {
   "attr-string": ["**/*.tsx", "**/*.jsx", "**/*.mdx"],
+  audit: ["**/*"],
   "class-list": ["**/*.tsx", "**/*.jsx"],
   element: ["**/*.tsx", "**/*.jsx"],
   file: [],

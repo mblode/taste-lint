@@ -2,10 +2,10 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import pkg from "../../package.json" with { type: "json" };
+import pkg from "../../packages/cli/package.json" with { type: "json" };
 import { InputError } from "../lib/errors.js";
 
-const managers = ["npm", "pnpm", "yarn", "bun"] as const;
+export const managers = ["npm", "pnpm", "yarn", "bun"] as const;
 type Manager = (typeof managers)[number];
 const lockfiles: Record<Manager, string[]> = {
   bun: ["bun.lock", "bun.lockb"],
@@ -20,7 +20,8 @@ const agentText = `${marker}
 Taste Lint uses Jev to judge copy and UI. Preview the taste script with --dry-run, then run it with a user-supplied AI_GATEWAY_API_KEY.
 Fix act findings, review advisory findings in context, and recheck the edited files.
 Never invent a key or treat unknown checks as passes.
-Docs: https://taste-lint.blode.md
+For a whole-page audit and verified repairs, read node_modules/taste-lint/data/audit/SKILL.md.
+Docs: https://blode.co/taste-lint/docs
 <!-- /taste-lint -->
 `;
 

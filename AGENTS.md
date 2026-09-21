@@ -1,11 +1,14 @@
 # taste-lint
 
-Node 24 TypeScript ESM CLI. A taste linter: copy, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training`, answered as calibrated probabilities by TypeSafe Jev where a judgement is needed and by a regex or a resolved value where one decides.
+npm workspace and Turborepo: Node 24 TypeScript ESM CLI package in `packages/cli`, Next.js landing page in `apps/web`. CLI source and rules remain in root `src/` and `data/`. A taste linter: copy, typography, interaction and motion rules from `mblode/agent-skills` and `mblode/taste-training`, answered as calibrated probabilities by TypeSafe Jev where a judgement is needed and by a regex or a resolved value where one decides.
 
 ## Commands
 
 ```bash
 npm ci
+npm run dev:web                                   # localhost:3000/taste-lint
+npm run build                                     # CLI and web through Turbo
+npm run build:cli                                 # only the published CLI
 npm run check && npm run typecheck                 # edit loop
 npx vitest run src/__tests__/rules.test.ts --reporter=dot   # one suite, quiet
 npm run verify                                     # lint, types, tests, build, packed smoke test
@@ -22,9 +25,9 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 - Scans use Jev for semantic judgments and code for deterministic checks. Uncached Jev work requires AI_GATEWAY_API_KEY (legacy TYPESAFE_API_KEY remains supported). Dry runs preview without model calls; cached judgments can be reused. Tests inject fake evaluators and never call a model.
 - `scripts/*.ts` run with `node --experimental-strip-types` (the npm scripts do this). Node 22 runs the build and tests but not `fs.globSync` edge cases the package relies on; use Node 24 for anything you will report.
 - `port-rules --check` and the taste-training baseline expect sibling checkouts at `../agent-skills` and `../taste-training`. The baseline command and its expected counts are in the review log of `docs/plans/taste-lint-taste-linter.md`.
-- Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
+- Releases: `npm run changeset` with every user-facing change; on `main` the Release workflow opens a Version Packages PR and publishes over npm OIDC when it merges. The first publish is manual (`npm publish --workspace taste-lint` once, then register the workflow as the package's trusted publisher on npmjs.com); until then the workflow fails with E404.
 - Results and the answer cache write to `results/` (ignored). A rerun over unchanged files reports `0 requests`; delete `results/cache` to force live answers.
-- Public docs: https://taste-lint.blode.md. In-repo ALL-CAPS `docs/*.md` copies stay hidden; prefer the matching MDX pages for readers.
+- Public docs: https://blode.co/taste-lint/docs. In-repo ALL-CAPS `docs/*.md` copies stay hidden; prefer the matching MDX pages for readers.
 
 ## Gotchas
 
@@ -52,11 +55,11 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Contracts
 
-`docs/DESIGN.md` (https://taste-lint.blode.md/design): the rule, unit, request and finding contracts, the pipeline map, the glossary.
+`docs/DESIGN.md` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary.
 
 ## Labeling scan samples
 
-Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md` (https://taste-lint.blode.md/scans): prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
+Use the current Codex session to label blind samples by default. Follow the workflow in `docs/SCANS.md` (https://blode.co/taste-lint/docs/scans): prepare a fresh file with `scripts/prepare-labels.mjs` and the actual current model identifier, read each criterion and supplied context, and write individual true/false/null judgments. Do not read prior labels or linter predictions during labeling. Preserve AI provenance and source evidence; mark completion only after reviewing all samples. No separate gateway call or human labeling is required. Gateway labeling remains an explicit alternative.
 
 ## TypeSafe integration
 

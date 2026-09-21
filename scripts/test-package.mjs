@@ -19,6 +19,8 @@ try {
   // prints to stdout ahead of the JSON, so parse from the first bracket.
   const packOutput = run("npm", [
     "pack",
+    "--workspace",
+    "taste-lint",
     "--json",
     "--ignore-scripts",
     "--pack-destination",
@@ -37,10 +39,14 @@ try {
     )
   );
   assert.ok(!packed.files.some((file) => file.path.startsWith("src/")));
+  assert.ok(!packed.files.some((file) => file.path.startsWith("apps/")));
+  for (const name of ["SKILL.md", "example.json", "capture.js"]) {
+    assert.ok(packed.files.some((file) => file.path === `data/audit/${name}`));
+  }
   const consumer = path.join(temporary, "consumer");
   fs.mkdirSync(consumer);
   const manifest = JSON.parse(
-    fs.readFileSync(path.join(root, "package.json"), "utf-8")
+    fs.readFileSync(path.join(root, "packages/cli/package.json"), "utf-8")
   );
   const lock = JSON.parse(
     fs.readFileSync(path.join(root, "package-lock.json"), "utf-8")
@@ -53,7 +59,8 @@ try {
   };
   const packages = Object.fromEntries(
     Object.entries(lock.packages).filter(
-      ([name, metadata]) => name && !metadata.dev
+      ([name, metadata]) =>
+        name.startsWith("node_modules/") && !metadata.dev && !metadata.link
     )
   );
   packages[""] = consumerManifest;
@@ -85,6 +92,10 @@ try {
   );
   const installed = path.join(consumer, "node_modules/taste-lint");
   const cli = path.join(installed, "dist/cli.js");
+  assert.equal(
+    run(process.execPath, [cli, "--version"], consumer).trim(),
+    manifest.version
+  );
   assert.match(
     run(process.execPath, [cli, "rules", "check"], consumer),
     /PASS:/
@@ -139,6 +150,50 @@ try {
   assert.equal(scan.kind, "taste-lint-scan");
   assert.equal(scan.status, "dry-run");
   assert.equal(scan.files.length, 1);
+  assert.match(
+    run(process.execPath, [cli, "scan", "guide"], consumer),
+    /Audit a page with Taste Lint/
+  );
+  const auditDir = path.join(project, "audit");
+  fs.mkdirSync(auditDir);
+  fs.writeFileSync(
+    path.join(auditDir, "page.html"),
+    "<!doctype html><html><head><title>Plans</title></head><body><h1>A powerful, seamless platform</h1></body></html>"
+  );
+  const audit = JSON.parse(
+    fs.readFileSync(path.join(installed, "data/audit/example.json"), "utf-8")
+  );
+  for (const review of audit.reviews) {
+    if (review.status === "not-assessed") {
+      review.status = "not-applicable";
+      review.summary = "Text-only packaging fixture; no browser quality claim.";
+    }
+  }
+  const auditFile = path.join(auditDir, "audit.json");
+  fs.writeFileSync(auditFile, JSON.stringify(audit));
+  const pagePreview = JSON.parse(
+    run(
+      process.execPath,
+      [
+        cli,
+        "scan",
+        "--audit",
+        auditFile,
+        "--root",
+        project,
+        "--dry-run",
+        "--output",
+        "json",
+        "--results-dir",
+        path.join(temporary, "audit-cache"),
+      ],
+      consumer,
+      env
+    )
+  );
+  assert.equal(pagePreview.status, "dry-run");
+  assert.equal(pagePreview.audit.coverage.length, 6);
+  assert.ok(pagePreview.estimated.requests >= 2);
   let failed;
   try {
     execFileSync(
@@ -267,7 +322,7 @@ try {
   assert.equal(stylePreview.findings.length, 0);
   assert.equal(stylePreview.estimated.requests, 1);
   console.log(
-    "Packed artifact passed: rules, dry-run lint, key guard, scale evidence, semantic style planning and product policy verified offline."
+    "Packed artifact passed: rules, dry-run lint, page audit and guide, key guard, scale evidence, semantic style planning and product policy verified offline."
   );
 } finally {
   fs.rmSync(temporary, { force: true, recursive: true });

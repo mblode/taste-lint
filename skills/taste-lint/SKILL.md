@@ -51,7 +51,7 @@ Linting reads files and writes only under `results/`, and a whole repository cos
 
 ## Docs
 
-https://taste-lint.blode.md
+https://blode.co/taste-lint/docs
 
 ## Related skills
 

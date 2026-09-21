@@ -1,6 +1,7 @@
+import { Option } from "commander";
 import type { Command } from "commander";
 
-import { initProject } from "../setup/init.js";
+import { initProject, managers } from "../setup/init.js";
 import type { InitOptions } from "../setup/init.js";
 
 export function registerInitCommand(program: Command): void {
@@ -8,7 +9,7 @@ export function registerInitCommand(program: Command): void {
     .command("init")
     .description("Install Taste Lint locally and add project check scripts")
     .option("--root <path>", "Project directory", process.cwd())
-    .option("--pm <name>", "Package manager: npm, pnpm, yarn, or bun")
+    .addOption(new Option("--pm <name>", "Package manager").choices(managers))
     .option("--dry-run", "Preview setup without installing or writing files")
     .option("--no-install", "Add scripts without installing the package")
     .option("--agent", "Append Taste Lint guidance to AGENTS.md")

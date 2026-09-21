@@ -1,7 +1,12 @@
 import fs from "node:fs";
 
-import type { WritingContext } from "../types.js";
 import { InputError } from "./errors.js";
+
+export interface WritingContext {
+  facts?: string;
+  profile?: string;
+  instructions?: string;
+}
 
 export const validateWritingContext = (value: unknown): WritingContext => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {

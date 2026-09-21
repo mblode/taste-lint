@@ -6,3 +6,13 @@ dist/
 .DS_Store
 results/
 .work/
+
+.next/
+.turbo/
+.vercel/
+.vercel
+.env*
+
+packages/cli/data/
+packages/cli/README.md
+packages/cli/LICENSE.md

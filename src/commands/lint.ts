@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { Option } from "commander";
 import type { Command } from "commander";
 
 import { SUPPORTED_GLOBS } from "../extract/index.js";
@@ -15,6 +16,7 @@ import { DEFAULT_MODEL } from "../map/jev.js";
 import { renderJson } from "../report/json.js";
 import { renderSarif } from "../report/sarif.js";
 import { renderTty } from "../report/tty.js";
+import { SEVERITIES } from "../types.js";
 import type { Severity } from "../types.js";
 
 const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
@@ -45,13 +47,17 @@ export function registerLintCommand(program: Command): void {
       "Ignore cached answers (new answers are still recorded)"
     )
     .option("--limit-units <n>", "Only consider the first n units")
-    .option(
-      "--fail-on <severity>",
-      "Lowest severity that fails the run: major or minor",
-      "minor"
+    .addOption(
+      new Option("--fail-on <severity>", "Lowest severity that fails the run")
+        .choices(SEVERITIES)
+        .default("minor")
     )
     .option("--fix", "Apply deterministic fixes for act-band findings")
-    .option("--output <format>", "tty, json or sarif", "tty")
+    .addOption(
+      new Option("--output <format>", "Output format")
+        .choices(["tty", "json", "sarif"])
+        .default("tty")
+    )
     .option(
       "--results-dir <path>",
       "Where logs and cache live",
@@ -88,18 +94,6 @@ export function registerLintCommand(program: Command): void {
           capture?: string;
         }
       ) => {
-        if (!["major", "minor"].includes(options.failOn)) {
-          throw new InputError(
-            "INVALID_ARGUMENT",
-            "--fail-on must be major or minor"
-          );
-        }
-        if (!["tty", "json", "sarif"].includes(options.output)) {
-          throw new InputError(
-            "INVALID_ARGUMENT",
-            "--output must be tty, json or sarif"
-          );
-        }
         if (paths.length === 0 && !options.url && !options.capture) {
           throw new InputError(
             "INVALID_ARGUMENT",

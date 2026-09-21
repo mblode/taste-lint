@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "page": {
+    "url": "http://localhost:3000/pricing",
+    "state": "initial",
+    "viewport": { "width": 1280, "height": 800 }
+  },
+  "capturedAt": "2026-09-21T00:00:00.000Z",
+  "brief": {
+    "purpose": "Help a small team choose a plan",
+    "audience": "Small teams",
+    "character": "Quiet and specific",
+    "constraints": ["Preserve the existing type scale and honest pricing"]
+  },
+  "observer": { "kind": "agent", "name": "Your actual agent and model" },
+  "artifacts": [{ "path": "page.html", "kind": "document" }],
+  "document": "page.html",
+  "reviews": [
+    {
+      "lens": "ui",
+      "status": "not-assessed",
+      "summary": "Need a screenshot at the chosen viewport",
+      "artifacts": []
+    },
+    {
+      "lens": "typography",
+      "status": "not-assessed",
+      "summary": "Need loaded-font and computed-style evidence",
+      "artifacts": []
+    },
+    {
+      "lens": "copywriting",
+      "status": "reviewed",
+      "summary": "The hero describes quality but never names what the service does",
+      "artifacts": ["page.html"]
+    },
+    {
+      "lens": "interaction",
+      "status": "not-assessed",
+      "summary": "Need to exercise plan selection and keyboard behavior",
+      "artifacts": []
+    },
+    {
+      "lens": "motion",
+      "status": "not-assessed",
+      "summary": "Need observed transitions and reduced-motion behavior",
+      "artifacts": []
+    },
+    {
+      "lens": "seo",
+      "status": "reviewed",
+      "summary": "The full document has one meaningful title; deployed crawl behavior remains outside this observation",
+      "artifacts": ["page.html"]
+    }
+  ],
+  "proposals": [
+    {
+      "id": "hero-purpose",
+      "lens": "copywriting",
+      "region": "hero",
+      "problem": "The headline never names the service",
+      "consequence": "Visitors cannot tell what they can buy",
+      "correction": "Name the service and the concrete outcome in the headline",
+      "preserve": "The concise voice and current type scale",
+      "verification": "Read the hero at the same viewport and confirm it names the service and outcome without unsupported claims",
+      "evidence": [
+        {
+          "artifact": "page.html",
+          "quote": "A powerful, seamless platform",
+          "observation": "This is the complete headline; the following paragraph repeats the same generic claim"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,9 @@
 import fs from "node:fs";
 
-import pkg from "../../package.json" with { type: "json" };
+import pkg from "../../packages/cli/package.json" with { type: "json" };
+import { auditPolicy } from "../audit/input.js";
+import { auditRules, prepareAudit } from "../audit/prepare.js";
+import { auditRecord, describeAuditFindings } from "../audit/report.js";
 import { SUPPORTED_GLOBS } from "../extract/index.js";
 import { loadConfig } from "../lib/config.js";
 import { InputError } from "../lib/errors.js";
@@ -20,6 +23,7 @@ import type { LabelSample } from "./samples.js";
 import { hash } from "./storage.js";
 
 export interface ScanOptions {
+  audit?: string;
   root: string;
   targets: string[];
   profile?: string;
@@ -46,24 +50,43 @@ export const runScan = async (
   const root = fs.realpathSync(loadConfig(options.root).root);
   const profile = profileFor(options.profile ?? "product");
   const config = loadConfig(root, profile.docTypes);
+  if (
+    options.audit &&
+    (profile.name !== "product" ||
+      options.only?.length ||
+      options.since ||
+      options.dependencyCruiser ||
+      options.targets.some((t) => t !== "."))
+  ) {
+    throw new InputError(
+      "INVALID_ARGUMENT",
+      "Use --audit with the product profile and no source targets, --only, --since or dependency graph. Source locations belong in the audit input."
+    );
+  }
+  const page = options.audit ? prepareAudit(options.audit, config) : undefined;
   const exclude = [
     ...config.exclude,
     ...(options.exclude ?? []),
     ...profile.exclude,
   ];
-  const files = collectFiles(
-    root,
-    options.targets,
-    SUPPORTED_GLOBS,
-    exclude
-  ).filter((file) => profileIncludes(profile, file));
-  const rules = profileRules(
-    profile,
-    loadRules(resolveRulesDir(options.rulesDir), { only: options.only }),
-    Boolean(options.only?.length || options.rulesDir)
-  );
+  const files = page
+    ? []
+    : collectFiles(root, options.targets, SUPPORTED_GLOBS, exclude).filter(
+        (file) => profileIncludes(profile, file)
+      );
+  const loaded = loadRules(resolveRulesDir(options.rulesDir), {
+    only: options.only,
+  });
+  const rules = page
+    ? auditRules(loaded)
+    : profileRules(
+        profile,
+        loaded,
+        Boolean(options.only?.length || options.rulesDir)
+      );
+  const advisory = page ? rules.map((r) => r.id) : profile.advisory;
   for (const rule of rules) {
-    if (profile.advisory.includes(rule.id)) {
+    if (advisory.includes(rule.id)) {
       rule.status = "review-only";
     }
   }
@@ -77,6 +100,7 @@ export const runScan = async (
     ? importArchitecture(options.dependencyCruiser)
     : undefined;
   const signature = hash({
+    audit: page ? auditPolicy(page.audit) : undefined,
     config: { ...config, root: undefined },
     engineVersion: pkg.version,
     exclude,
@@ -108,10 +132,11 @@ export const runScan = async (
   let samples: LabelSample[] = [];
   const result = await runLint(
     {
-      advisoryRules: profile.advisory,
+      advisoryRules: advisory,
       docTypes: profile.docTypes,
       dryRun: options.dryRun,
       exclude,
+      extraUnits: page?.units,
       model: options.model,
       only: rules.map((r) => r.id),
       resultsDir: options.resultsDir,
@@ -134,6 +159,18 @@ export const runScan = async (
     (result.ruleFindings ?? []).filter((f) => !f.suppressed),
     units
   );
+  if (page) {
+    describeAuditFindings(page.audit, findings, units);
+  }
+  const audit = page
+    ? auditRecord(page.audit, page.directory, result, rules, findings)
+    : undefined;
+  const auditIncomplete = Boolean(
+    audit &&
+    (audit.coverage.some((c) => c.status === "not-assessed") ||
+      result.unknowns.length > 0)
+  );
+  const hasInputs = files.length > 0 || Boolean(page?.units.length);
   for (const finding of graph?.findings ?? []) {
     if (files.includes(finding.file)) {
       findings.push(finding);
@@ -145,7 +182,10 @@ export const runScan = async (
       .map((u) => u.file)
   );
   const complete =
-    result.status === "complete" && files.length > 0 && !graph?.incomplete;
+    result.status === "complete" &&
+    hasInputs &&
+    !graph?.incomplete &&
+    !auditIncomplete;
   const resolved = reconcile(
     findings,
     baseline,
@@ -155,6 +195,7 @@ export const runScan = async (
   );
   for (const finding of resolved) {
     if (
+      audit ||
       unresolvedFiles.has(finding.file) ||
       (finding.origin === "dependency-cruiser" &&
         !graph?.modules.includes(finding.file))
@@ -183,9 +224,11 @@ export const runScan = async (
           modules: graph.modules.length,
         }
       : undefined,
+    audit,
     coverage: result.coverage,
     diagnostics: [
-      ...(profile.name === "product" &&
+      ...(!page &&
+      profile.name === "product" &&
       !options.only?.length &&
       !options.rulesDir
         ? [
@@ -193,6 +236,16 @@ export const runScan = async (
           ]
         : []),
       ...(result.scope?.diagnostics ?? []),
+      ...(audit
+        ? [
+            "Page audit: Jev judges attributed observations. Images are not sent to Jev. Lens review coverage is not a complete quality verdict.",
+            ...(auditIncomplete
+              ? [
+                  "Page audit is incomplete: collect the missing lens observations or resolve unknown evidence.",
+                ]
+              : []),
+          ]
+        : []),
       ...(graph?.incomplete
         ? [
             "Imported dependency graph contains unresolved edges or environment issues.",
@@ -201,7 +254,10 @@ export const runScan = async (
     ],
     estimated: result.estimated,
     exitCode:
-      result.status === "incomplete" || files.length === 0 || graph?.incomplete
+      result.status === "incomplete" ||
+      !hasInputs ||
+      graph?.incomplete ||
+      auditIncomplete
         ? 2
         : failing > 0
           ? 1
@@ -217,7 +273,10 @@ export const runScan = async (
     resolved,
     root,
     signature,
-    status: !files.length || graph?.incomplete ? "incomplete" : result.status,
+    status:
+      !hasInputs || graph?.incomplete || auditIncomplete
+        ? "incomplete"
+        : result.status,
     summary: {
       dismissed: findings.filter((f) => f.decision?.status === "dismissed")
         .length,
