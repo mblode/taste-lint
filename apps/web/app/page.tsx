@@ -40,15 +40,8 @@ export default function Home() {
             Catch AI slop before you ship.
           </h2>
           <p className="mt-5 max-w-[56ch] text-base leading-7 text-pretty">
-            <a
-              className="font-medium underline underline-offset-4 hover:decoration-2"
-              href="https://docs.typesafe.ai/concepts/system-one"
-            >
-              Jev by TypeSafe AI
-            </a>{" "}
-            checks your UI, copy, and agent instructions in context. Catch
-            canned phrasing and vague praise, with a probability for each AI
-            finding.
+            Design review on every commit, from the Taste Training and Agent
+            Skills rules.
           </p>
           <div className="mt-8">
             <InstallCommand />
@@ -109,9 +102,23 @@ export default function Home() {
         <div className="flex items-center gap-3 text-muted-foreground/30">
           <a
             className="text-muted-foreground transition-colors hover:text-foreground"
-            href="https://blode.co/projects"
+            href="https://blode.co/taste-training"
           >
-            All projects
+            Taste Training
+          </a>
+          <span aria-hidden="true">·</span>
+          <a
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            href="https://github.com/mblode/agent-skills"
+          >
+            Agent Skills
+          </a>
+          <span aria-hidden="true">·</span>
+          <a
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            href="https://docs.typesafe.ai/concepts/system-one"
+          >
+            Jev
           </a>
           <span aria-hidden="true">·</span>
           <a
