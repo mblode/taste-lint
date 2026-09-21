@@ -6,7 +6,6 @@ import type { Command } from "commander";
 
 import { SUPPORTED_GLOBS } from "../extract/index.js";
 import { extractCapture, runStyleCapture } from "../extract/rendered.js";
-import { parseCaptureInput } from "../extract/style-capture-text.js";
 import { loadConfig } from "../lib/config.js";
 import { InputError } from "../lib/errors.js";
 import { collectFiles } from "../lib/glob.js";
@@ -30,7 +29,6 @@ export function registerLintCommand(program: Command): void {
     .description("Lint files (or a rendered page) against the taste rules")
     .argument("[paths...]", "Files or directories to lint, relative to --root")
     .option("--root <path>", "Project root for globs and config", process.cwd())
-    .option("--rules <path>", "Rules directory (default: packaged data/rules)")
     .option("--only <ids>", "Comma-separated rule ids")
     .option(
       "--exclude <globs>",
@@ -44,7 +42,7 @@ export function registerLintCommand(program: Command): void {
     .addOption(
       new Option(
         "--profile <name>",
-        "Scope: product (tsx, jsx, css), writing (md, mdx, README), instructions (AGENTS.md, skills, plans) or all"
+        "Scope: product (tsx, jsx, css), writing (md, mdx), instructions (AGENTS.md, skills, plans) or all"
       ).choices(PROFILE_NAMES)
     )
     .option(
@@ -59,7 +57,6 @@ export function registerLintCommand(program: Command): void {
       "--no-cache",
       "Ignore cached answers (new answers are still recorded)"
     )
-    .option("--limit-units <n>", "Only consider the first n units")
     .addOption(
       new Option("--fail-on <severity>", "Lowest severity that fails the run")
         .choices(SEVERITIES)
@@ -81,7 +78,6 @@ export function registerLintCommand(program: Command): void {
     .option("--verbose", "Show suppressed findings and unknowns")
     .option("--url <url>", "Lint a rendered page through style-capture")
     .option("--selector <css>", "Root selector for --url", "body")
-    .option("--capture <file>", "Lint a saved style-capture CaptureResult JSON")
     .action(
       async (
         paths: string[],
@@ -90,13 +86,11 @@ export function registerLintCommand(program: Command): void {
           since?: string;
           samples?: string;
           root: string;
-          rules?: string;
           only?: string;
           exclude?: string;
           dryRun?: boolean;
           printRequests?: boolean;
           cache: boolean;
-          limitUnits?: string;
           failOn: string;
           fix?: boolean;
           output: string;
@@ -106,27 +100,13 @@ export function registerLintCommand(program: Command): void {
           progress?: boolean;
           url?: string;
           selector: string;
-          capture?: string;
         }
       ) => {
         const targets = paths.length === 0 && options.profile ? ["."] : paths;
-        if (targets.length === 0 && !options.url && !options.capture) {
+        if (targets.length === 0 && !options.url) {
           throw new InputError(
             "INVALID_ARGUMENT",
-            "Pass at least one path, --profile, --url or --capture"
-          );
-        }
-        const limitUnits =
-          options.limitUnits === undefined
-            ? undefined
-            : Number(options.limitUnits);
-        if (
-          limitUnits !== undefined &&
-          (!Number.isInteger(limitUnits) || limitUnits < 0)
-        ) {
-          throw new InputError(
-            "INVALID_ARGUMENT",
-            "--limit-units must be a non-negative integer"
+            "Pass at least one path, --profile or --url"
           );
         }
         if (
@@ -143,7 +123,7 @@ export function registerLintCommand(program: Command): void {
         }
         const config = { root: path.resolve(options.root) };
         // Rendered capture is the only path with remote work before runLint.
-        if (options.url || options.capture) {
+        if (options.url) {
           const resolved = loadConfig(config.root);
           collectFiles(resolved.root, targets, SUPPORTED_GLOBS, [
             ...resolved.exclude,
@@ -153,18 +133,12 @@ export function registerLintCommand(program: Command): void {
               .filter(Boolean) ?? []),
           ]);
         }
-        let extraUnits;
-        if (options.capture) {
-          extraUnits = extractCapture(
-            parseCaptureInput(fs.readFileSync(options.capture, "utf-8")),
-            options.capture
-          );
-        } else if (options.url) {
-          extraUnits = extractCapture(
-            await runStyleCapture(options.url, options.selector),
-            options.url
-          );
-        }
+        const extraUnits = options.url
+          ? extractCapture(
+              await runStyleCapture(options.url, options.selector),
+              options.url
+            )
+          : undefined;
         let lastProgress = 0;
         let samples: ReturnType<typeof makeSamples> = [];
         const result = await runLint(
@@ -177,7 +151,6 @@ export function registerLintCommand(program: Command): void {
             extraUnits,
             failOn: options.failOn as Severity,
             fix: options.fix,
-            limitUnits,
             model: options.model,
             noCache: !options.cache,
             only: options.only
@@ -188,7 +161,6 @@ export function registerLintCommand(program: Command): void {
             profile: options.profile,
             resultsDir: options.resultsDir,
             root: options.root,
-            rulesDir: options.rules,
             since: options.since,
             targets,
           },
@@ -248,23 +220,14 @@ export function registerLintCommand(program: Command): void {
           "--output",
           options.output,
         ];
-        if (options.rules) {
-          retryArgs.push("--rules", path.resolve(options.rules));
-        }
         if (options.only) {
           retryArgs.push("--only", options.only);
         }
         if (options.exclude) {
           retryArgs.push("--exclude", options.exclude);
         }
-        if (options.limitUnits) {
-          retryArgs.push("--limit-units", options.limitUnits);
-        }
         if (options.url) {
           retryArgs.push("--url", options.url, "--selector", options.selector);
-        }
-        if (options.capture) {
-          retryArgs.push("--capture", path.resolve(options.capture));
         }
         if (options.profile) {
           retryArgs.push("--profile", options.profile);

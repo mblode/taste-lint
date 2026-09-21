@@ -87,7 +87,7 @@ Every rule names the file and line of the skill or lesson it came from. `taste-l
 taste-lint lint --url https://example.com/pricing --selector main
 ```
 
-Runs [style-capture](https://www.npmjs.com/package/style-capture) in headless Chromium and lints computed styles. The typography rules then judge what the reader sees rather than what the class list implies. `--capture file.json` lints a saved capture.
+Runs [style-capture](https://www.npmjs.com/package/style-capture) in headless Chromium and lints computed styles. The typography rules then judge what the reader sees rather than what the class list implies. `--selector` narrows the page.
 
 ## API
 
@@ -102,7 +102,7 @@ const result = await runLint({
 console.log(result.summary, result.usage.costUsd);
 ```
 
-`runLint` takes the same options as the `lint` command. `taste-lint schema` prints every command, flag and default as JSON. `--output json` turns an error into a `{ error, code, message }` envelope on stdout.
+`runLint` takes the same options as the `lint` command, all optional. Pass `evaluate` in the second argument to supply your own judge. `taste-lint schema` prints every command, flag and default as JSON. `--output json` turns an error into a `{ error, code, message }` envelope on stdout.
 
 ## Options
 
@@ -120,7 +120,7 @@ console.log(result.summary, result.usage.costUsd);
 | `--verbose` |  | List review notes, suppressed findings and unknowns |
 | `--url <url>` |  | Lint a rendered page through style-capture |
 
-Every run saves a complete JSON report and prints its path. An incomplete run prints a retry command that reuses successful answers.
+`--help` lists the rest: `--root`, `--results-dir`, `--model`, `--no-cache`, `--progress`, `--selector` and `--print-requests`. Every run saves a complete JSON report and prints its path. An incomplete run prints a retry command that reuses successful answers.
 
 ## Configuration
 

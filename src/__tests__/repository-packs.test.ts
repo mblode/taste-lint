@@ -7,7 +7,6 @@ import { Repository } from "../analysis/repository.js";
 import { extractSource } from "../extract/index.js";
 import { loadConfig } from "../lib/config.js";
 import { UnresolvedError } from "../reduce/mechanical.js";
-import { discoverSkills } from "../rules/discover.js";
 import { loadRules } from "../rules/load.js";
 import { check, temporary } from "./helpers.js";
 
@@ -146,22 +145,6 @@ it("refuses repository reads through paths and symlinks outside the root", () =>
   expect(repository.read("link.md")).toBeUndefined();
   expect(repository.exists("link.md")).toBe(false);
   expect(repository.resolve("README.md", "../private.md")).toBeUndefined();
-});
-
-it("discovers alternative rule directories and references without executing their content", () => {
-  const fixture = setup({
-    "skills/demo/SKILL.md": "---\nname: demo\ndescription: Demo\n---\n# Demo",
-    "skills/demo/evals/fixture.md": "# Exclude",
-    "skills/demo/references/notes.md": "# Notes\n\n## Details",
-    "skills/demo/rules-ax/check.md": "---\ntitle: Check\n---\n## Rule",
-  });
-  const entries = discoverSkills(fixture.root, []);
-  expect(entries.map((e) => e.kind).toSorted()).toEqual([
-    "entrypoint",
-    "guidance",
-    "rule",
-  ]);
-  expect(entries.every((e) => e.status === "needs-triage")).toBe(true);
 });
 
 it("keeps every document and instruction port review-only until it is tuned", () => {

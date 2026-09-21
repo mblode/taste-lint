@@ -126,7 +126,7 @@ export default function Home() {
           <div className="mt-4 flex flex-wrap gap-x-8">
             <a
               className="inline-flex min-h-12 items-center underline underline-offset-4"
-              href="/taste-lint/docs/quickstart"
+              href="/taste-lint/docs"
             >
               Setup guide
             </a>
