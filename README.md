@@ -11,12 +11,6 @@ Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introductio
   <a href="https://github.com/mblode/taste-lint/blob/main/LICENSE.md"><img alt="MIT license" src="https://img.shields.io/npm/l/taste-lint?style=flat&colorA=000000&colorB=000000" /></a>
 </p>
 
-<p align="center">
-  <a href="https://blode.co/taste-lint/docs">
-    <img alt="Read the docs" src="https://raw.githubusercontent.com/mblode/taste-lint/main/.github/assets/documentation.svg" width="200" height="48" />
-  </a>
-</p>
-
 </div>
 
 ## Install
@@ -53,7 +47,11 @@ The default scan focuses on six checks and shows five prioritized groups. Use `-
 
 ## Docs
 
-[Read the docs](https://blode.co/taste-lint/docs)
+<p>
+  <a href="https://blode.co/taste-lint/docs">
+    <img alt="Read the docs" src="https://raw.githubusercontent.com/mblode/taste-lint/main/.github/assets/documentation.svg" width="200" height="48" />
+  </a>
+</p>
 
 `taste-lint scan --help` lists every option. `--dry-run` previews scope and cost. `--output json` and `--output sarif` are for scripts and code review.
 
