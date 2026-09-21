@@ -253,3 +253,8 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+.install-commands:has(input[value="humans"]:checked) [data-audience="agents"],
+.install-commands:has(input[value="agents"]:checked) [data-audience="humans"] {
+  display: none;
+}
