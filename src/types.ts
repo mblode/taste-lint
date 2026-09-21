@@ -1,7 +1,6 @@
 // Shared type definitions. See docs/DESIGN.md for the contracts.
 
 import type { SourceFacts } from "./analysis/repository.js";
-import type { AuditUnitContext } from "./audit/types.js";
 
 export const DOMAINS = [
   "typography",
@@ -10,10 +9,7 @@ export const DOMAINS = [
   "interaction",
   "motion",
   "product",
-  "architecture",
-  "dx",
   "authoring",
-  "seo",
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -24,7 +20,6 @@ export const UNIT_KINDS = [
   "attr-string",
   "class-list",
   "element",
-  "audit",
   /** The whole file, for mechanical-only regex rules over raw source. */
   "source",
   /** A file that did not parse; carries the error and nothing else. */
@@ -57,9 +52,6 @@ export const DOC_TYPES = [
   "readme",
   "skill",
   "plan",
-  "personal",
-  "pr",
-  "slides",
   "unknown",
 ] as const;
 export type DocType = (typeof DOC_TYPES)[number];
@@ -87,9 +79,6 @@ export const CONTEXT_KEYS = [
   "element",
   "role",
   "neighbours",
-  "writingFacts",
-  "writingProfile",
-  "writingInstructions",
 ] as const;
 export type ContextKey = (typeof CONTEXT_KEYS)[number];
 
@@ -211,16 +200,10 @@ export interface NeighbourSummary {
   typography?: ResolvedTypography;
 }
 
-export type { WritingContext } from "./lib/writing-context.js";
-
 export interface UnitContext {
-  audit?: AuditUnitContext;
   /** Explicit font-size tokens from taste-lint.config.json, never inferred defaults. */
   fontScale?: Record<string, string>;
   section?: string;
-  writingFacts?: string;
-  writingProfile?: string;
-  writingInstructions?: string;
   headingAbove?: string;
   docType: DocType;
   element?: string;
@@ -464,14 +447,7 @@ export interface CorpusItem {
   split: "dev" | "holdout";
 }
 
-export interface ArchitecturePolicy {
-  boundaries?: { from: string; disallow: string; reason: string }[];
-  deprecatedImports?: Record<string, string>;
-  generated?: string[];
-}
-
 export interface Config {
-  architecture?: ArchitecturePolicy;
   root: string;
   docTypes: { glob: string; type: DocType }[];
   components: { unwrap: string[]; skip: string[] };

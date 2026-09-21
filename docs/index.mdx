@@ -1,13 +1,13 @@
 ---
 title: Introduction
-description: Catch AI slop before you ship. Scan product UI, writing, and agent instructions with Jev.
+description: Catch AI slop before you ship. Lint product UI, writing and agent instructions.
 ---
 
 # Taste Lint
 
 Catch AI slop before you ship.
 
-Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction). Local checks handle measurable rules. Jev judges meaning and returns probabilities.
+Mechanical checks decide what a regex or a measured value can decide. Judgement calls go to [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction), which answers with a probability.
 
 ## Install
 
@@ -15,29 +15,32 @@ Scan your project with [Jev by TypeSafe AI](https://docs.typesafe.ai/introductio
 npx taste-lint@latest init
 ```
 
-Requires Node 24.11 or later. Run it from your project directory. Init installs locally and adds a scan script.
+Requires Node 24.11 or later. Run it from your project directory. Init installs locally and adds a `taste` script.
 
 ## Quickstart
 
-Create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys). Then:
+```bash
+npm run taste -- --dry-run
+```
+
+That runs every mechanical check with no key and no model calls. To add Jev review notes, create a [Vercel AI Gateway key](https://vercel.com/docs/ai-gateway/authentication-and-byok/api-keys):
 
 ```bash
 export AI_GATEWAY_API_KEY="your-vercel-ai-gateway-key"
 npm run taste
 ```
 
-No taste-lint account or config. AI checks send selected text and rule context to Vercel AI Gateway, billed to your account. Repeat runs reuse cached answers.
+Jev checks send the selected text and rule context to Vercel AI Gateway, billed to your account. Repeat runs reuse cached answers.
 
 ## What it checks
 
-- **Product interfaces:** copy, typography, interaction, and motion in JSX, TSX, and CSS.
-- **Writing:** Markdown, MDX, and READMEs with `--profile writing`.
-- **Agent instructions:** AGENTS.md and skills with `--profile instructions`.
+- **Product interfaces:** copy, typography, interaction and motion in JSX, TSX and CSS.
+- **Writing:** Markdown, MDX and READMEs with `--profile writing`.
+- **Agent instructions:** AGENTS.md, skills and plans with `--profile instructions`.
 
 Rules come from [Agent Skills](https://github.com/mblode/agent-skills) and [Taste Training](https://blode.co/taste-training).
 
 ## Next
 
-- [Quickstart](/quickstart)
-- [Scans](/scans)
-- [Usage](/usage)
+- [Usage](/usage): profiles, flags, what blocks and what reports, how a rule gets promoted.
+- [Design](/design): the rule, unit and finding contracts.

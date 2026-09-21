@@ -20,7 +20,7 @@ afterEach(() => {
 });
 it("returns JSON for parser and validation failures in either flag syntax", () => {
   for (const format of [["--output", "json"], ["--output=json"]]) {
-    for (const tail of [["--wat"], ["--limit-units", "bad"]]) {
+    for (const tail of [["--wat"], ["--fail-on", "bad"]]) {
       const result = run("lint", ".", "--dry-run", ...format, ...tail);
       expect(result.status).toBe(1);
       expect(JSON.parse(result.stdout)).toMatchObject({
@@ -70,9 +70,12 @@ it("fails on missing targets and exposes help without credentials", () => {
   expect(run("--version").status).toBe(0);
   expect(run("lint", "--help").stdout).toContain("--progress");
 });
-it("rejects the removed no-AI mode", () => {
-  for (const command of ["scan", "lint"]) {
-    const result = run(command, ".", "--mechanical-only", "--output=json");
+it("rejects the removed scan command and no-AI flag", () => {
+  for (const args of [
+    ["scan", "."],
+    ["lint", ".", "--mechanical-only"],
+  ]) {
+    const result = run(...args, "--output=json");
     expect(result.status).toBe(1);
     expect(JSON.parse(result.stdout).code).toBe("INVALID_ARGUMENT");
   }
@@ -82,8 +85,8 @@ it("describes required arguments, option values and choices for agents", () => {
   const result = run("schema");
   expect(result.status).toBe(0);
   const commands = JSON.parse(result.stdout);
-  const scan = commands.find((c: { command: string }) => c.command === "scan");
-  expect(scan.arguments).toEqual([
+  const lint = commands.find((c: { command: string }) => c.command === "lint");
+  expect(lint.arguments).toEqual([
     expect.objectContaining({
       name: "paths",
       required: false,
@@ -91,31 +94,31 @@ it("describes required arguments, option values and choices for agents", () => {
       variadic: true,
     }),
   ]);
-  const verify = scan.commands.find(
-    (c: { command: string }) => c.command === "verify"
-  );
-  expect(verify.arguments).toEqual([
+  expect(lint.options).toContainEqual(
     expect.objectContaining({
-      name: "before",
+      enum: ["product", "writing", "instructions", "all"],
+      flag: "--profile",
+      required: false,
+    })
+  );
+  const labels = commands
+    .find((c: { command: string }) => c.command === "eval")
+    .commands.find((c: { command: string }) => c.command === "labels");
+  expect(labels.arguments).toEqual([
+    expect.objectContaining({
+      name: "samples",
       required: true,
       type: "string",
       variadic: false,
     }),
   ]);
-  expect(verify.options).toContainEqual(
+  expect(labels.options).toContainEqual(
     expect.objectContaining({
-      flag: "--after",
-      flags: "--after <file>",
+      flag: "--out",
+      flags: "--out <file>",
       required: true,
       type: "string",
       value: "required",
-    })
-  );
-  expect(verify.options).toContainEqual(
-    expect.objectContaining({
-      enum: ["tty", "json"],
-      flag: "--output",
-      required: false,
     })
   );
   const init = commands.find((c: { command: string }) => c.command === "init");
@@ -142,18 +145,7 @@ it("describes required arguments, option values and choices for agents", () => {
     code: "INVALID_ARGUMENT",
     error: true,
   });
-  const missing = run(
-    "scan",
-    "verify",
-    "--after",
-    "after.json",
-    "--evidence",
-    "evidence.json",
-    "--out",
-    "out.json",
-    "--output",
-    "json"
-  );
+  const missing = run("eval", "labels", "--out", "out.jsonl");
   expect(missing.status).toBe(1);
-  expect(JSON.parse(missing.stdout).message).toContain("before");
+  expect(missing.stderr).toContain("samples");
 });

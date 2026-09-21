@@ -16,10 +16,11 @@ Is not: the rules themselves (they ship inside the package and trace back to the
 
 | Command | Use |
 | --- | --- |
-| `taste-lint lint <paths> --dry-run` | Units, requests and estimated cost, no calls. Always first. |
-| `taste-lint lint <paths>` | The run. Needs the user’s `AI_GATEWAY_API_KEY` (Vercel AI Gateway). Results land in `results/lint-<timestamp>.jsonl`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
+| `taste-lint lint --profile product --dry-run` | Every mechanical check, no key, no calls. Act findings already fail here. Always first. |
+| `taste-lint lint --profile product` | The run with Jev review notes. Needs the user’s `AI_GATEWAY_API_KEY` (Vercel AI Gateway). Results land in `results/lint-<timestamp>.json`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
+| `taste-lint lint --since origin/main --output sarif` | Only findings on changed lines, for code review tools. |
 | `taste-lint lint <paths> --output json` | For scripts: findings, scorecard and usage on stdout, and an error as a `{ error, code, message }` envelope instead of text. `--output sarif` for code scanning. |
-| `taste-lint lint --url <url>` | Computed styles through style-capture and a local Chromium; `--capture file.json` lints a saved capture. |
+| `taste-lint lint --url <url>` | Computed styles through style-capture and a local Chromium; `--selector` narrows the page. |
 | `taste-lint eval` and `taste-lint tune` | Precision, recall and calibration per rule on the labelled corpus; `tune --write` is the only thing that promotes a rule. |
 
 Node 24. Jev input costs $0.042 per million tokens and output is free; the summary line prints the actual cost after every run.
@@ -45,7 +46,7 @@ Linting reads files and writes only under `results/`, and a whole repository cos
 
 - Projects that curl quotes at build time (remark-smartypants in `next.config.*`) are detected; the straight-quote rule then skips Markdown and still checks JSX. Force it either way with `"smartQuotesAtBuild"` in `taste-lint.config.json`.
 - Deliberately bad copy (course stimuli, `Incorrect` examples, sample text) is corpus, not a lint target. Exclude it with `--exclude` or the config file, or suppress one unit with `taste-lint-ignore: <rule-id>` on the line above; `ui-audit-ignore:<id>` from `ui-design` is honoured for ported rules.
-- Most of the pack is `review-only` (ported patterns until someone has watched them on a real codebase, Jev rules until `tune --write` promotes them), so a run can print hundreds of `?` notes and still PASS. Read the act band first; treat the notes as a reading list, not a backlog.
+- Most of the pack is `review-only` (ported patterns until someone has watched them on a real codebase, Jev rules until `tune --write` promotes them). The report counts those notes by rule and lists them only with `--verbose`. Read the act band first; treat the notes as a reading list, not a backlog.
 - Class-list rules see only static Tailwind classes. Theme tokens, template expressions and computed values are `unknown` until you run `--url`.
 - Never paste a raw provider response or error body into an issue or a summary; the tool records categories and token counts only, and so should you.
 

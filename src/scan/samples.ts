@@ -38,7 +38,6 @@ export const makeSamples = (
       }
       const { docType, role, headingAbove } = unit.context;
       const context = {
-        ...(unit.context.audit ? { audit: unit.context.audit } : {}),
         docType,
         headingAbove,
         role,

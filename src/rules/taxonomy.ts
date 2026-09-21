@@ -11,13 +11,6 @@ export interface Category {
 }
 
 export const CATEGORIES: readonly Category[] = [
-  { domain: "seo", id: "search-discovery", label: "Search discovery" },
-  {
-    domain: "architecture",
-    id: "repository-contracts",
-    label: "Repository contracts",
-  },
-  { domain: "dx", id: "package-contracts", label: "Package contracts" },
   {
     domain: "authoring",
     id: "instruction-quality",

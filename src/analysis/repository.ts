@@ -6,10 +6,6 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { gfm } from "micromark-extension-gfm";
 import { parseSync } from "oxc-parser";
 
-import type { ArchitecturePolicy } from "../types.js";
-import { htmlElements } from "./html.js";
-import type { HtmlElement } from "./html.js";
-
 export interface DocumentNode {
   type: string;
   value?: string;
@@ -28,14 +24,13 @@ export interface ImportFact {
 }
 
 export interface SourceFacts {
-  html?: HtmlElement[];
   images?: { offset: number; attributes: string[]; spread: boolean }[];
   document?: DocumentNode;
   imports?: ImportFact[];
   parseError?: string;
   repository: Pick<
     Repository,
-    "root" | "read" | "resolve" | "exists" | "manifest" | "policy"
+    "root" | "read" | "resolve" | "exists" | "manifest"
   >;
 }
 
@@ -50,10 +45,7 @@ export class Repository {
   readonly root: string;
   private readonly contents = new Map<string, string | undefined>();
 
-  readonly policy?: ArchitecturePolicy;
-
-  constructor(root: string, policy?: ArchitecturePolicy) {
-    this.policy = policy;
+  constructor(root: string) {
     this.root = fs.realpathSync(root);
   }
 
@@ -166,17 +158,7 @@ export const sourceFacts = (
   repository: Repository
 ): SourceFacts => {
   const facts: SourceFacts = { repository };
-  if (/\.html?$/.test(file)) {
-    facts.html = htmlElements(text);
-    facts.images = facts.html
-      .filter((element) => element.tag === "img")
-      .map((element) => ({
-        attributes: Object.keys(element.attrs),
-        offset: element.offset,
-        spread: false,
-      }));
-  }
-  if (/\.mdx?$/.test(file) || /(?:^|\/)llms(?:-full)?\.txt$/.test(file)) {
+  if (/\.mdx?$/.test(file)) {
     facts.document = fromMarkdown(
       text.replace(/^---\r?\n[\s\S]*?\r?\n---(?=\r?\n|$)/, (m) =>
         m.replaceAll(/[^\r\n]/g, " ")

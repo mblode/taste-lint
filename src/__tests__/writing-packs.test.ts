@@ -4,9 +4,7 @@ import { expect, it } from "vitest";
 
 import { extractMarkdown } from "../extract/markdown.js";
 import { extractTsx } from "../extract/tsx.js";
-import { validateWritingContext } from "../lib/writing-context.js";
 import { planRequests } from "../map/plan.js";
-import { buildState } from "../map/state.js";
 import { jevFindings } from "../reduce/bands.js";
 import { loadRules } from "../rules/load.js";
 import { check, config } from "./helpers.js";
@@ -72,52 +70,4 @@ it.each([
 ])("%s uses explicit class evidence", (id, bad, good) => {
   expect(check(id)(get(bad)).fired).toBe(true);
   expect(check(id)(get(good)).fired).toBe(false);
-});
-
-const contextual = rules.filter((rule) =>
-  rule.question?.context?.some((key) => key.startsWith("writing"))
-);
-it.each(contextual)(
-  "$id requires explicit context and abstains on oversized comparisons",
-  (rule) => {
-    const cfg = config(".");
-    const units = extractMarkdown(
-      "draft.md",
-      "Please send the draft tomorrow.",
-      { config: cfg, docType: "personal" }
-    );
-    const missing = planRequests(units, [rule], cfg);
-    expect(missing.jobs).toHaveLength(0);
-    expect(missing.unknowns).toHaveLength(1);
-    const key = rule.question!.context!.find((item) =>
-      item.startsWith("writing")
-    )!;
-    Object.assign(units[0].context, {
-      [key]: "Use a warm, direct voice. The deadline is Friday.",
-    });
-    const supplied = planRequests(units, [rule], cfg);
-    expect(supplied.jobs).toHaveLength(1);
-    expect(supplied.unknowns).toHaveLength(0);
-    const state = buildState(units[0], [rule]);
-    expect(state.state).toContain("The deadline is Friday.");
-    expect(state.truncated).toBe(false);
-    Object.assign(units[0].context, { [key]: "Long context ".repeat(2000) });
-    expect(planRequests(units, [rule], cfg).jobs).toHaveLength(0);
-    expect(planRequests(units, [rule], cfg).unknowns[0].reason).toContain(
-      "budget"
-    );
-  }
-);
-it("validates writing context without echoing private values", () => {
-  expect(validateWritingContext({ facts: "Deadline Friday" })).toEqual({
-    facts: "Deadline Friday",
-  });
-  for (const value of [{}, [], { profile: "" }, { secret: "private-value" }]) {
-    expect(() => validateWritingContext(value)).toThrow();
-    try {
-      validateWritingContext(value);
-    } catch (error) {
-      expect(String(error)).not.toContain("private-value");
-    }
-  }
 });
