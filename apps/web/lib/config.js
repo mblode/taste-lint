@@ -4,7 +4,7 @@ export const asset = (path) => `${basePath}${path}`;
 export const siteConfig = {
   author: { name: "Matthew Blode", url: "https://blode.co" },
   description:
-    "Taste Lint uses Jev by TypeSafe AI to check UI, copy, and agent instructions in context. Catch AI slop with a probability for each AI finding.",
+    "Taste Lint checks the empty states, error messages, labels, type and motion in your source, against 174 rules from Taste Training and Agent Skills.",
   links: {
     author: "https://blode.co",
     docs: `${basePath}/docs`,
