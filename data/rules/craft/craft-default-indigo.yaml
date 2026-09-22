@@ -1,0 +1,28 @@
+# Hand-cut from mblode/agent-skills skills/ui-design/guidelines/colors.md.
+id: craft-default-indigo
+title: Indigo accent that looks like a template default
+categoryId: colour-system
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ui-design/guidelines/colors.md,
+    line: 5,
+  }
+scope:
+  include: ["**/*.tsx", "**/*.jsx", "**/*.css"]
+unit: [source]
+mechanical:
+  regex: "\\b(?:bg|text|border|ring|from|via|to|fill|stroke|outline|accent|shadow|decoration)-indigo-\\d{2,3}\\b"
+  flags: gu
+severity: minor
+fix:
+  hint: >-
+    Pick an accent from the brand, or use the theme's primary token. Indigo is the colour every starter template ships with.
+status: review-only
+review:
+  applicability: Components use Tailwind indigo classes as the accent colour.
+  exceptions: A brand that is indigo, or a project whose theme already standardises on indigo.
+  evidence: The brand colour in the theme or design tokens, and how many components use indigo.
+  verification: Confirm indigo is the brand choice, or replace it with the theme's primary token.
+  sourceHash: cdd85836ef30c0827d41e0a07ed549a3b5a3d120b6f1aa39cf259aff87a8d0e8
+handWritten: [mechanical, fix, review, scope]

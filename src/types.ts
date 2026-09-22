@@ -454,4 +454,6 @@ export interface Config {
   tailwind: { theme: Record<string, string> };
   smartQuotesAtBuild: boolean;
   exclude: string[];
+  /** Extra rule directories from the config, absolute. */
+  rules?: string[];
 }

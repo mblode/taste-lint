@@ -195,8 +195,17 @@ it("keeps the sentence threshold independent of quoted versus unquoted prose", a
   const { check } = await import("./helpers.js");
   const longSentence = check("copywriting-long-sentence");
   const words = Array.from({ length: 26 }, () => "word").join(" ");
-  expect(longSentence(unit("quote", `“${words}.”`)).fired).toBe(true);
-  expect(longSentence(unit("plain", words)).fired).toBe(true);
+  const joined = `${words} and more and more`;
+  expect(longSentence(unit("quote", `“${joined}.”`)).fired).toBe(true);
+  expect(longSentence(unit("plain", joined)).fired).toBe(true);
+});
+
+it("treats length alone as style, not a long-sentence defect", async () => {
+  const { check } = await import("./helpers.js");
+  const longSentence = check("copywriting-long-sentence");
+  const words = Array.from({ length: 30 }, () => "word").join(" ");
+  expect(longSentence(unit("plain", `${words}.`)).fired).toBe(false);
+  expect(longSentence(unit("one-and", `${words} and word.`)).fired).toBe(false);
 });
 
 it("propagates recorder failure without relabeling successful provider output", async () => {

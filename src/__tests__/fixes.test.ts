@@ -5,15 +5,19 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { afterEach, expect, it } from "vitest";
+import { parse } from "yaml";
 
 import { extractMarkdown } from "../extract/markdown.js";
 import { extractTsx } from "../extract/tsx.js";
 import { runLint } from "../lint.js";
 import {
+  AU_SPELLING_PATTERN,
+  auSpelling,
   ellipsis,
   multiplicationSign,
   nbspValueUnit,
   smartQuotes,
+  stripUtm,
 } from "../reduce/fixes.js";
 import { config, FIXTURES, temporary } from "./helpers.js";
 
@@ -117,4 +121,53 @@ it("fix functions match exactly what their rules flag", () => {
   expect(nbspValueUnit("wait 3 s for 16 px at 5 %.")).toBe(
     "wait 3 s for 16 px at 5 %."
   );
+});
+
+it("strips the ChatGPT referral tag and keeps other query parameters", () => {
+  expect(stripUtm("See https://a.com/x?utm_source=chatgpt.com for more.")).toBe(
+    "See https://a.com/x for more."
+  );
+  expect(stripUtm("https://a.com/?id=2&utm_source=chatgpt.com")).toBe(
+    "https://a.com/?id=2"
+  );
+  expect(stripUtm("https://a.com/?utm_source=chatgpt.com&id=2")).toBe(
+    "https://a.com/?id=2"
+  );
+  expect(stripUtm("https://a.com/y?utm_source=chatgpt.com#top")).toBe(
+    "https://a.com/y#top"
+  );
+  expect(stripUtm("https://a.com/?utm_source=newsletter")).toBe(
+    "https://a.com/?utm_source=newsletter"
+  );
+});
+
+it("converts US spelling to Australian and keeps a leading capital", () => {
+  expect(auSpelling("Color the favorite labeled rows gray.")).toBe(
+    "Colour the favourite labelled rows grey."
+  );
+  expect(auSpelling("colorful discoloration stays")).toBe(
+    "colorful discoloration stays"
+  );
+  expect(auSpelling("COLOR stays shouting")).toBe("COLOR stays shouting");
+  expect(new RegExp(AU_SPELLING_PATTERN, "iu").test("Organize it")).toBe(true);
+});
+
+it("never rewrites spelling inside a URL or path", () => {
+  const text = "See https://a.com/color-picker and src/color.ts for color.";
+  expect(auSpelling(text)).toBe(
+    "See https://a.com/color-picker and src/color.ts for colour."
+  );
+});
+
+it("keeps the voice pack rule and the spelling fix on one word list", () => {
+  const rule = parse(
+    fs.readFileSync(
+      path.join(
+        FIXTURES,
+        "voice-pack/copywriting/copywriting-voice-au-spelling.yaml"
+      ),
+      "utf-8"
+    )
+  ) as { mechanical: { regex: string } };
+  expect(rule.mechanical.regex).toBe(AU_SPELLING_PATTERN);
 });

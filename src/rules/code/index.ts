@@ -7,6 +7,7 @@ import type { Rule } from "../../types.js";
 import { CLASS_RULES } from "./classes.js";
 import { DOCUMENT_RULES } from "./documents.js";
 import { IMAGE_RULES } from "./images.js";
+import { MOTION_SOURCE_RULES } from "./motion-source.js";
 import { SKILL_CLASS_RULES } from "./skill-classes.js";
 import { TYPOGRAPHY_RULES } from "./typography.js";
 
@@ -19,4 +20,5 @@ export const CODE_RULES: Rule[] = [
   ...DOCUMENT_RULES,
   ...IMAGE_RULES,
   ...SKILL_CLASS_RULES,
+  ...MOTION_SOURCE_RULES,
 ];

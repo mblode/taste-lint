@@ -3,8 +3,8 @@ title: An error explanation provides no recovery guidance
 categoryId: reference-reading
 source:
   repo: mblode/agent-skills
-  path: skills/docs-writing/rules/code-error-descriptions.md
-  line: 7
+  path: skills/ghostwriter/references/docs.md
+  line: 19
   ruleId: code-error-descriptions
 unit:
   - paragraph

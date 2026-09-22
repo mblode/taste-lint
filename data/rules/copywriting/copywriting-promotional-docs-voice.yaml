@@ -1,12 +1,13 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/voice-defaults.md (professional, not promotional).
+# Ported from mblode/agent-skills skills/docs-writing/rules/voice-defaults.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired. (professional, not promotional).
 id: copywriting-promotional-docs-voice
 title: Marketing voice inside documentation
 categoryId: evidence-over-claims
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/voice-defaults.md,
-    line: 14,
+    path: skills/ghostwriter/references/docs.md,
+    line: 13,
   }
 unit: [paragraph, heading]
 mechanical:

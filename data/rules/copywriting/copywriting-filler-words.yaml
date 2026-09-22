@@ -1,4 +1,5 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-defaults.md (cut filler) and the lesson
+# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-defaults.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired. (cut filler) and the lesson
 # edit-one-lens-at-a-time.mdx.
 id: copywriting-filler-words
 title: Intensifiers and filler that add nothing
@@ -6,8 +7,8 @@ categoryId: machine-prose
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/clarity-defaults.md,
-    line: 12,
+    path: skills/ghostwriter/references/docs.md,
+    line: 17,
   }
 unit: [paragraph, jsx-text]
 mechanical:

@@ -1,0 +1,28 @@
+# Hand-cut from mblode/agent-skills skills/ui-animation/references/performance-deep-dive.md.
+id: motion-will-change-misuse
+title: will-change promotes a property the compositor cannot animate
+categoryId: motion-restraint
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ui-animation/references/performance-deep-dive.md,
+    line: 161,
+  }
+scope:
+  include: ["**/*.css", "**/*.scss", "**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: "will-change\\s*:\\s*[\"'`]?(?!\\s*(?:transform|opacity|auto)\\s*[\"'`]?\\s*[;},!])[a-z-]+|\\bwill-change-(?:scroll|contents|\\[(?!transform|opacity)[^\\]]+\\])"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Promote only transform or opacity, and only while the motion runs. Each promoted layer costs compositor memory.
+status: review-only
+review:
+  applicability: A stylesheet or class list sets will-change to a property other than transform or opacity.
+  exceptions: Measured scroll-performance fixes with a comment explaining the choice.
+  evidence: The declaration, the element it applies to, and whether it is toggled around the animation.
+  verification: Restrict will-change to transform or opacity and set it only during the animation.
+  sourceHash: f3f43c733bac58c4e64f13c769f7a360c39c0d446c886f79d929e76ae8b5fdfc
+handWritten: [mechanical, fix, review, scope]
