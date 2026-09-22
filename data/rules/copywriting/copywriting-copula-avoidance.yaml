@@ -1,0 +1,21 @@
+# Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
+id: copywriting-copula-avoidance
+title: Dresses up "is" or "has"
+categoryId: machine-prose
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ghostwriter/references/tells.md,
+    line: 13,
+  }
+unit: [paragraph]
+mechanical:
+  regex: "(?<![\"“‘'])\\b(?:serves|stands) as (?:a|an|the)\\b|(?<![\"“‘'])\\bboasts\\b"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Write "is" or "has". "The index serves as a cache" becomes "The index is a cache."
+preconditions: { notInCode: true }
+status: review-only
+handWritten: [mechanical, fix, preconditions]

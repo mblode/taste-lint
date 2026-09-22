@@ -100,15 +100,12 @@ export interface LoadOptions {
   allowDraft?: boolean;
   /** Restrict to these rule ids. */
   only?: string[];
+  /** More rule directories with the same domain-folder layout, such as a voice pack. */
+  extraDirs?: string[];
 }
 
-export const loadRules = (
-  rulesDir: string,
-  options: LoadOptions = {}
-): Rule[] => {
-  const tuning = readTuning(rulesDir);
+const readYamlRules = (rulesDir: string): Rule[] => {
   const rules: Rule[] = [];
-  const seen = new Set<string>();
   const domains = fs
     .readdirSync(rulesDir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && d.name !== "schema")
@@ -139,6 +136,19 @@ export const loadRules = (
       }
       rules.push(rule);
     }
+  }
+  return rules;
+};
+
+export const loadRules = (
+  rulesDir: string,
+  options: LoadOptions = {}
+): Rule[] => {
+  const tuning = readTuning(rulesDir);
+  const rules: Rule[] = [];
+  const seen = new Set<string>();
+  for (const dir of [rulesDir, ...(options.extraDirs ?? [])]) {
+    rules.push(...readYamlRules(dir));
   }
   // Code rules join the same list; a fresh object per load so the overlay
   // below never mutates the module constant.

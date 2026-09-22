@@ -1,0 +1,21 @@
+# Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
+id: copywriting-participle-tail
+title: Sentence ends in a participle tail
+categoryId: machine-prose
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ghostwriter/references/tells.md,
+    line: 16,
+  }
+unit: [paragraph]
+mechanical:
+  regex: "(?<![\"“‘']),\\s+(?:ensuring|highlighting|underscoring|showcasing|emphasi[sz]ing|reinforcing|cementing|solidifying|fostering|signall?ing)\\b"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Keep the fact and cut at the comma. "Tests run on every push, ensuring quality" becomes "Tests run on every push."
+preconditions: { notInCode: true }
+status: active
+handWritten: [mechanical, fix, preconditions]

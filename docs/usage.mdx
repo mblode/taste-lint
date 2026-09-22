@@ -53,9 +53,19 @@ taste-lint lint --profile product --since origin/main --output sarif > results/t
 
 `--since` keeps whole files for context and reports only findings on changed lines.
 
+In GitHub Actions, upload the SARIF so findings land on the pull request diff. Mechanical rules need no key; add `AI_GATEWAY_API_KEY` as a secret to run the Jev questions too.
+
+```yaml
+- uses: actions/checkout@v4
+  with: { fetch-depth: 0 }
+- run: npx taste-lint lint --profile product --since origin/${{ github.base_ref }} --output sarif > taste.sarif || true
+- uses: github/codeql-action/upload-sarif@v3
+  with: { sarif_file: taste.sarif, category: taste-lint }
+```
+
 ## What blocks and what reports
 
-22 rules are `active` and fail a run. All of them are mechanical: a regex or a measured value decides. The other 122 are `review-only`:
+28 rules are `active` and fail a run. All of them are mechanical: a regex, a parsed file or a measured value decides. The other 125 are `review-only`:
 
 - **Pattern ports** from `ui-design`, `ui-animation` and `typography-audit` that match raw source. A match nominates a candidate; it does not prove the skill’s conclusion.
 - **Jev questions**, one per rule, that need a labelled corpus before they may block.
@@ -75,9 +85,9 @@ A wrong finding is corpus evidence. Add the unit with the correct label rather t
 ## Rule packs
 
 - **Typography:** straight quotes, dashes, ellipses, primes and units from `typography-audit`. Size, weight, tracking and line-height checks over resolved Tailwind classes or computed styles.
-- **Copywriting:** claims without evidence, vague errors, friction CTAs, hedges and register shifts from `docs-writing` and the ui-design copy guideline. Every’s AI-tell checker contributes 19 questions, one rule each.
+- **Copywriting:** claims without evidence, vague errors, friction CTAs, hedges and register shifts from `ghostwriter` and the ui-design copy guideline. The ghostwriter structure tells block at one sighting: participle tails (“, ensuring…”), antithesis (“it’s not X, it’s Y”) and tee-ups (“Here’s the thing”). A quoted example is never a tell. Every’s AI-tell checker contributes 19 questions, one rule each.
 - **Interaction and craft:** the static checks of `ui-design/rules` as whole-file patterns. Focus traps, error and empty states, target size, i18n, lazy loading. The shadcn/lint class hygiene rules cover raw palette colours, arbitrary values and interpolated class strings.
-- **Motion and product:** the `ui-animation` flag-on-sight table and the two deterministic `product-design` rules.
+- **Motion and product:** the `ui-animation` flag-on-sight table, `transition: all` in CSS, `will-change` misuse and `framer-motion` imports (use `motion/react`), plus the two deterministic `product-design` rules.
 
 Every rule names the file and line of the skill or lesson it came from. `taste-lint rules list` prints tier, status and category per rule.
 
@@ -135,7 +145,19 @@ Optional, at `taste-lint.config.json` in the project root. The editor schema shi
 }
 ```
 
+`rules` adds rule directories laid out like `data/rules`: domain folders of YAML rules. Paths resolve from the project root; `~` and `$VARS` expand.
+
 Suppress one unit with `taste-lint-ignore: <rule-id>` on the line above. Projects that curl quotes at build time are detected; force it with `smartQuotesAtBuild`.
+
+## Voice pack
+
+A voice pack is a `rules` directory that checks one person’s or company’s voice. The ghostwriter profiles ship one at `$GHOSTWRITER_HOME/taste-lint`: Australian spelling, the ChatGPT link tag, unicode arrows, em dashes, stock email sign-offs, LinkedIn bait, blog exclamation marks and Slack hype, each citing its profile line.
+
+```json
+{ "rules": ["$GHOSTWRITER_HOME/taste-lint"] }
+```
+
+Rules scope themselves by glob, so a draft named `intro.email.md` gets the email checks and `blog/post.md` the blog ones. `--fix` rewrites US spelling and strips `?utm_source=chatgpt.com`. Pack rules are mechanical: no text is sent anywhere.
 
 ## Project setup
 

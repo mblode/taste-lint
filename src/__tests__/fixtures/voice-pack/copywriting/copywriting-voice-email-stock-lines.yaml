@@ -1,0 +1,17 @@
+# Fixture copy of a ghostwriter-config voice pack rule, scoped to email drafts.
+id: copywriting-voice-email-stock-lines
+title: Stock email opener or sign-off
+categoryId: machine-prose
+source: { repo: mblode/ghostwriter-config, path: email.md, line: 66 }
+scope:
+  include: ["**/*.email.md", "**/email/**/*.md"]
+unit: [paragraph]
+mechanical:
+  regex: "\\b(?:I hope (?:this|the) email finds you well|just circling back|per my last email|don['’]t hesitate to reach out)\\b|^(?:best|regards|kind regards|best regards|warm regards|cheers),?(?: \\p{L}+)?$"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Open with the purpose and sign off "Thanks," then "Matt".
+preconditions: { notInCode: true }
+status: active

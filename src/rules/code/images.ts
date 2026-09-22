@@ -8,6 +8,7 @@ export const IMAGE_RULES = [
     id: "interaction-a11y-image-alt-text",
     required: ["alt"],
     source: "a11y-image-alt-text",
+    status: "active" as const,
     title: "Image is missing an alt attribute",
   },
   {
@@ -16,6 +17,7 @@ export const IMAGE_RULES = [
     id: "craft-image-dimensions-and-priority",
     required: ["width", "height"],
     source: "perf-image-dimensions-and-priority",
+    status: "review-only" as const,
     title: "Image has no declared dimensions or style",
   },
 ].map((spec) =>
@@ -54,7 +56,7 @@ export const IMAGE_RULES = [
         repo: "mblode/agent-skills",
         ruleId: spec.source,
       },
-      status: "review-only",
+      status: spec.status,
       title: spec.title,
       unit: ["source"],
     },
