@@ -1,10 +1,11 @@
 import type { CaptureResult } from "posthog-js";
 import { posthog } from "posthog-js";
 
-// [placeholder] Set NEXT_PUBLIC_POSTHOG_KEY (the project API key, phc_...)
-// and NEXT_PUBLIC_POSTHOG_HOST in Vercel. The sibling sites hardcode their
-// key; this zone has none yet, so analytics stay off until the env var lands.
-const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+// Same public project key as the other blode.co zones, so taste-lint events
+// land next to diffhub, edda and the rest. The env var overrides it.
+const key =
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ??
+  "phc_yYatHXysbRxjTyfmyCKSUyMSQpgepJPuxegz2HtpfX35";
 
 const isLocalHost = () => {
   const host = window.location.hostname;
