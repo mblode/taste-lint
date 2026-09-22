@@ -14,6 +14,13 @@
     "smartQuotesAtBuild": {
       "type": "boolean"
     },
+    "rules": {
+      "description": "Extra rule directories, laid out like data/rules (domain folders of YAML rules). Paths resolve from the scan root; a leading ~ and $VARS expand, so a voice pack can live in $GHOSTWRITER_HOME.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "components": {
       "type": "object",
       "additionalProperties": false,

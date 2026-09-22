@@ -1,0 +1,21 @@
+# Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
+id: copywriting-antithesis-frame
+title: Sets up a claim by denying one nobody made
+categoryId: machine-prose
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ghostwriter/references/tells.md,
+    line: 12,
+  }
+unit: [paragraph]
+mechanical:
+  regex: "(?<![\"“‘'])\\bnot (?:just|only|merely) (?:a |an |the |about )?[\\w-]+(?: [\\w-]+){0,4}[,;]? but\\b|(?<![\"“‘'])\\b(?:it|this|that)(?:['’]s| is)(?: not|n['’]t) (?:just |only )?(?:about )?[^.!?,;]{1,40}[.,;] (?:it|this|that)(?:['’]s| is)\\b"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Say the positive thing. "It's not a tool, it's a workflow" becomes "It's a workflow."
+preconditions: { notInCode: true }
+status: active
+handWritten: [mechanical, fix, preconditions]

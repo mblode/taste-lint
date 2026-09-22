@@ -1,0 +1,18 @@
+# Fixture copy of the ghostwriter-config voice pack rule, so every fix has a tested rule.
+id: copywriting-voice-au-spelling
+title: US spelling in an Australian voice
+categoryId: machine-prose
+source: { repo: mblode/ghostwriter-config, path: soul.md, line: 34 }
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+unit: [paragraph, heading]
+mechanical:
+  regex: "\\b(?:analyze|analyzed|apologize|behavior|behaviors|canceled|canceling|catalog|color|colored|colors|customize|customized|favorite|favorites|gray|honor|labeled|labeling|modeling|neighbor|optimize|optimized|organization|organizations|organize|organized|prioritize|realize|realized|recognize|traveling)\\b"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Australian and British spelling: colour, organise, favourite, behaviour. Code identifiers keep their upstream spelling.
+  function: auSpelling
+preconditions: { notInCode: true }
+status: active

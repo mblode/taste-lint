@@ -4,7 +4,7 @@
 //
 // Two frontmatter dialects are read: ui-design (`id`, `category`,
 // `defaultTier`, `detect`, a `## Detection` section with an rg command and a
-// false-positive paragraph) and typography-audit / docs-writing (`title`,
+// false-positive paragraph) and typography-audit (`title`,
 // `impact`, `tags`, an Incorrect/Correct pair).
 //
 // A ui-design rule whose detection is one rg command JavaScript can run
@@ -67,7 +67,6 @@ const SKILLS: {
 }[] = [
   { dialect: "code-pair", folder: "rules", skill: "typography-audit" },
   { dialect: "ui-design", folder: "rules", skill: "ui-design" },
-  { dialect: "code-pair", folder: "rules", skill: "docs-writing" },
 ];
 
 // Prefix of the source rule id -> taste-training category.

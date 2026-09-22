@@ -38,9 +38,73 @@ export const nbspValueUnit: FixFunction = (prose) =>
     "$1 "
   );
 
+// Drop the referral tag ChatGPT appends to links it cites
+// (voice packs from ghostwriter-config flag it).
+export const stripUtm: FixFunction = (prose) =>
+  prose
+    .replaceAll(/\?utm_source=chatgpt\.com(?=[\s)\]>"']|$)/gu, "")
+    .replaceAll(/([?&])utm_source=chatgpt\.com&/gu, "$1")
+    .replaceAll("&utm_source=chatgpt.com", "");
+
+// US to Australian/British spelling for a voice that asks for it. Keys are
+// whole lowercase words; a leading capital is kept. A voice pack's rule regex
+// should flag the same words (see AU_SPELLING_PATTERN).
+export const AU_SPELLING: Record<string, string> = {
+  analyze: "analyse",
+  analyzed: "analysed",
+  apologize: "apologise",
+  behavior: "behaviour",
+  behaviors: "behaviours",
+  canceled: "cancelled",
+  canceling: "cancelling",
+  catalog: "catalogue",
+  color: "colour",
+  colored: "coloured",
+  colors: "colours",
+  customize: "customise",
+  customized: "customised",
+  favorite: "favourite",
+  favorites: "favourites",
+  gray: "grey",
+  honor: "honour",
+  labeled: "labelled",
+  labeling: "labelling",
+  modeling: "modelling",
+  neighbor: "neighbour",
+  optimize: "optimise",
+  optimized: "optimised",
+  organization: "organisation",
+  organizations: "organisations",
+  organize: "organise",
+  organized: "organised",
+  prioritize: "prioritise",
+  realize: "realise",
+  realized: "realised",
+  recognize: "recognise",
+  traveling: "travelling",
+};
+export const AU_SPELLING_PATTERN = `\\b(?:${Object.keys(AU_SPELLING).join("|")})\\b`;
+
+export const auSpelling: FixFunction = (prose) =>
+  prose.replaceAll(new RegExp(AU_SPELLING_PATTERN, "giu"), (word) => {
+    const au = AU_SPELLING[word.toLowerCase()];
+    if (
+      !au ||
+      (word !== word.toLowerCase() &&
+        word !== `${word[0]}${word.slice(1).toLowerCase()}`)
+    ) {
+      return word;
+    }
+    return word[0] === word[0].toUpperCase()
+      ? `${au[0].toUpperCase()}${au.slice(1)}`
+      : au;
+  });
+
 export const FIXES: Record<string, FixFunction> = {
+  auSpelling,
   ellipsis,
   multiplicationSign,
   nbspValueUnit,
   smartQuotes,
+  stripUtm,
 };

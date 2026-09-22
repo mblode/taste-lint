@@ -11,6 +11,10 @@ const DEFAULT_EXCLUDE = [
   "**/.git/**",
   "**/results/**",
   "**/coverage/**",
+  // Legal text and generated release notes are not the author's prose.
+  "**/LICENSE",
+  "**/LICENSE.*",
+  "**/CHANGELOG.md",
 ];
 
 // Convert a glob to a RegExp over a forward-slash relative path.

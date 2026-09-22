@@ -1,0 +1,18 @@
+# Fixture copy of the ghostwriter-config voice pack rule, so every fix has a tested rule.
+id: copywriting-voice-chatgpt-utm
+title: Link still carries the ChatGPT referral tag
+categoryId: machine-prose
+source: { repo: mblode/ghostwriter-config, path: soul.md, line: 47 }
+scope:
+  include: ["**/*.md", "**/*.mdx"]
+unit: [paragraph]
+mechanical:
+  regex: "utm_source=chatgpt\\.com"
+  flags: gu
+severity: minor
+fix:
+  hint: >-
+    Strip ?utm_source=chatgpt.com before sending.
+  function: stripUtm
+preconditions: { notInCode: true }
+status: active

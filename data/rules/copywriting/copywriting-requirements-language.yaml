@@ -3,8 +3,8 @@ title: A requirement presented as a recommendation
 categoryId: reader-first-framing
 source:
   repo: mblode/agent-skills
-  path: skills/docs-writing/rules/voice-requirements-language.md
-  line: 7
+  path: skills/ghostwriter/references/docs.md
+  line: 13
   ruleId: voice-requirements-language
 unit:
   - paragraph

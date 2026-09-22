@@ -1,0 +1,21 @@
+# Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
+id: copywriting-tee-up
+title: Tees up a point instead of stating it
+categoryId: machine-prose
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ghostwriter/references/tells.md,
+    line: 15,
+  }
+unit: [paragraph]
+mechanical:
+  regex: "(?<![\"“‘'])\\bhere['’]s the (?:thing|kicker|catch|deal|twist)\\b|(?<![\"“‘'])\\bthe (?:kicker|catch|twist)\\?|(?<![\"“‘'])\\bwhat struck me (?:was|is)\\b|(?<![\"“‘'])\\blet that sink in\\b"
+  flags: giu
+severity: minor
+fix:
+  hint: >-
+    Delete the tee-up and state the thing.
+preconditions: { notInCode: true }
+status: active
+handWritten: [mechanical, fix, preconditions]

@@ -1,12 +1,14 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-latin.md.
+# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-latin.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired. Review-only:
+# ghostwriter keeps "plain words" but no longer bans Latin abbreviations outright.
 id: copywriting-latinisms
 title: Latin abbreviation in running text
 categoryId: reader-first-framing
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/clarity-no-latin.md,
-    line: 7,
+    path: skills/ghostwriter/references/docs.md,
+    line: 17,
   }
 unit: [paragraph, heading]
 mechanical:
@@ -21,5 +23,5 @@ preconditions:
     docType:
       [tutorial, howto, reference, explanation, agent-instructions, lesson],
   }
-status: active
+status: review-only
 handWritten: [mechanical, fix, preconditions]
