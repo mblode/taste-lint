@@ -3,9 +3,13 @@
 // every count and the playground subset come from data/rules and the code
 // rules, never from numbers typed into the page. Runs before dev, build,
 // typecheck and test; the output is gitignored.
-import { writeFileSync } from "node:fs";
+//
+// It also snapshots the title and description of every page in the docs
+// navigation, read from the MDX frontmatter, for the zone's llms.txt.
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
+import { parseFrontmatter } from "../../../src/lib/frontmatter.ts";
 import { loadRules, resolveRulesDir } from "../../../src/rules/load.ts";
 
 // Mechanical copy rules the browser playground runs. Each one decides from a
@@ -67,4 +71,27 @@ const out = path.join(import.meta.dirname, "../lib/rules.generated.json");
 writeFileSync(out, `${JSON.stringify(snapshot, null, 2)}\n`);
 process.stdout.write(
   `rules.generated.json: ${snapshot.total} rules, ${snapshot.active} active\n`
+);
+
+const docsConfig = JSON.parse(
+  readFileSync(path.join(root, "docs/docs.json"), "utf-8")
+);
+const docsPages = docsConfig.navigation.groups.flatMap((group) =>
+  group.pages.map((page) => {
+    const { fm } = parseFrontmatter(
+      readFileSync(path.join(root, "docs", `${page}.mdx`), "utf-8")
+    );
+    if (!(fm.title && fm.description)) {
+      throw new Error(`docs/${page}.mdx needs a title and a description`);
+    }
+    return {
+      description: fm.description,
+      path: page === "index" ? "" : `/${page}`,
+      title: fm.title,
+    };
+  })
+);
+writeFileSync(
+  path.join(import.meta.dirname, "../lib/docs-pages.generated.json"),
+  `${JSON.stringify(docsPages, null, 2)}\n`
 );

@@ -11,10 +11,12 @@ const config: NextConfig = {
     return Promise.resolve([
       {
         headers: [
-          { key: "X-Llms-Txt", value: `${siteConfig.url}/docs/llms.txt` },
+          // The zone index lists the home page and every docs page; the docs
+          // site's own llms.txt and llms-full.txt stay linked as before.
+          { key: "X-Llms-Txt", value: `${siteConfig.url}/llms.txt` },
           {
             key: "Link",
-            value: `<${siteConfig.url}/docs/llms.txt>; rel="describedby"; type="text/plain", <${siteConfig.url}/docs/llms-full.txt>; rel="alternate"; type="text/plain"`,
+            value: `<${siteConfig.url}/llms.txt>; rel="describedby"; type="text/plain", <${siteConfig.url}/index.md>; rel="alternate"; type="text/markdown", <${siteConfig.url}/docs/llms.txt>; rel="describedby"; type="text/plain", <${siteConfig.url}/docs/llms-full.txt>; rel="alternate"; type="text/plain"`,
           },
         ],
         source: "/",

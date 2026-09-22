@@ -11,11 +11,11 @@ import { TrackedCta } from "../components/tracked-cta.js";
 import { ZoneBreadcrumb } from "../components/zone-breadcrumb.js";
 import { asset, siteConfig } from "../lib/config.js";
 import { FAQ_ITEMS } from "../lib/faq.js";
+import { HOME_COPY } from "../lib/home-copy.js";
 import {
   fetchGithubStars,
   fetchNpmWeeklyDownloads,
 } from "../lib/live-stats.js";
-import { PLAYGROUND_RULES } from "../lib/playground.js";
 import { RULES } from "../lib/rules.js";
 import { siteGraph } from "../lib/schema.js";
 
@@ -62,17 +62,17 @@ export default async function Home() {
       <main id="main-content">
         <MarketingHero
           action={<SiteInstallCommand />}
-          description="For developers shipping UI an agent helped write. Taste Lint flags the copy, type and motion a design reviewer would send back."
-          eyebrow="Taste Lint"
+          description={HOME_COPY.hero.description}
+          eyebrow={HOME_COPY.hero.eyebrow}
           secondary={
             <TrackedCta
               className={linkClass}
               href={siteConfig.links.docs}
-              label="Read the setup guide"
+              label={HOME_COPY.setupLabel}
               location="hero"
             />
           }
-          title="Catch AI slop before you ship"
+          title={HOME_COPY.hero.title}
         />
 
         <section
@@ -84,10 +84,10 @@ export default async function Home() {
             className="text-3xl font-medium tracking-tight sm:text-4xl"
             id="try-heading"
           >
-            Try it on your copy
+            {HOME_COPY.try.heading}
           </h2>
           <p className="mt-4 mb-8 max-w-[60ch] leading-7 text-pretty">
-            {`Pick a sample or paste your own. These ${PLAYGROUND_RULES.length} copy rules load from the CLI’s own rule files and check each line as you type.`}
+            {HOME_COPY.try.body}
           </p>
           <CopyPlayground totalRules={RULES.total} />
           <BeforeAfter />
@@ -102,16 +102,16 @@ export default async function Home() {
             className="max-w-[24ch] text-3xl font-medium tracking-tight text-balance sm:text-4xl"
             id="rules-heading"
           >
-            {`${RULES.total} rules. ${RULES.active} can fail your build.`}
+            {HOME_COPY.rules.heading}
           </h2>
           <p className="mt-4 max-w-[60ch] leading-7 text-pretty">
-            {`Taste Lint never fails a build on a model’s opinion. Only a regex or a measured value can block a run. The other ${RULES.total - RULES.active} rules leave review notes, and the judgement calls among them go to Jev, which answers with a probability.`}
+            {HOME_COPY.rules.body}
           </p>
           <a
             className={linkClass}
-            href={`${siteConfig.links.docs}/usage#promoting-a-rule`}
+            href={`${siteConfig.links.docs}${HOME_COPY.rules.promotePath}`}
           >
-            How a rule gets promoted
+            {HOME_COPY.rules.promoteLabel}
           </a>
           <div className="mt-8">
             <RuleList />
@@ -127,7 +127,7 @@ export default async function Home() {
               className="mb-6 text-sm text-muted-foreground"
               id="proof-heading"
             >
-              Live from npm and GitHub
+              {HOME_COPY.proof.heading}
             </h2>
             <ProofStats stats={proof} />
           </section>
@@ -142,7 +142,7 @@ export default async function Home() {
             className="mb-8 text-3xl font-medium tracking-tight sm:text-4xl"
             id="faq-heading"
           >
-            Questions
+            {HOME_COPY.faq.heading}
           </h2>
           <SiteFaq items={FAQ_ITEMS} />
         </section>
@@ -153,12 +153,12 @@ export default async function Home() {
             <TrackedCta
               className={linkClass}
               href={siteConfig.links.docs}
-              label="Read the setup guide"
+              label={HOME_COPY.setupLabel}
               location="cta-close"
             />
           }
-          description="Mechanical checks need no key and make no model calls. Add --dry-run to preview Jev requests and their cost first."
-          title="Lint your next pull request"
+          description={HOME_COPY.close.description}
+          title={HOME_COPY.close.title}
         />
       </main>
       <footer className="flex flex-col items-center justify-center gap-2 px-(--row-padding) pt-16 pb-8 text-sm text-muted-foreground">

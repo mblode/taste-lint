@@ -17,3 +17,4 @@ packages/cli/data/
 packages/cli/README.md
 packages/cli/LICENSE.md
 apps/web/lib/rules.generated.json
+apps/web/lib/docs-pages.generated.json
