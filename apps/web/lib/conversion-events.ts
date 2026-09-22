@@ -51,3 +51,7 @@ export const captureDemoOpened = () => capture("demo_opened", {});
 
 export const captureFaqOpened = (question: string) =>
   capture("faq_opened", { question });
+
+/** `section` is the landing section's element id, such as `try` or `faq`. */
+export const captureSectionViewed = (section: string) =>
+  capture("section_viewed", { section });

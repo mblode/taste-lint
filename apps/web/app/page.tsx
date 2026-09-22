@@ -6,6 +6,7 @@ import { ProofStats } from "../components/marketing/proof-stats.js";
 import { BeforeAfter } from "../components/playground/before-after.js";
 import { CopyPlayground } from "../components/playground/copy-playground.js";
 import { RuleList } from "../components/rule-list.js";
+import { SectionViews } from "../components/section-views.js";
 import { SiteFaq, SiteInstallCommand } from "../components/site-actions.js";
 import { TrackedCta } from "../components/tracked-cta.js";
 import { ZoneBreadcrumb } from "../components/zone-breadcrumb.js";
@@ -29,6 +30,10 @@ export const metadata: Metadata = {
     url: siteConfig.url,
   },
 };
+
+// The landing sections with ids, in page order. Each sends section_viewed
+// once per page view.
+const TRACKED_SECTIONS = ["try", "rules", "faq"] as const;
 
 const linkClass =
   "inline-flex min-h-12 items-center underline underline-offset-4 hover:decoration-2";
@@ -161,6 +166,7 @@ export default async function Home() {
           title={HOME_COPY.close.title}
         />
       </main>
+      <SectionViews ids={TRACKED_SECTIONS} />
       <footer className="flex flex-col items-center justify-center gap-2 px-(--row-padding) pt-16 pb-8 text-sm text-muted-foreground">
         <div className="flex items-center gap-1">
           Crafted by
