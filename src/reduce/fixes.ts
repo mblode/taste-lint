@@ -42,13 +42,13 @@ export const nbspValueUnit: FixFunction = (prose) =>
 // (voice packs from ghostwriter-config flag it).
 export const stripUtm: FixFunction = (prose) =>
   prose
-    .replaceAll(/\?utm_source=chatgpt\.com(?=[\s)\]>"']|$)/gu, "")
+    .replaceAll(/\?utm_source=chatgpt\.com(?![\w&=-])/gu, "")
     .replaceAll(/([?&])utm_source=chatgpt\.com&/gu, "$1")
     .replaceAll("&utm_source=chatgpt.com", "");
 
 // US to Australian/British spelling for a voice that asks for it. Keys are
 // whole lowercase words; a leading capital is kept. A voice pack's rule regex
-// should flag the same words (see AU_SPELLING_PATTERN).
+// must equal AU_SPELLING_PATTERN (fixes.test.ts checks the fixture pack).
 export const AU_SPELLING: Record<string, string> = {
   analyze: "analyse",
   analyzed: "analysed",
@@ -83,7 +83,8 @@ export const AU_SPELLING: Record<string, string> = {
   recognize: "recognise",
   traveling: "travelling",
 };
-export const AU_SPELLING_PATTERN = `\\b(?:${Object.keys(AU_SPELLING).join("|")})\\b`;
+// A token holding a slash is a URL or path; rewriting it breaks the link.
+export const AU_SPELLING_PATTERN = String.raw`(?<!\S*/\S*)\b(?:${Object.keys(AU_SPELLING).join("|")})\b(?!\S*/)`;
 
 export const auSpelling: FixFunction = (prose) =>
   prose.replaceAll(new RegExp(AU_SPELLING_PATTERN, "giu"), (word) => {
