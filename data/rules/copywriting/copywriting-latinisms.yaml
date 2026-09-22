@@ -1,12 +1,15 @@
 # Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-latin.md.
+# Source moved: agent-skills cbeaec5 retired docs-writing and cut clarity-no-latin.md to the
+# "Plain words" check in skills/ghostwriter/references/docs.md. The written-out forms this rule enforces
+# are kept from the retired rule; read it at cbeaec5^:skills/docs-writing/rules/clarity-no-latin.md.
 id: copywriting-latinisms
 title: Latin abbreviation in running text
 categoryId: reader-first-framing
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/clarity-no-latin.md,
-    line: 7,
+    path: skills/ghostwriter/references/docs.md,
+    line: 17,
   }
 unit: [paragraph, heading]
 mechanical:

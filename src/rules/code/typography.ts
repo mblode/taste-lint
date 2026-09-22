@@ -335,8 +335,8 @@ export const TYPOGRAPHY_RULES: Rule[] = [
       notInCode: true,
     },
     source: {
-      line: 7,
-      path: "skills/docs-writing/rules/clarity-one-idea-per-sentence.md",
+      line: 17,
+      path: "skills/ghostwriter/references/docs.md",
       repo: "mblode/agent-skills",
     },
     title: "Sentence over 25 words",

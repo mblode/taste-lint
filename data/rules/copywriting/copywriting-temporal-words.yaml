@@ -1,13 +1,15 @@
 # Ported from mblode/agent-skills skills/docs-writing/rules/hygiene-no-temporal.md and
 # rules/hygiene-update-metadata.md.
+# Source moved: agent-skills cbeaec5 retired docs-writing and folded hygiene-no-temporal.md
+# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
 id: copywriting-temporal-words
 title: Wording anchored to the time of writing
 categoryId: reference-reading
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/hygiene-no-temporal.md,
-    line: 7,
+    path: skills/ghostwriter/references/docs.md,
+    line: 23,
   }
 unit: [paragraph, heading]
 mechanical:

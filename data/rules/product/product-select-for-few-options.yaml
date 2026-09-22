@@ -27,4 +27,4 @@ review:
   exceptions: Dynamically loaded options, dependent choices, or a documented platform constraint can require a select.
   evidence: The complete option source, dynamic branches, and the task requiring comparison.
   verification: Confirm all choices remain available and selection, keyboard input, and form submission work.
-  sourceHash: e575cc8c2c06ae38542bd068a9f4d1871714391c543b5caf0dbb8ae1847a2f77
+  sourceHash: 9aab069ba1b93ab405a9741cd6d1e026eb08442ff881587b4f84a612653a2fbb

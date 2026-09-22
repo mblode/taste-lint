@@ -1,13 +1,15 @@
 # Ported from mblode/agent-skills skills/docs-writing/rules/format-descriptive-links.md and taste-training
 # full-stack-audit.tsx (click-here).
+# Source moved: agent-skills cbeaec5 retired docs-writing and folded format-descriptive-links.md
+# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
 id: copywriting-click-here-links
 title: Link text that names nothing
 categoryId: actionable-cta
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/format-descriptive-links.md,
-    line: 7,
+    path: skills/ghostwriter/references/docs.md,
+    line: 21,
   }
 unit: [jsx-text]
 mechanical:

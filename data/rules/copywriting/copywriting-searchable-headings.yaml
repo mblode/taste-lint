@@ -1,11 +1,12 @@
+# Source moved: agent-skills cbeaec5 retired docs-writing and folded nav-searchable-headings.md
+# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
 id: copywriting-searchable-headings
 title: A documentation heading names no topic or action
 categoryId: page-structure
 source:
   repo: mblode/agent-skills
-  path: skills/docs-writing/rules/nav-searchable-headings.md
-  line: 7
-  ruleId: nav-searchable-headings
+  path: skills/ghostwriter/references/docs.md
+  line: 21
 unit:
   - heading
 mechanical:

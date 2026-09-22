@@ -120,7 +120,7 @@ export const DOCUMENT_RULES = [
   make(
     "document-empty-heading",
     "A section has no content",
-    "docs-writing/rules/structure-no-filler-sections.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       const children = document(u).children ?? [];
@@ -143,7 +143,7 @@ export const DOCUMENT_RULES = [
   make(
     "document-heading-order",
     "Heading skips a structural level",
-    "docs-writing/rules/format-semantic-html.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       let previous = 0;
@@ -163,7 +163,7 @@ export const DOCUMENT_RULES = [
   make(
     "document-broken-local-link",
     "Document links to a missing local file",
-    "docs-writing/rules/review-verify-links.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       const repo = u.facts!.repository;
