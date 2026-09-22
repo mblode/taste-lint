@@ -2,6 +2,7 @@
 // auto-detection of facts that change how rules apply.
 
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { DOC_TYPES } from "../types.js";
@@ -81,6 +82,7 @@ export interface UserConfig {
   docTypes?: { glob: string; type: DocType }[];
   components?: { skip?: string[]; unwrap?: string[] };
   tailwind?: { theme?: Record<string, string> };
+  rules?: string[];
 }
 
 const invalid = (key: string, expected: string): never => {
@@ -124,6 +126,7 @@ export function validateConfig(raw: unknown): asserts raw is UserConfig {
       "docTypes",
       "components",
       "tailwind",
+      "rules",
     ],
     ""
   );
@@ -132,6 +135,9 @@ export function validateConfig(raw: unknown): asserts raw is UserConfig {
   }
   if (value.exclude !== undefined) {
     strings(value.exclude, "exclude");
+  }
+  if (value.rules !== undefined) {
+    strings(value.rules, "rules");
   }
   if (
     value.smartQuotesAtBuild !== undefined &&
@@ -177,6 +183,33 @@ export function validateConfig(raw: unknown): asserts raw is UserConfig {
   }
 }
 
+// A rule directory may start with ~ or name environment variables, so a
+// personal voice pack can live outside the repository ($GHOSTWRITER_HOME).
+const ruleDir = (root: string, raw: string): string => {
+  const expanded = raw
+    .replace(/^~(?=$|\/)/u, os.homedir())
+    .replaceAll(/\$\{?(\w+)\}?/gu, (_, name: string) => {
+      const value = process.env[name];
+      if (!value) {
+        throw new InputError(
+          "INVALID_CONFIG",
+          `taste-lint.config.json: rules entry ${raw} names ${name}, which is not set.`,
+          { field: "rules", variable: name }
+        );
+      }
+      return value;
+    });
+  const dir = path.resolve(root, expanded);
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
+    throw new InputError(
+      "INVALID_CONFIG",
+      `taste-lint.config.json: rules entry ${raw} is not a directory (${dir}).`,
+      { field: "rules", path: dir }
+    );
+  }
+  return dir;
+};
+
 export const loadConfig = (
   root: string,
   defaults: Config["docTypes"] = []
@@ -220,6 +253,7 @@ export const loadConfig = (
     docTypes: [...(user.docTypes ?? []), ...defaults, ...DEFAULT_DOC_TYPES],
     exclude: user.exclude ?? [],
     root: absRoot,
+    rules: (user.rules ?? []).map((raw) => ruleDir(absRoot, raw)),
     smartQuotesAtBuild:
       typeof user.smartQuotesAtBuild === "boolean"
         ? user.smartQuotesAtBuild

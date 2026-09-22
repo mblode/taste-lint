@@ -1,0 +1,28 @@
+# Hand-cut from mblode/agent-skills skills/ui-design/direction/aesthetic-direction.md (slop signals).
+id: craft-atmosphere-gradient
+title: Purple or cyan gradient used as atmosphere
+categoryId: generic-decoration
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ui-design/direction/aesthetic-direction.md,
+    line: 12,
+  }
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: "\\bbg-(?:gradient-to|linear-to|radial)-?[\\w-]*[^\"'`\\n]*?\\b(?:from|via|to)-(?:purple|violet|fuchsia|indigo|cyan)-\\d{2,3}\\b|\\b(?:from|via)-(?:purple|violet|fuchsia|indigo|cyan)-\\d{2,3}\\b[^\"'`\\n]*?\\bbg-(?:gradient-to|linear-to|radial)"
+  flags: gu
+severity: minor
+fix:
+  hint: >-
+    Give the surface a content or brand role, or remove the gradient. Purple and cyan washes are the most common AI-generated backdrop.
+status: review-only
+review:
+  applicability: A class list pairs a gradient background with purple, violet, fuchsia, indigo or cyan stops.
+  exceptions: Brand colours, data visualisation ramps, and illustrations where the gradient carries meaning.
+  evidence: The brand palette and what the gradient surface contains.
+  verification: Confirm the gradient carries a brand or content role, or replace it with a flat surface from the theme.
+  sourceHash: 696321dfa9cb90a6d31bba628bba33aecf23ff4aaadd3516ca2a2eea4e6219e1
+handWritten: [mechanical, fix, review, scope]

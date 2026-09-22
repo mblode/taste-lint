@@ -3,8 +3,8 @@ title: A documentation heading names no topic or action
 categoryId: page-structure
 source:
   repo: mblode/agent-skills
-  path: skills/docs-writing/rules/nav-searchable-headings.md
-  line: 7
+  path: skills/ghostwriter/references/docs.md
+  line: 21
   ruleId: nav-searchable-headings
 unit:
   - heading

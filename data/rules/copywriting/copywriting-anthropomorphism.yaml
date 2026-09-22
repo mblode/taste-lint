@@ -1,12 +1,13 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/voice-no-anthropomorphism.md.
+# Ported from mblode/agent-skills skills/docs-writing/rules/voice-no-anthropomorphism.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired.
 id: copywriting-anthropomorphism
 title: Software described as thinking, wanting or knowing
 categoryId: machine-prose
 source:
   {
     repo: mblode/agent-skills,
-    path: skills/docs-writing/rules/voice-no-anthropomorphism.md,
-    line: 7,
+    path: skills/ghostwriter/references/docs.md,
+    line: 13,
   }
 unit: [paragraph]
 mechanical:

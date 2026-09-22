@@ -3,7 +3,7 @@ import { parse } from "yaml";
 import { descendants, nodeText } from "../../analysis/repository.js";
 import type { DocumentNode } from "../../analysis/repository.js";
 import { none, UnresolvedError } from "../../reduce/mechanical.js";
-import type { MechanicalHit, Unit } from "../../types.js";
+import type { MechanicalHit, Rule, Unit } from "../../types.js";
 import { codeRule } from "./rule.js";
 
 const at = (node: DocumentNode, evidence: string): MechanicalHit => ({
@@ -25,7 +25,8 @@ const make = (
   include: string[],
   check: (unit: Unit) => MechanicalHit,
   hint: string,
-  authoring = false
+  authoring = false,
+  status: Rule["status"] = "review-only"
 ) =>
   codeRule(
     {
@@ -39,7 +40,7 @@ const make = (
         path: `skills/${source}`,
         repo: "mblode/agent-skills",
       },
-      status: "review-only",
+      status,
       title,
       unit: ["source"],
     },
@@ -48,7 +49,7 @@ const make = (
 const README = ["**/README.md"];
 const INSTRUCTIONS = ["**/AGENTS.md", "**/CLAUDE.md", "**/SKILL.md"];
 const DOCS = ["**/*.md"];
-const README_SOURCE = "readme-creator/references/quality-checklist.md";
+const README_SOURCE = "ghostwriter/references/readme.md";
 
 export const DOCUMENT_RULES = [
   make(
@@ -120,7 +121,7 @@ export const DOCUMENT_RULES = [
   make(
     "document-empty-heading",
     "A section has no content",
-    "docs-writing/rules/structure-no-filler-sections.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       const children = document(u).children ?? [];
@@ -143,7 +144,7 @@ export const DOCUMENT_RULES = [
   make(
     "document-heading-order",
     "Heading skips a structural level",
-    "docs-writing/rules/format-semantic-html.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       let previous = 0;
@@ -161,9 +162,22 @@ export const DOCUMENT_RULES = [
     "Nest heading levels in order so the document outline reflects its structure."
   ),
   make(
+    "document-code-fence-language",
+    "Code fence has no language tag",
+    "ghostwriter/references/docs.md",
+    DOCS,
+    (u) => {
+      const n = nodes(u).find(
+        (candidate) => candidate.type === "code" && !candidate.lang
+      );
+      return n ? at(n, "Fence without a language tag") : none;
+    },
+    "Tag the fence: ```bash, ```ts, or ```text for output. The tag drives highlighting and tells the reader what to paste where."
+  ),
+  make(
     "document-broken-local-link",
     "Document links to a missing local file",
-    "docs-writing/rules/review-verify-links.md",
+    "ghostwriter/references/docs.md",
     DOCS,
     (u) => {
       const repo = u.facts!.repository;
@@ -194,7 +208,9 @@ export const DOCUMENT_RULES = [
       }
       return none;
     },
-    "Correct the link or provide the referenced file. Generated site routes need a route-aware check."
+    "Correct the link or provide the referenced file. Generated site routes need a route-aware check.",
+    false,
+    "active"
   ),
   make(
     "instruction-missing-script",

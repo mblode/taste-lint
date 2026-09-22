@@ -304,12 +304,16 @@ export const TYPOGRAPHY_RULES: Rule[] = [
   }),
   rule({
     categoryId: "machine-prose",
-    // One sentence over 25 words; the count happens here, never in Jev.
+    // Over 25 words with two joins is a split candidate; length alone is
+    // not a failure (ghostwriter docs.md). The count happens here, never in Jev.
     check: (unit) => {
       const long = unit.text
         .split(/(?<=[.!?])\s+/u)
         .map((s) => [s, countWords(s)] as const)
-        .filter(([, n]) => n > 25);
+        .filter(
+          ([s, n]) =>
+            n > 25 && (s.match(/\b(?:and|but)\b/giu)?.length ?? 0) >= 2
+        );
       if (long.length === 0) {
         return none;
       }
@@ -335,11 +339,11 @@ export const TYPOGRAPHY_RULES: Rule[] = [
       notInCode: true,
     },
     source: {
-      line: 7,
-      path: "skills/docs-writing/rules/clarity-one-idea-per-sentence.md",
+      line: 17,
+      path: "skills/ghostwriter/references/docs.md",
       repo: "mblode/agent-skills",
     },
-    title: "Sentence over 25 words",
+    title: "Sentence over 25 words joins several clauses",
     unit: ["paragraph", "jsx-text"],
   }),
 ];

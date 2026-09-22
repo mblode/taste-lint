@@ -3,8 +3,8 @@ title: An instruction hides its prerequisite after the action
 categoryId: page-structure
 source:
   repo: mblode/agent-skills
-  path: skills/docs-writing/rules/structure-conditions-first.md
-  line: 7
+  path: skills/ghostwriter/references/docs.md
+  line: 15
   ruleId: structure-conditions-first
 unit:
   - paragraph

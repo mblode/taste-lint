@@ -55,8 +55,10 @@ describe("house rules", () => {
   });
 
   it("references every registered fix from at least one rule and loads every code rule", () => {
+    // Voice-pack fixes are referenced by the fixture pack, not packaged rules.
     const rules = loadRules(path.join(root, "data/rules"), {
       allowDraft: true,
+      extraDirs: [path.join(root, "src/__tests__/fixtures/voice-pack")],
     });
     const usedFixes = new Set(rules.map((r) => r.fix.function).filter(Boolean));
     expect(Object.keys(FIXES).filter((f) => !usedFixes.has(f))).toEqual([]);

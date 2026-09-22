@@ -119,7 +119,10 @@ export const runLint = async (
   const config = loadConfig(options.root ?? process.cwd());
   const rulesDir = resolveRulesDir(options.rulesDir);
   const profile = options.profile ? profileFor(options.profile) : undefined;
-  const loaded = loadRules(rulesDir, { only: options.only });
+  const loaded = loadRules(rulesDir, {
+    extraDirs: config.rules,
+    only: options.only,
+  });
   const rules =
     profile && !options.only?.length ? profileRules(profile, loaded) : loaded;
   if (rules.length === 0) {
