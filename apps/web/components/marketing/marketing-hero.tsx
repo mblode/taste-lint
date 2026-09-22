@@ -9,6 +9,8 @@ export interface MarketingHeroProps {
 }
 
 // Server-rendered and static: nothing in the first viewport animates on mount.
+// The subhead keeps its desktop size on phones so it, not the playground
+// intro below it, is the largest text in the first viewport (the LCP).
 export function MarketingHero({
   eyebrow,
   title,
@@ -32,7 +34,7 @@ export function MarketingHero({
       >
         {title}
       </h1>
-      <p className="mt-5 max-w-[48ch] text-lg leading-7 text-pretty sm:mt-6 sm:text-xl sm:leading-8">
+      <p className="mt-5 max-w-[48ch] text-xl leading-8 text-pretty sm:mt-6">
         {description}
       </p>
       <div className="mt-6 sm:mt-8">{action}</div>

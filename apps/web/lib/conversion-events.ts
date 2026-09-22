@@ -1,12 +1,25 @@
-import { posthog } from "posthog-js";
+import type { PostHog } from "posthog-js";
 
 /**
  * The shared landing-page event contract. Names match the other blode.co
  * zones (diffhub, Taste Training, blode-co) so one funnel covers every site.
- * Every capture is a no-op until `instrumentation-client.ts` initialises
- * PostHog, which it skips on localhost.
+ * `instrumentation-client.ts` loads PostHog after the page is idle, so the
+ * library stays out of the first-paint bundle. Events captured before then
+ * wait in a short queue; on localhost PostHog never loads and they are dropped.
  */
 const SITE = "taste-lint";
+const MAX_PENDING = 50;
+
+let client: PostHog | null = null;
+const pending: [string, Record<string, unknown>][] = [];
+
+/** Called once PostHog has initialised; flushes anything captured earlier. */
+export const setAnalyticsClient = (next: PostHog) => {
+  client = next;
+  for (const [event, properties] of pending.splice(0)) {
+    next.capture(event, properties);
+  }
+};
 
 interface ConversionClick {
   href: string;
@@ -35,7 +48,12 @@ const pageLocation = ():
 // Analytics must never fail a click, a copy or a disclosure.
 const capture = (event: string, properties: Record<string, unknown>) => {
   try {
-    posthog.capture(event, { site: SITE, ...properties, ...pageLocation() });
+    const payload = { site: SITE, ...properties, ...pageLocation() };
+    if (client) {
+      client.capture(event, payload);
+    } else if (pending.length < MAX_PENDING) {
+      pending.push([event, payload]);
+    }
   } catch {
     // Ignored on purpose.
   }

@@ -30,6 +30,8 @@ export const siteGraph = {
       license: siteConfig.links.license,
       name: siteConfig.name,
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      // A Node CLI with no `os` restriction in package.json.
+      operatingSystem: "macOS, Linux, Windows",
       publisher: { "@id": `${root}/#organization` },
       sameAs: [
         siteConfig.links.github,
