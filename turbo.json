@@ -6,16 +6,28 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/docs/docs.json",
-        "$TURBO_ROOT$/docs/*.mdx"
+        "$TURBO_ROOT$/docs/*.mdx",
+        "$TURBO_ROOT$/data/rules/**",
+        "$TURBO_ROOT$/src/**"
       ]
     },
     "typecheck": {
       "outputs": [],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/docs/docs.json"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/docs.json",
+        "$TURBO_ROOT$/data/rules/**",
+        "$TURBO_ROOT$/src/**"
+      ]
     },
     "test": {
       "outputs": [],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/docs/docs.json"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/docs/docs.json",
+        "$TURBO_ROOT$/data/rules/**",
+        "$TURBO_ROOT$/src/**"
+      ]
     },
     "dev": {
       "cache": false,
