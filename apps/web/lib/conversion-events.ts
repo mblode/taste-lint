@@ -4,16 +4,11 @@ import { posthog } from "posthog-js";
  * The shared landing-page event contract. Names match the other blode.co
  * zones (diffhub, Taste Training, blode-co) so one funnel covers every site.
  * Every capture is a no-op until `instrumentation-client.ts` initialises
- * PostHog, which it skips on localhost and when no key is set.
+ * PostHog, which it skips on localhost.
  */
-export const SITE = "taste-lint";
+const SITE = "taste-lint";
 
-export const CTA_CLICKED_EVENT = "cta_clicked";
-export const INSTALL_COMMAND_COPIED_EVENT = "install_command_copied";
-export const DEMO_OPENED_EVENT = "demo_opened";
-export const FAQ_OPENED_EVENT = "faq_opened";
-
-export interface ConversionClick {
+interface ConversionClick {
   href: string;
   label: string;
   /** Where on the page the control sits, such as `hero` or `cta-close`. */
@@ -47,12 +42,12 @@ const capture = (event: string, properties: Record<string, unknown>) => {
 };
 
 export const captureCtaClick = ({ href, label, location }: ConversionClick) =>
-  capture(CTA_CLICKED_EVENT, { href, label, location });
+  capture("cta_clicked", { href, label, location });
 
 export const captureInstallCopied = (variant: string) =>
-  capture(INSTALL_COMMAND_COPIED_EVENT, { variant });
+  capture("install_command_copied", { variant });
 
-export const captureDemoOpened = () => capture(DEMO_OPENED_EVENT, {});
+export const captureDemoOpened = () => capture("demo_opened", {});
 
 export const captureFaqOpened = (question: string) =>
-  capture(FAQ_OPENED_EVENT, { question });
+  capture("faq_opened", { question });

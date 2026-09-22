@@ -6,8 +6,6 @@ export interface MarketingHeroProps {
   description: ReactNode;
   action: ReactNode;
   secondary?: ReactNode;
-  /** Signature moment slot, rendered below the action. */
-  children?: ReactNode;
 }
 
 // Server-rendered and static: nothing in the first viewport animates on mount.
@@ -17,7 +15,6 @@ export function MarketingHero({
   description,
   action,
   secondary,
-  children,
 }: MarketingHeroProps) {
   return (
     <section
@@ -40,7 +37,6 @@ export function MarketingHero({
       </p>
       <div className="mt-6 sm:mt-8">{action}</div>
       {secondary && <div className="mt-1">{secondary}</div>}
-      {children}
     </section>
   );
 }

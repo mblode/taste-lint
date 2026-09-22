@@ -3,23 +3,14 @@
 // node:crypto through its unit extractor, so it cannot ship to the browser;
 // the matching logic below is copied line for line and the rule data comes
 // from data/rules through scripts/generate-rules.mjs. Keep the two in step.
+import type { Mechanical } from "../../../src/types.js";
 import snapshot from "./rules.generated.json" with { type: "json" };
-
-export interface Mechanical {
-  absent?: string;
-  flags?: string;
-  minMatches?: number;
-  phrases?: string[];
-  regex?: string;
-}
 
 export interface PlaygroundRule {
   decidedBy: "jev" | "mechanical";
   fix: string;
   id: string;
   mechanical: Mechanical;
-  severity: string;
-  status: string;
   title: string;
 }
 
