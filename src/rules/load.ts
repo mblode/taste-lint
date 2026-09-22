@@ -119,22 +119,33 @@ const readYamlRules = (rulesDir: string): Rule[] => {
       }
       const file = path.join(dir, name);
       const expectedId = name.slice(0, -".yaml".length);
-      let raw: unknown;
+      // A bad rule is the author's input, whether packaged or a voice pack.
       try {
-        raw = parse(fs.readFileSync(file, "utf-8"));
+        let raw: unknown;
+        try {
+          raw = parse(fs.readFileSync(file, "utf-8"));
+        } catch (error) {
+          throw new Error(
+            `Invalid rule ${file}: YAML did not parse (${(error as Error).message})`,
+            { cause: error }
+          );
+        }
+        const rule = validateRule(raw, file, expectedId);
+        if (rule.domain !== domain) {
+          throw new Error(
+            `Invalid rule ${file}: domain ${rule.domain} does not match folder ${domain}`
+          );
+        }
+        rules.push(rule);
       } catch (error) {
-        throw new Error(
-          `Invalid rule ${file}: YAML did not parse (${(error as Error).message})`,
-          { cause: error }
+        const invalid = new InputError(
+          "INVALID_RULE",
+          (error as Error).message,
+          { file }
         );
+        invalid.cause = error;
+        throw invalid;
       }
-      const rule = validateRule(raw, file, expectedId);
-      if (rule.domain !== domain) {
-        throw new Error(
-          `Invalid rule ${file}: domain ${rule.domain} does not match folder ${domain}`
-        );
-      }
-      rules.push(rule);
     }
   }
   return rules;
@@ -146,9 +157,19 @@ export const loadRules = (
 ): Rule[] => {
   const tuning = readTuning(rulesDir);
   const rules: Rule[] = [];
-  const seen = new Set<string>();
-  for (const dir of [rulesDir, ...(options.extraDirs ?? [])]) {
-    rules.push(...readYamlRules(dir));
+  // Rule id to the file that defined it, so a clash names both.
+  const seen = new Map<string, string>();
+  rules.push(...readYamlRules(rulesDir));
+  for (const dir of options.extraDirs ?? []) {
+    const extra = readYamlRules(dir);
+    if (extra.length === 0) {
+      throw new InputError(
+        "INVALID_CONFIG",
+        `rules entry ${dir} holds no rules; put YAML rule files in a domain folder such as ${path.join(dir, "copywriting")}/`,
+        { field: "rules", path: dir }
+      );
+    }
+    rules.push(...extra);
   }
   // Code rules join the same list; a fresh object per load so the overlay
   // below never mutates the module constant.
@@ -156,10 +177,15 @@ export const loadRules = (
     rules.push({ ...code, thresholds: { ...code.thresholds } });
   }
   for (const rule of rules) {
-    if (seen.has(rule.id)) {
-      throw new Error(`Duplicate rule id ${rule.id}`);
+    const first = seen.get(rule.id);
+    if (first !== undefined) {
+      throw new InputError(
+        "DUPLICATE_RULE",
+        `Rule id ${rule.id} is defined in ${first} and ${rule.file}; rename one.`,
+        { files: [first, rule.file], id: rule.id }
+      );
     }
-    seen.add(rule.id);
+    seen.set(rule.id, rule.file);
     const overlay = tuning[rule.id];
     if (
       isCandidateRule(rule) &&
