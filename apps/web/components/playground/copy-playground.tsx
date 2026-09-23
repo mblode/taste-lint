@@ -48,7 +48,7 @@ export function FindingItem({ finding }: { finding: Finding }) {
     <li className="border-s-2 border-foreground py-1 ps-4">
       <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
         <a
-          className="font-mono underline underline-offset-4 hover:decoration-2"
+          className="-my-3.5 py-3.5 font-mono underline underline-offset-4 hover:decoration-2"
           href={ruleSourceUrl(rule.id)}
         >
           {rule.id}

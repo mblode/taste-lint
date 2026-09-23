@@ -31,6 +31,11 @@ export const metadata: Metadata = {
   },
 };
 
+// The landing page must navigate instantly: everything above the fold is
+// static or cached (live stats use `use cache`), so no request-time data may
+// block the shell. Next validates this in dev; tests/instant.spec.ts guards it.
+export const instant = true;
+
 // The landing sections with ids, in page order. Each sends section_viewed
 // once per page view.
 const TRACKED_SECTIONS = ["try", "rules", "faq"] as const;
@@ -204,7 +209,7 @@ export default async function Home() {
               <li className="flex items-center gap-3" key={link.label}>
                 {index > 0 && <span aria-hidden="true">·</span>}
                 <a
-                  className="inline-flex min-h-12 items-center text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex min-h-12 min-w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                   href={link.href}
                 >
                   {link.label}

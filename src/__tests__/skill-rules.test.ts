@@ -114,8 +114,9 @@ describe.each([
   });
 });
 
+const status = (id: string) => rules.find((r) => r.id === id)?.status;
+
 it("lets only deterministic checks among the new skill rules block", () => {
-  const status = (id: string) => rules.find((r) => r.id === id)?.status;
   expect(status("motion-framer-motion-import")).toBe("active");
   expect(status("copywriting-document-broken-local-link")).toBe("active");
   expect(status("interaction-a11y-image-alt-text")).toBe("active");

@@ -18,3 +18,5 @@ packages/cli/README.md
 packages/cli/LICENSE.md
 apps/web/lib/rules.generated.json
 apps/web/lib/docs-pages.generated.json
+apps/web/test-results/
+apps/web/playwright-report/

@@ -13,19 +13,22 @@
     "pretypecheck": "npm run generate:rules",
     "typecheck": "next typegen && tsc --noEmit",
     "pretest": "npm run generate:rules",
-    "test": "node --import tsx --test lib/*.test.ts"
+    "test": "node --import tsx --test lib/*.test.ts",
+    "test:instant": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "blode-icons-react": "^1.0.0",
     "class-variance-authority": "^0.7.1",
-    "cn": "^0.3.0",
-    "next": "16.3.0",
-    "posthog-js": "^1.434.8",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "cn": "^0.4.0",
+    "next": "16.3.6",
+    "posthog-js": "^1.434.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@next/playwright": "^16.3.6",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
