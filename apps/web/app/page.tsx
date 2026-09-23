@@ -31,6 +31,11 @@ export const metadata: Metadata = {
   },
 };
 
+// The landing page must navigate instantly: everything above the fold is
+// static or cached (live stats use `use cache`), so no request-time data may
+// block the shell. Next validates this in dev; tests/instant.spec.ts guards it.
+export const instant = true;
+
 // The landing sections with ids, in page order. Each sends section_viewed
 // once per page view.
 const TRACKED_SECTIONS = ["try", "rules", "faq"] as const;
