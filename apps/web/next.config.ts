@@ -7,6 +7,14 @@ import { basePath, siteConfig } from "./lib/config.js";
 const config: NextConfig = {
   assetPrefix: basePath,
   basePath,
+  // Cache Components plus Partial Prefetching: the landing page prerenders to
+  // a static shell and `instant` on app/page.tsx validates it in dev.
+  cacheComponents: true,
+  experimental: {
+    // Only the instant() e2e build (npm run test:instant) exposes the testing
+    // API; production builds never set this variable.
+    exposeTestingApiInProductionBuild: process.env.NEXT_INSTANT_TEST === "1",
+  },
   headers() {
     return Promise.resolve([
       {
@@ -35,6 +43,7 @@ const config: NextConfig = {
       },
     ]);
   },
+  partialPrefetching: true,
   poweredByHeader: false,
   turbopack: {
     root: path.resolve(import.meta.dirname, "../.."),

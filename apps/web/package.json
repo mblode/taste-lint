@@ -13,7 +13,8 @@
     "pretypecheck": "npm run generate:rules",
     "typecheck": "next typegen && tsc --noEmit",
     "pretest": "npm run generate:rules",
-    "test": "node --import tsx --test lib/*.test.ts"
+    "test": "node --import tsx --test lib/*.test.ts",
+    "test:instant": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -26,6 +27,8 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@next/playwright": "^16.3.6",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
