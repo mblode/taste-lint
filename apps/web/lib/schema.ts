@@ -1,4 +1,6 @@
+import { faqJsonLd } from "../components/marketing/faq-json-ld.js";
 import { siteConfig } from "./config.js";
+import { FAQ_ITEMS } from "./faq.js";
 
 const root = "https://blode.co";
 export const siteGraph = {
@@ -10,6 +12,7 @@ export const siteGraph = {
       about: { "@id": `${siteConfig.url}/#software` },
       breadcrumb: { "@id": `${siteConfig.url}/#breadcrumb` },
       description: siteConfig.description,
+      hasPart: { "@id": `${siteConfig.url}/#faq` },
       inLanguage: "en",
       isPartOf: { "@id": `${root}/#website` },
       mainEntity: { "@id": `${siteConfig.url}/#software` },
@@ -26,6 +29,9 @@ export const siteGraph = {
       installUrl: siteConfig.links.npm,
       license: siteConfig.links.license,
       name: siteConfig.name,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      // A Node CLI with no `os` restriction in package.json.
+      operatingSystem: "macOS, Linux, Windows",
       publisher: { "@id": `${root}/#organization` },
       sameAs: [
         siteConfig.links.github,
@@ -34,6 +40,7 @@ export const siteGraph = {
       softwareRequirements: "Node.js 24.11 or later",
       url: siteConfig.url,
     },
+    faqJsonLd(FAQ_ITEMS, `${siteConfig.url}/#faq`),
     {
       "@id": `${siteConfig.url}/#breadcrumb`,
       "@type": "BreadcrumbList",

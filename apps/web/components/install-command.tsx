@@ -1,56 +1,100 @@
 "use client";
 
 import { CheckIcon, CopyIcon } from "blode-icons-react";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
-const audiences = [
-  {
-    command: "npx taste-lint@latest init",
-    label: "For humans",
-    value: "humans",
-  },
-  {
-    command: "npx taste-lint@latest init --agent",
-    label: "For agents",
-    value: "agents",
-  },
-] as const;
+export interface InstallCommandProps {
+  commands: { label: string; command: string }[];
+  onCopy?: (label: string) => void;
+}
 
-function CommandPanel({ command }: { command: string }) {
-  const [status, setStatus] = useState("");
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(command);
-      setStatus("Install command copied.");
-    } catch {
-      setStatus(
-        "Could not copy. Select the command above and copy it manually."
-      );
+type CopyState = "idle" | "copied" | "error";
+
+const RESET_MS = 2000;
+
+const selectText = (node: HTMLElement | null) => {
+  const selection = window.getSelection();
+  if (!(node && selection)) {
+    return;
+  }
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  selection.removeAllRanges();
+  selection.addRange(range);
+};
+
+function CommandPanel({
+  command,
+  label,
+  onCopy,
+}: {
+  command: string;
+  label: string;
+  onCopy?: (label: string) => void;
+}) {
+  const [state, setState] = useState<CopyState>("idle");
+  const codeRef = useRef<HTMLElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clear = () => {
+    if (timer.current) {
+      clearTimeout(timer.current);
     }
   };
 
+  useEffect(() => clear, []);
+
+  const copy = async () => {
+    clear();
+    try {
+      if (!navigator.clipboard) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(command);
+      setState("copied");
+      onCopy?.(label);
+      timer.current = setTimeout(() => setState("idle"), RESET_MS);
+    } catch {
+      // Leave the command selected so the keyboard shortcut still works.
+      selectText(codeRef.current);
+      setState("error");
+    }
+  };
+
+  const status = {
+    copied: "Copied. Paste it in your project folder.",
+    error:
+      "Your browser blocked the copy. The command is selected: press Ctrl+C or Cmd+C.",
+    idle: "",
+  }[state];
+
   return (
     <div className="min-w-0">
-      <div className="flex w-fit max-w-full items-center gap-2 rounded-lg border p-1">
-        <code className="min-w-0 break-words px-3 py-2 font-mono text-base">
+      <div className="flex w-full max-w-xl min-w-0 items-center gap-2 rounded-xl border bg-card/40 p-1.5">
+        <code
+          className="min-w-0 flex-1 px-3 py-2 font-mono text-sm break-words sm:text-base sm:whitespace-nowrap"
+          ref={codeRef}
+        >
           {command}
         </code>
         <button
-          aria-label="Copy install command"
-          className="inline-flex size-12 shrink-0 items-center justify-center rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 [&_svg]:size-4"
+          aria-label={`Copy install command ${label.toLowerCase()}`}
+          className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] [&_svg]:size-4"
           onClick={copy}
           type="button"
         >
-          {status === "Install command copied." ? (
-            <CheckIcon aria-hidden="true" data-icon="inline-start" />
+          {state === "copied" ? (
+            <CheckIcon aria-hidden="true" />
           ) : (
-            <CopyIcon aria-hidden="true" data-icon="inline-start" />
+            <CopyIcon aria-hidden="true" />
           )}
+          <span className="min-w-[6ch] text-start">
+            {state === "copied" ? "Copied" : "Copy"}
+          </span>
         </button>
       </div>
       <p
         aria-live="polite"
-        className="mt-3 min-h-6 max-w-[56ch] text-sm text-muted-foreground"
+        className="mt-2 min-h-6 max-w-[56ch] text-sm text-muted-foreground"
         role="status"
       >
         {status}
@@ -59,31 +103,40 @@ function CommandPanel({ command }: { command: string }) {
   );
 }
 
-// Native radios provide selection and arrow-key navigation before hydration.
-export function InstallCommand() {
+// Native radios switch panels through CSS before hydration and give arrow-key
+// navigation for free. globals.css hides the unchecked panels (up to four).
+export function InstallCommand({ commands, onCopy }: InstallCommandProps) {
+  const name = useId();
   return (
-    <div className="install-commands flex min-w-0 flex-col gap-4">
-      <fieldset className="flex w-fit items-center gap-4">
-        <legend className="sr-only">Install Taste Lint</legend>
-        {audiences.map((audience) => (
-          <label
-            className="relative flex min-h-12 cursor-pointer items-center text-base font-medium text-muted-foreground has-checked:text-foreground has-focus-visible:outline-2 has-focus-visible:outline-offset-4 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-foreground after:opacity-0 has-checked:after:opacity-100"
-            key={audience.value}
-          >
-            <input
-              className="sr-only"
-              type="radio"
-              name="install-audience"
-              value={audience.value}
-              defaultChecked={audience.value === "humans"}
-            />
-            {audience.label}
-          </label>
-        ))}
-      </fieldset>
-      {audiences.map((audience) => (
-        <div key={audience.value} data-audience={audience.value}>
-          <CommandPanel command={audience.command} />
+    <div className="install-commands flex min-w-0 flex-col gap-3">
+      {commands.length > 1 && (
+        <fieldset className="flex w-fit items-center gap-5">
+          <legend className="sr-only">Install command for</legend>
+          {commands.map((item, index) => (
+            <label
+              className="relative flex min-h-12 cursor-pointer items-center text-base font-medium text-muted-foreground after:absolute after:inset-x-0 after:bottom-2 after:h-0.5 after:bg-foreground after:opacity-0 has-checked:text-foreground has-checked:after:opacity-100 has-focus-visible:outline-2 has-focus-visible:outline-offset-4"
+              key={item.label}
+            >
+              <input
+                className="sr-only"
+                data-index={index}
+                defaultChecked={index === 0}
+                name={name}
+                type="radio"
+                value={item.label}
+              />
+              {item.label}
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {commands.map((item, index) => (
+        <div data-panel={index} key={item.label}>
+          <CommandPanel
+            command={item.command}
+            label={item.label}
+            onCopy={onCopy}
+          />
         </div>
       ))}
     </div>

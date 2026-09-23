@@ -12,6 +12,7 @@ import {
   rewriteDocsSitemap,
   stripZoneBasePath,
 } from "./lib/docs-proxy.js";
+import { homeMarkdownResponse, prefersMarkdown } from "./lib/home-markdown.js";
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -203,6 +204,14 @@ const proxyDocsRequest = async (
 };
 
 export async function proxy(request: NextRequest) {
+  // An agent asking for Markdown on the zone root gets the /index.md body
+  // directly, with `Vary: Accept`; a rewrite would let Next replace Vary.
+  if (
+    stripZoneBasePath(request.nextUrl.pathname) === "/" &&
+    prefersMarkdown(request.headers.get("accept"))
+  ) {
+    return homeMarkdownResponse(request.method);
+  }
   try {
     return (await proxyDocsRequest(request)) ?? NextResponse.next();
   } catch (error) {
@@ -223,5 +232,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/docs", "/docs/:path*", "/_docs/:path*"],
+  matcher: ["/", "/docs", "/docs/:path*", "/_docs/:path*"],
 };
