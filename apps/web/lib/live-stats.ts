@@ -1,5 +1,5 @@
 // Live proof for the landing page, fetched on the server and cached for a
-// day. Every helper fails closed: any network, status or shape problem
+// day (a miss for minutes). Every helper fails closed: any network, status or shape problem
 // returns null and the stat is not rendered. Never substitute a number.
 
 import { cacheLife } from "next/cache";
@@ -31,7 +31,6 @@ const readJson = async (url: string): Promise<unknown> => {
   }
 };
 
-// `use cache` replaces the old `fetch(..., { next: { revalidate: DAY } })`.
 // A number is kept for a day (`days`: revalidate 1 day), so the landing page
 // keeps it in the static shell. A miss is cached for minutes only, so one
 // failed request does not hide a stat for a whole day.
