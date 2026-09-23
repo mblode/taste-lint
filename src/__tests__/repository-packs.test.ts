@@ -147,14 +147,15 @@ it("refuses repository reads through paths and symlinks outside the root", () =>
   expect(repository.resolve("README.md", "../private.md")).toBeUndefined();
 });
 
+// A missing link target is a fact about the repository, so it may block.
+// Every other document and instruction port stays review-only until tuned.
 it("keeps every document and instruction port review-only until it is tuned", () => {
-  expect(
-    loadRules(path.resolve("data/rules"))
-      .filter((r) =>
-        /^(?:authoring|copywriting-(?:readme|document))-/.test(r.id)
-      )
-      .every((r) => r.status === "review-only")
-  ).toBe(true);
+  const ports = loadRules(path.resolve("data/rules")).filter((r) =>
+    /^(?:authoring|copywriting-(?:readme|document))-/.test(r.id)
+  );
+  expect(ports.filter((r) => r.status === "active").map((r) => r.id)).toEqual([
+    "copywriting-document-broken-local-link",
+  ]);
 });
 
 it("does not serialize repository capabilities into extracted units", () => {

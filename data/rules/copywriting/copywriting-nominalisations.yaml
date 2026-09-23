@@ -1,6 +1,5 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-nominalizations.md.
-# Source moved: agent-skills cbeaec5 retired docs-writing and folded clarity-no-nominalizations.md
-# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
+# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-nominalizations.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired.
 id: copywriting-nominalisations
 title: Verb buried in a noun
 categoryId: reader-first-framing

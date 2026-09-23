@@ -1,5 +1,3 @@
-# Source moved: agent-skills cbeaec5 retired docs-writing and folded structure-conditions-first.md
-# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
 id: copywriting-conditions-first
 title: An instruction hides its prerequisite after the action
 categoryId: page-structure
@@ -7,6 +5,7 @@ source:
   repo: mblode/agent-skills
   path: skills/ghostwriter/references/docs.md
   line: 15
+  ruleId: structure-conditions-first
 unit:
   - paragraph
 mechanical:

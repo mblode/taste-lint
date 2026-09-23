@@ -1,5 +1,3 @@
-# Source moved: agent-skills cbeaec5 retired docs-writing and folded voice-requirements-language.md
-# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
 id: copywriting-requirements-language
 title: A requirement presented as a recommendation
 categoryId: reader-first-framing
@@ -7,6 +5,7 @@ source:
   repo: mblode/agent-skills
   path: skills/ghostwriter/references/docs.md
   line: 13
+  ruleId: voice-requirements-language
 unit:
   - paragraph
 mechanical:

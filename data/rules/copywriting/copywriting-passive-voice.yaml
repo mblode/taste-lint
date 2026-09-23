@@ -1,6 +1,5 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/voice-defaults.md (active voice, present tense).
-# Source moved: agent-skills cbeaec5 retired docs-writing and folded voice-defaults.md
-# into the compact rubric in skills/ghostwriter/references/docs.md; source.line cites the paragraph that carries it.
+# Ported from mblode/agent-skills skills/docs-writing/rules/voice-defaults.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired. (active voice, present tense).
 id: copywriting-passive-voice
 title: Passive voice where the actor is known
 categoryId: machine-prose

@@ -4,10 +4,8 @@
 //
 // Two frontmatter dialects are read: ui-design (`id`, `category`,
 // `defaultTier`, `detect`, a `## Detection` section with an rg command and a
-// false-positive paragraph) and typography-audit (`title`, `impact`, `tags`,
-// an Incorrect/Correct pair). docs-writing was retired upstream (agent-skills
-// cbeaec5); the copy rules ported from it now cite the rubric paragraphs in
-// skills/ghostwriter/references/docs.md, which only the check-mode walk reads.
+// false-positive paragraph) and typography-audit (`title`,
+// `impact`, `tags`, an Incorrect/Correct pair).
 //
 // A ui-design rule whose detection is one rg command JavaScript can run
 // (optionally piped through `xargs rg --files-without-match`) generates a

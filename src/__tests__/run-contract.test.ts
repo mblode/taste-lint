@@ -105,6 +105,7 @@ it("keeps config schema fields and document types in sync", async () => {
     components: { skip: [], unwrap: [] },
     docTypes: [{ glob: "**/*.md", type: "reference" }],
     exclude: ["docs/**"],
+    rules: ["~/voice"],
     smartQuotesAtBuild: false,
     tailwind: { theme: { sm: "14px" } },
   };
@@ -117,6 +118,7 @@ it("keeps config schema fields and document types in sync", async () => {
     { components: { skip: "No" } },
     { docTypes: [{ glob: "*", type: "bogus" }] },
     { tailwind: { theme: { sm: 14 } } },
+    { rules: "voice" },
   ]) {
     expect(() => validateConfig(bad)).toThrow(/taste-lint.config.json/);
   }

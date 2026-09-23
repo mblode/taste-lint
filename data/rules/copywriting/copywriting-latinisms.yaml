@@ -1,7 +1,6 @@
-# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-latin.md.
-# Source moved: agent-skills cbeaec5 retired docs-writing and cut clarity-no-latin.md to the
-# "Plain words" check in skills/ghostwriter/references/docs.md. The written-out forms this rule enforces
-# are kept from the retired rule; read it at cbeaec5^:skills/docs-writing/rules/clarity-no-latin.md.
+# Ported from mblode/agent-skills skills/docs-writing/rules/clarity-no-latin.md, now
+# skills/ghostwriter/references/docs.md after docs-writing was retired. Review-only:
+# ghostwriter keeps "plain words" but no longer bans Latin abbreviations outright.
 id: copywriting-latinisms
 title: Latin abbreviation in running text
 categoryId: reader-first-framing
@@ -24,5 +23,5 @@ preconditions:
     docType:
       [tutorial, howto, reference, explanation, agent-instructions, lesson],
   }
-status: active
+status: review-only
 handWritten: [mechanical, fix, preconditions]
