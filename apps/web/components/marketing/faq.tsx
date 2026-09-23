@@ -32,7 +32,7 @@ export function Faq({
             <h3>{item.question}</h3>
             <ChevronDownIcon
               aria-hidden="true"
-              className="size-5 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180"
+              className="size-5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.645,0.045,0.355,1)] group-open:rotate-180"
             />
           </summary>
           <p className="max-w-[62ch] pb-5 leading-7 text-pretty">

@@ -198,10 +198,6 @@ export default async function Home() {
                 href: "https://github.com/mblode/agent-skills",
                 label: "Agent Skills",
               },
-              {
-                href: "https://docs.typesafe.ai/concepts/system-one",
-                label: "Jev",
-              },
               { href: siteConfig.links.github, label: "GitHub" },
               { href: siteConfig.links.npm, label: "npm" },
             ].map((link, index) => (
