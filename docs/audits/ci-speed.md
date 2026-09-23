@@ -54,9 +54,9 @@ Median 0:56, down from 1:22. Observed saving: 26 seconds. Projected saving: 22 s
 
 This is far under the five-minute point where an agent loop starts waiting on checks. Re-measure when the median passes 2:30 or the test count doubles.
 
-## Not taken yet
+## Not taken
 
-- **Blacksmith runners** (`runs-on: blacksmith-4vcpu-ubuntu-2404`). Both jobs are CPU-bound: the web build takes 7 to 9s on a laptop and 25s on a hosted runner. Linear measured 34% faster with a third-party runner, and `tsc` 52% faster. Expected: both jobs drop to about 40s. Waits on Matthew installing the Blacksmith GitHub app (a free tier of 3,000 minutes a month covers this repository).
+- **Blacksmith runners.** Declined on 2026-09-24: CI stays on GitHub-hosted runners. Both jobs are CPU-bound (the web build takes 7 to 9s on a laptop and 25s on a hosted runner), and Linear measured a third-party runner 34% faster, so this was worth about 15s a job. Do not raise it again unless the median passes 2:30.
 - **`.next/cache` restore.** A warm webpack cache saved 2 of 9 seconds locally, so about 5s on a runner, before paying for the restore. Not taken.
 - **Dependency install** (15s per job). `setup-node` already caches `~/.npm`. Linear found a restored `node_modules` slower than a fresh install at their size; at ours, time it before trying.
 - **Shallow checkout on `cli`.** `fetch-depth: 0` costs about 1s here, and changeset status needs `origin/main`. Not worth it.
