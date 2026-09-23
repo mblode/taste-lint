@@ -11,7 +11,9 @@ npm run check && npm run typecheck                 # edit loop
 npx vitest run src/__tests__/rules.test.ts --reporter=dot   # one suite, quiet
 npm run taste                                      # lint this repo with its own rules; CI runs it
 npm run verify                                     # lint, types, tests, build, packed smoke test
-npm run verify:full                                # verify plus rules check and taste; CI runs this and port-rules --check
+npm run verify:full                                # verify:cli plus verify:web; CI runs the two as parallel jobs, plus port-rules --check
+npm run verify:cli                                 # check, CLI build, types, tests, packed smoke test, rules check, taste
+npm run verify:web                                 # Next build, web types, web tests
 npm run fix                                        # ultracite autofix; scope it when unrelated changes exist
 node dist/cli.js lint --profile product --dry-run  # units, requests, estimated cost; no calls
 node dist/cli.js rules check                       # validate data/rules
@@ -67,3 +69,5 @@ A wrong finding is corpus evidence: add the unit with the correct label instead 
 ## Contracts
 
 `docs/design.mdx` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary. `docs/typesafe.mdx`: the Jev integration. Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev, and read the live TypeSafe docs before changing questions, state or confidence handling.
+
+CI layout: a new CLI check goes in `verify:cli`, a new web check in `verify:web`, never straight into `verify:full`, or CI skips it. The web build is CPU-bound and sets the run's length; timings and the next levers are in `docs/audits/ci-speed.md`.
