@@ -37,7 +37,7 @@ const setup = () => {
           labels: { [id]: true },
           source: { path: "example.md", repo: "test" },
           split: "dev",
-          text,
+          text: `The ${text} paragraph frames the topic generically.`,
         })
       )
       .join("\n")
@@ -116,7 +116,7 @@ it("writes review-only without holdout and promotes only after independent valid
     labels: { [options.id]: i % 2 === 0 },
     source: { path: `example-${i}.md`, repo: "test" },
     split: i < 40 ? "dev" : "holdout",
-    text: `${i % 2 === 0 ? "Violation" : "Acceptable"} example ${i}`,
+    text: `${i % 2 === 0 ? "Violation" : "Acceptable"} example number ${i} for the rule.`,
   }));
   const corpus = path.join(options.corpusDir, "items.jsonl");
   fs.writeFileSync(

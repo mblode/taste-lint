@@ -7,6 +7,7 @@ import { expect, it } from "vitest";
 
 import { runEval } from "../eval/metrics.js";
 import { runTune } from "../eval/tune.js";
+import { ProviderError } from "../map/jev.js";
 import { fakeEvaluate, temporary } from "./helpers.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -91,4 +92,19 @@ it("tunes over the dev split with an injected evaluate and rejects a bad floor",
     )
   ).toBe(true);
   expect(result.report).toMatch(/pass --write/);
+});
+
+it("fails the run on a rejected key instead of reporting a judge that never fires", async () => {
+  await expect(
+    runEval(
+      {
+        corpusDir: path.join(root, "data/corpus"),
+        noCache: true,
+        only: ["copywriting-claim-without-evidence"],
+        resultsDir: temporary(),
+        rulesDir: path.join(root, "data/rules"),
+      },
+      { evaluate: () => Promise.reject(new ProviderError("auth", 401)) }
+    )
+  ).rejects.toMatchObject({ category: "auth" });
 });

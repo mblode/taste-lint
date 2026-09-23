@@ -1,0 +1,43 @@
+# The short denial forms models write ("A folder, not a portal", "Not another
+# place to work."). A regex cannot tell them from a plain instruction ("Use
+# their numbers, not benchmarks") or a clarification ("Unknown: ... Not a
+# pass."), so the regex only finds candidates and Jev decides.
+id: copywriting-antithesis-contrast
+title: Denies a thing nobody claimed to sharpen a point
+categoryId: machine-prose
+source:
+  {
+    repo: mblode/agent-skills,
+    path: skills/ghostwriter/references/tells.md,
+    line: 12,
+  }
+unit: [paragraph, heading, jsx-text]
+mechanical:
+  regex: "[\\p{L}\\p{N}’'], not (?:a |an |the |another |just |only )?[\\p{L}\\p{N}’'-]+|(?:^|[.!?]\\s+)Not (?:a|an|another|the|just|only|one) [\\p{L}\\p{N}’'-]+"
+  flags: gu
+question:
+  context: [docType, element]
+  instructions: >-
+    Does TEXT deny something that nobody in the text claimed, only to make its own point sound sharper? Return false when the contrast is an instruction choosing between two real options the reader has, when it corrects a misreading the reader is likely to make, or when it states a real trade-off or limit.
+  criteria:
+    true:
+      what: A denial of a straw alternative, used as rhetoric.
+      examples:
+        - "A folder, not a portal."
+        - "A shared folder. Not another place to work."
+        - "Conflicts are kept, not resolved for you."
+        - "Side by side, not overwritten."
+    false:
+      what: A contrast the reader can act on or would otherwise get wrong.
+      examples:
+        - "Use their numbers, not generic benchmarks."
+        - "Unknown: a check that could not decide. Not a pass."
+        - "Put links in the comments, not the post body."
+        - "Billed per seat, not per device."
+thresholds: { review: 0.4, act: 0.75 }
+severity: minor
+fix:
+  hint: Say the positive thing. "A folder, not a portal" becomes "A folder on every laptop."
+preconditions: { notInCode: true }
+status: review-only
+handWritten: [mechanical, question, fix, preconditions, status]

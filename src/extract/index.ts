@@ -4,6 +4,7 @@ import path from "node:path";
 import { Repository, sourceFacts } from "../analysis/repository.js";
 import { docTypeFor } from "../lib/config.js";
 import type { Config, Unit } from "../types.js";
+import { attachEarlier } from "./earlier.js";
 import { extractMarkdown } from "./markdown.js";
 import { extractTsx } from "./tsx.js";
 import { LineIndex, makeUnit } from "./units.js";
@@ -26,6 +27,7 @@ export const extractSource = (
     : /\.(tsx|jsx)$/.test(file)
       ? extractTsx(file, source, { config, docType })
       : [];
+  attachEarlier(units);
   const whole = makeUnit(file, new LineIndex(source), {
     context: { docType, role: "unknown" },
     kind: "source",

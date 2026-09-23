@@ -26,4 +26,4 @@ review:
   exceptions: Clearly labeled placeholders, teaching examples, chart data, and claims supported by supplied evidence.
   evidence: The exact claim and location, its displayed context, and a checkable source or an accountable owner.
   verification: Verify the claim against its source or remove only the unsupported claim; preserve real evidence and clearly marked examples.
-  sourceHash: 0901fbcaeac7ed1d59328aa3012fb808332c4761ab4cb44c268433eb5a48d7f1
+  sourceHash: fd0234fa235214885b51d0645416a224ec35fa32d3990bba46817f6c13932aba

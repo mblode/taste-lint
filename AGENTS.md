@@ -49,11 +49,13 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Promoting a rule
 
-Rule count is not the metric. Precision on real repositories is. Prove one Jev rule at a time:
+Rule count is not the metric. Precision on real repositories is. Work the loop in this order and repeat; do not skip ahead:
 
-1. `node dist/cli.js lint <real repo> --profile product --only <rule> --samples results/blind.json` exports blind samples.
-2. Label them (`scripts/prepare-labels.mjs` prepares the file for an agent session; never read predictions while labelling).
-3. `node dist/cli.js eval labels results/blind.json --out data/corpus/<name>.jsonl`, then `eval --only <rule>` and `tune --write`.
+1. Get it working: `eval` runs live with `Jev: N requests` and no errors. A rejected key fails the run; the working key is in `.env.local`.
+2. Find failure modes: `eval --only <rule> --split dev --disagreements`. Group the rows by cause (the judge never asked, the rubric reads plain text as a violation, the label is wrong) before touching anything.
+3. Fix the judge's failure modes with AI: an agent rewrites the question from dev disagreements, confirmed with `tune ab` and then a holdout `eval`. Every edit is general policy, never a patch for one row. Never edit from holdout disagreements.
+4. Only then optimise cost (gates, preconditions, batching), then speed.
+5. Only then ask Matthew to label the residue: rows the AI loop could not settle, suspect labels, and rules with no positives. Export them with `lint --samples`, label with `eval label`, turn unsure answers into rubric edits with `eval gaps`, and trust an agent labeller for a rule only after `eval agreement` clears the floor.
 
 A wrong finding is corpus evidence: add the unit with the correct label instead of lowering a threshold by hand.
 

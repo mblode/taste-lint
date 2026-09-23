@@ -127,7 +127,9 @@
               "writingFacts",
               "writingProfile",
               "writingInstructions",
-              "section"
+              "section",
+              "earlier",
+              "brief"
             ]
           }
         },
@@ -224,6 +226,10 @@
         },
         "smartQuotesAtBuild": {
           "const": false
+        },
+        "minWords": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },

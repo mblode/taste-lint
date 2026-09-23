@@ -52,6 +52,8 @@ export interface LintOptions {
   profile?: ProfileName;
   /** Report only findings on lines changed since this Git revision. */
   since?: string;
+  /** File stating what the product is and does; rules that compare copy against it read it. */
+  brief?: string;
   /** Rules directory. Default: the packaged `data/rules`. */
   rulesDir?: string;
   /** Rule ids to run; wins over `profile`. */
@@ -93,7 +95,8 @@ export interface LintContext {
     units: Unit[],
     answers: Map<string, Record<string, number>>,
     negatives: Map<string, Set<string>>,
-    rules: Rule[]
+    rules: Rule[],
+    sources: Map<string, string[]>
   ) => void;
 }
 
@@ -159,6 +162,12 @@ export const runLint = async (
   }
   if (options.extraUnits) {
     units.push(...options.extraUnits);
+  }
+  if (options.brief) {
+    const brief = fs.readFileSync(path.resolve(options.brief), "utf-8").trim();
+    for (const unit of units) {
+      unit.context.brief = brief;
+    }
   }
 
   const scope: ScanScope = {
@@ -255,7 +264,13 @@ export const runLint = async (
     onProgress: ctx.onProgress,
     recorder,
   });
-  ctx.onEvidence?.(units, judgement.answers, judgement.negatives, rules);
+  ctx.onEvidence?.(
+    units,
+    judgement.answers,
+    judgement.negatives,
+    rules,
+    sources
+  );
   const status: LintResult["status"] = options.dryRun
     ? "dry-run"
     : judgement.usage.errors > 0 || parseFailures.size > 0 || units.length === 0

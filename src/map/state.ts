@@ -57,6 +57,12 @@ export const buildState = (
   if (keys.has("role")) {
     lines.push(`ROLE: ${unit.context.role}`);
   }
+  if (keys.has("brief") && unit.context.brief) {
+    lines.push(`BRIEF: ${clip("BRIEF: ", unit.context.brief)}`);
+  }
+  if (keys.has("earlier") && unit.context.earlier) {
+    lines.push(`EARLIER: ${clip("EARLIER: ", unit.context.earlier)}`);
+  }
   if (keys.has("section") && unit.context.section) {
     lines.push(`SECTION: ${clip("SECTION: ", unit.context.section)}`);
   }

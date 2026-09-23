@@ -2,6 +2,7 @@ import type { Command } from "commander";
 
 import { runTune, runTuneAb } from "../eval/tune.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
+import { parseSources } from "./eval.js";
 
 export function registerTuneCommand(program: Command): void {
   const tune = program
@@ -19,6 +20,10 @@ export function registerTuneCommand(program: Command): void {
       "10"
     )
     .option("--write", "Write tuning.json")
+    .option(
+      "--source <sources>",
+      "Only these label sources; tune on hand to fit the judge to you"
+    )
     .option("--results-dir <path>", "Where logs and cache live")
     .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
@@ -33,6 +38,7 @@ export function registerTuneCommand(program: Command): void {
           .filter(Boolean),
         resultsDir: options.resultsDir,
         rulesDir: options.rules,
+        sources: parseSources(options.source),
         write: options.write,
       });
       process.stdout.write(result.report);
@@ -47,6 +53,10 @@ export function registerTuneCommand(program: Command): void {
     .requiredOption("--variant <file>", "YAML file with a replacement question")
     .option("--corpus <path>", "Corpus directory")
     .option("--rules <path>", "Rules directory")
+    .option(
+      "--source <sources>",
+      "Only these label sources; tune on hand to fit the judge to you"
+    )
     .option("--results-dir <path>", "Where logs and cache live")
     .option("--model <id>", "Jev model id", DEFAULT_MODEL)
     .action(async (options) => {
@@ -56,6 +66,7 @@ export function registerTuneCommand(program: Command): void {
         resultsDir: options.resultsDir,
         ruleId: options.rule,
         rulesDir: options.rules,
+        sources: parseSources(options.source),
         variantFile: options.variant,
       });
       process.stdout.write(result.report);

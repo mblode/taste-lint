@@ -12,7 +12,10 @@ const roots: string[] = [];
 const fixture = () => {
   const root = temporary();
   roots.push(root);
-  fs.writeFileSync(path.join(root, "note.md"), 'A "quoted" word.\n');
+  fs.writeFileSync(
+    path.join(root, "note.md"),
+    'A "quoted" word in a short note.\n'
+  );
   return {
     only: ["typography-straight-quotes"],
     resultsDir: path.join(root, "results"),

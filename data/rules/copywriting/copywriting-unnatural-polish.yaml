@@ -1,6 +1,7 @@
 # One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
-# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
-# published wording; the second sentence says what to ignore.
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question started as
+# the published wording; it now also says what cannot be a violation, because
+# Jev read plain labels, identifiers and instructions as violations (2026-09-23 eval).
 # Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 0 (structural overcompletion, performed voice).
 id: copywriting-unnatural-polish
 title: Polished in a way that suppresses personal texture
@@ -27,18 +28,20 @@ preconditions:
 question:
   context: [docType]
   instructions: >-
-    Does the writing feel polished in a way that suppresses personal texture or irregularity? Ignore reference documentation and UI copy, where a neutral register is the point.
+    Is the writing polished in a way that suppresses personal texture: smooth, abstract praise or summary where a specific fact, opinion or rough edge should be? Neutral, plain writing is not polish. Answer no for instructions, technical explanation, data, labels, names, identifiers and headings, and for any sentence that states a concrete fact, number or opinion, even if no person is visible. Ignore reference documentation and UI copy, where a neutral register is the point.
   criteria:
     true:
-      what: Even, frictionless prose with no person behind it.
+      what: Even, frictionless prose that smooths over what should be specific.
       examples:
         - "The initiative delivered meaningful improvements across several dimensions, and stakeholders responded positively to the enhanced experience."
         - "Each component was carefully considered to ensure a cohesive, thoughtful result that balances form and function."
     false:
-      what: Prose with a specific person, opinion or rough edge in it.
+      what: Prose with a specific fact, person, opinion or rough edge in it, or plain functional text.
       examples:
         - "I hated the old settings page. It had 14 toggles and I could never remember which one hid the sidebar."
         - "The first version was ugly and we shipped it anyway, because the two people who needed it were waiting."
+        - "Run commands from the repository root:"
+        - "Each enabled scout runs once per day and draws from the 24-run daily budget."
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:

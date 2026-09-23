@@ -50,6 +50,10 @@ export function registerLintCommand(program: Command): void {
       "Report only findings on lines changed since this Git revision"
     )
     .option(
+      "--brief <file>",
+      "What the product is and does; copy that states anything else is flagged"
+    )
+    .option(
       "--samples <file>",
       "Write blind labelling samples for the Jev rules that ran, without their predicted scores"
     )
@@ -85,6 +89,7 @@ export function registerLintCommand(program: Command): void {
           profile?: ProfileName;
           since?: string;
           samples?: string;
+          brief?: string;
           root: string;
           only?: string;
           exclude?: string;
@@ -143,6 +148,7 @@ export function registerLintCommand(program: Command): void {
         let samples: ReturnType<typeof makeSamples> = [];
         const result = await runLint(
           {
+            brief: options.brief,
             dryRun: options.dryRun,
             exclude: options.exclude
               ?.split(",")
@@ -166,14 +172,15 @@ export function registerLintCommand(program: Command): void {
           },
           {
             onEvidence: options.samples
-              ? (units, answers, negatives, rules) => {
+              ? (units, answers, negatives, rules, sources) => {
                   samples = makeSamples(
                     units,
                     rules,
                     answers,
                     negatives,
                     3,
-                    path.basename(config.root)
+                    path.basename(config.root),
+                    sources
                   );
                 }
               : undefined,
@@ -235,6 +242,9 @@ export function registerLintCommand(program: Command): void {
         if (options.since) {
           retryArgs.push("--since", options.since);
         }
+        if (options.brief) {
+          retryArgs.push("--brief", options.brief);
+        }
         retryArgs.push("--", ...targets);
         const rerun =
           result.status === "incomplete"
@@ -243,7 +253,7 @@ export function registerLintCommand(program: Command): void {
         if (options.samples) {
           writeJson(options.samples, {
             instructions:
-              "Blind review: set label true for a violation, false for acceptable, or leave null when uncertain. No predicted probabilities are included.",
+              "Blind review: set label true for a violation, false for acceptable, or leave null when uncertain. No predicted probabilities are included. Likely failures come first; label them yourself with taste-lint eval label.",
             samples,
             version: 2,
           });

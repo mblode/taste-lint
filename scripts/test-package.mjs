@@ -122,7 +122,8 @@ try {
     env
   );
   assert.match(dry, /No calls were made/);
-  assert.match(dry, /2 requests would be sent/);
+  // One question set for the paragraph; a first mention never asks idea-repetition.
+  assert.match(dry, /1 request would be sent/);
   const profiled = JSON.parse(
     run(
       process.execPath,

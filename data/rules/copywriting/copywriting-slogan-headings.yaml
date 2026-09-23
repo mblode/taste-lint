@@ -1,0 +1,27 @@
+# Hand-ported: the upstream rg pattern, narrowed to heading text. The
+# "X, not Y" heading is copywriting-antithesis-contrast.
+id: copywriting-slogan-headings
+title: Headings built from stacked slogan fragments
+categoryId: machine-prose
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-slogan-headings.md
+  line: 10
+  ruleId: slop-slogan-headings
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '<h[1-3]\b[^>]*>(?:\s|<br\s*/>|<span[^>]*>|</span>)*[A-Z$\d][\w’''$,-]*(?:[ \t]+[\w’''$,-]+){0,3}[.!?](?:\s|<br\s*/>|<span[^>]*>|</span>)+[A-Z$\d][\w’''$,-]*(?:[ \t]+[\w’''$,-]+){0,3}[.!?]'
+  flags: gu
+severity: minor
+fix:
+  hint: Say the one thing the product does in a plain sentence a reader could check, instead of two or three clipped fragments.
+status: review-only
+review:
+  applicability: "A heading made of two or more clipped sentences of four words or fewer."
+  exceptions: "A real name or a quoted title, and a pair of short sentences that each state a checkable fact."
+  evidence: "Whether each fragment says something a reader could verify about the product."
+  verification: "Confirm the fragments carry no checkable claim, then rewrite as one plain sentence."
+  sourceHash: 253bbb9dd01304ad87bb0b924a6dd434780c829cec8a0fe91a4b149446fed284
+handWritten: [mechanical]

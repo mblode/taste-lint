@@ -8,7 +8,7 @@ source:
     path: skills/ghostwriter/references/tells.md,
     line: 13,
   }
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
   regex: "(?<![\"“‘'])\\b(?:serves|stands) as (?:a|an|the)\\b|(?<![\"“‘'])\\bboasts\\b"
   flags: giu

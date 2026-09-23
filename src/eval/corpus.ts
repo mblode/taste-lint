@@ -161,6 +161,9 @@ export const loadCorpus = (
           `Invalid corpus line ${where}: source needs repo and path`
         );
       }
+      if (r.note !== undefined && typeof r.note !== "string") {
+        throw new TypeError(`Invalid corpus line ${where}: note must be text`);
+      }
       if (r.split !== undefined && r.split !== "dev" && r.split !== "holdout") {
         throw new Error(
           `Invalid corpus line ${where}: split must be dev or holdout`
@@ -246,6 +249,7 @@ export const loadCorpus = (
         labelSource: labelSource as CorpusItem["labelSource"],
         labels,
         neighbours: r.neighbours as CorpusItem["neighbours"],
+        note: r.note as string | undefined,
         source: r.source as CorpusItem["source"],
         split:
           (r.split as CorpusItem["split"] | undefined) ??

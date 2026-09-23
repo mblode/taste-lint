@@ -30,10 +30,17 @@ mechanical:
     - next-generation
     - enterprise-grade
     - blazing
+    - faster
+    - fastest
+    - simpler
+    - easier
+    - smarter
+    - trusted by
+    - loved by
 question:
   context: [headingAbove, docType]
   instructions: >-
-    Read the TEXT. Return true when the TEXT describes a product, feature, service or company with an evaluative adjective or adverb (for example powerful, seamless, fast, intuitive, robust, best-in-class, simple) and the same TEXT gives the reader nothing they could check: no number with a unit or scope, no named mechanism that explains how, no named standard, customer or third party. Return false when the TEXT contains such a checkable fact, when the adjective names a category a reader can verify (open source, end-to-end encrypted, GDPR compliant), or when the TEXT is not describing a product at all (instructions, narrative, a lesson explaining the rule). Ignore code, URLs and the HEADING line; judge only the TEXT.
+    Read the TEXT. Return true when the TEXT describes a product, feature, service or company with an evaluative adjective or adverb (for example powerful, seamless, fast, intuitive, robust, best-in-class, simple) and the same TEXT gives the reader nothing they could check: no measurement with its conditions, no named mechanism that explains how, no named standard, customer or third party. A rounded boast is a claim, not evidence: a user count ("10,000+ teams"), an "up to" multiplier, or "trusted by" with no names. Return false when the TEXT contains such a checkable fact, when the adjective names a category a reader can verify (open source, end-to-end encrypted, GDPR compliant), or when the TEXT is not describing a product at all (instructions, narrative, a lesson explaining the rule). Ignore code, URLs and the HEADING line; judge only the TEXT.
   criteria:
     true:
       what: A quality is asserted about a product and nothing in the text lets the reader check it.
@@ -42,6 +49,8 @@ question:
         - "Enterprise-grade security, built for teams that take compliance seriously."
         - "Our blazing-fast platform simply supports parallel execution."
         - "Seamless sync across all your devices."
+        - "Loved by 50,000+ designers worldwide."
+        - "Up to 5x faster builds."
     false:
       what: The text names what happens, how much, or by which standard, or is not selling anything.
       examples:

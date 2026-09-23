@@ -8,7 +8,9 @@ import { CLASS_RULES } from "./classes.js";
 import { DOCUMENT_RULES } from "./documents.js";
 import { IMAGE_RULES } from "./images.js";
 import { MOTION_SOURCE_RULES } from "./motion-source.js";
+import { PROSE_RULES } from "./prose.js";
 import { SKILL_CLASS_RULES } from "./skill-classes.js";
+import { SLOP_SOURCE_RULES } from "./slop-source.js";
 import { TYPOGRAPHY_RULES } from "./typography.js";
 
 export { codeRule } from "./rule.js";
@@ -21,4 +23,6 @@ export const CODE_RULES: Rule[] = [
   ...IMAGE_RULES,
   ...SKILL_CLASS_RULES,
   ...MOTION_SOURCE_RULES,
+  ...SLOP_SOURCE_RULES,
+  ...PROSE_RULES,
 ];

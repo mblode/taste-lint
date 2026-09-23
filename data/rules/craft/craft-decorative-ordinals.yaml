@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern, narrowed to JSX text.
+id: craft-decorative-ordinals
+title: Ordinal numbers on items that are not a sequence
+categoryId: generic-decoration
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-decorative-ordinals.md
+  line: 10
+  ruleId: slop-decorative-ordinals
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '\b(?:number|num|step|index|idx|no|label|eyebrow)\s*:\s*["''`]0[1-9]\b|>\s*0[1-9]\s*[./)]?\s*<'
+  flags: gu
+severity: minor
+fix:
+  hint: Drop the numbers unless the order is real (install steps, a setup flow, a fallback chain). Cards a reader could shuffle need no number.
+status: review-only
+review:
+  applicability: "Zero-padded numbers label cards or sections."
+  exceptions: "A real sequence: install steps, a setup flow, a ranked list, a fallback chain."
+  evidence: "Whether the items could be reordered without changing their meaning."
+  verification: "Confirm the order means nothing, then remove the numbers."
+  sourceHash: ae618ad62bb446ec2c7019f60acfe8ca48d1f5adea14ba6286463446cf596be9
+handWritten: [mechanical]

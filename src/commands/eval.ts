@@ -3,10 +3,41 @@ import type { Command } from "commander";
 
 import { loadCorpus, resolveCorpusDir } from "../eval/corpus.js";
 import { corpusCoverage, renderCoverage } from "../eval/coverage.js";
+import {
+  labelAgreement,
+  labelGaps,
+  labelSession,
+  renderAgreement,
+  renderGaps,
+} from "../eval/label.js";
 import { runEval } from "../eval/metrics.js";
 import { DEFAULT_MODEL } from "../map/jev.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import { labelsToCorpus } from "../scan/samples.js";
+import type { CorpusItem } from "../types.js";
+
+export const LABEL_SOURCES = [
+  "hand",
+  "ai",
+  "manifest",
+  "manifest-weak",
+  "sweep",
+] as const;
+export const parseSources = (
+  value?: string
+): CorpusItem["labelSource"][] | undefined =>
+  value
+    ?.split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      if (!(LABEL_SOURCES as readonly string[]).includes(s)) {
+        throw new Error(
+          `--source must be one or more of ${LABEL_SOURCES.join(", ")}`
+        );
+      }
+      return s as CorpusItem["labelSource"];
+    });
 
 export function registerEvalCommand(program: Command): void {
   const command = program
@@ -33,6 +64,14 @@ export function registerEvalCommand(program: Command): void {
     )
     .option("--include-weak", "Include manifest-weak labels")
     .option(
+      "--source <sources>",
+      "Only these label sources, e.g. hand to measure agreement with you"
+    )
+    .option(
+      "--disagreements",
+      "List items where the judge and the label disagree, with text and notes"
+    )
+    .option(
       "--check",
       "Fail on reference disagreement; incomplete evaluation exits 2"
     )
@@ -44,6 +83,7 @@ export function registerEvalCommand(program: Command): void {
       const result = await runEval({
         check: options.check,
         corpusDir: options.corpus,
+        disagreements: options.disagreements,
         dryRun: options.dryRun,
         includeWeak: options.includeWeak,
         model: options.model,
@@ -54,6 +94,7 @@ export function registerEvalCommand(program: Command): void {
           .filter(Boolean),
         resultsDir: options.resultsDir,
         rulesDir: options.rules,
+        sources: parseSources(options.source),
         split: options.split,
       });
       process.stdout.write(
@@ -103,5 +144,52 @@ export function registerEvalCommand(program: Command): void {
       process.stdout.write(
         `Exported ${labelsToCorpus(file, options.out, options.rules)} labels.\n`
       );
+    });
+  command
+    .command("label <samples>")
+    .description(
+      "Label a lint --samples file yourself, one sample at a time; saves after every answer"
+    )
+    .option("--minutes <n>", "Stop after this many minutes", "120")
+    .action(async (file: string, options: { minutes: string }) => {
+      const minutes = Number(options.minutes);
+      if (!(Number.isFinite(minutes) && minutes > 0)) {
+        throw new Error("--minutes must be a positive number");
+      }
+      const result = await labelSession(file, {
+        input: process.stdin,
+        minutes,
+        output: process.stdout,
+      });
+      process.stdout.write(
+        `\n${result.labelled} labelled, ${result.unsure} unsure, ${result.remaining} left${result.stopped === "timebox" ? " (timebox reached)" : ""}.\nNext: taste-lint eval gaps ${file}, then taste-lint eval labels ${file} --out data/corpus/<name>.jsonl\n`
+      );
+    });
+  command
+    .command("gaps <samples...>")
+    .description(
+      "Group hand labels by rule: unsure answers and notes show where the rubric needs sharpening"
+    )
+    .action((files: string[]) => {
+      process.stdout.write(renderGaps(labelGaps(files)));
+    });
+  command
+    .command("agreement <hand> <other>")
+    .description(
+      "Compare another labeller's sample file (usually AI) with your hand labels, per rule"
+    )
+    .option(
+      "--floor <p>",
+      "Agreement lower bound needed to trust the other labeller",
+      "0.8"
+    )
+    .action((hand: string, other: string, options: { floor: string }) => {
+      const floor = Number(options.floor);
+      if (!(Number.isFinite(floor) && floor > 0 && floor < 1)) {
+        throw new Error("--floor must be a number between 0 and 1 (exclusive)");
+      }
+      const rows = labelAgreement(hand, other, floor);
+      process.stdout.write(renderAgreement(rows, floor));
+      process.exitCode = rows.every((r) => r.trusted) ? 0 : 1;
     });
 }

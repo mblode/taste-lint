@@ -1,3 +1,5 @@
+# The short denial forms ("A folder, not a portal") need a judge, so they live
+# in copywriting-antithesis-contrast; this rule stays exact enough to be active.
 # Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
 id: copywriting-antithesis-frame
 title: Sets up a claim by denying one nobody made
@@ -8,9 +10,9 @@ source:
     path: skills/ghostwriter/references/tells.md,
     line: 12,
   }
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
-  regex: "(?<![\"“‘'])\\bnot (?:just|only|merely) (?:a |an |the |about )?[\\w-]+(?: [\\w-]+){0,4}[,;]? but\\b|(?<![\"“‘'])\\b(?:it|this|that)(?:['’]s| is)(?: not|n['’]t) (?:just |only )?(?:about )?[^.!?,;]{1,40}[.,;] (?:it|this|that)(?:['’]s| is)\\b"
+  regex: "(?<![\"“‘'])\\bnot (?:just|only|merely) (?:a |an |the |about )?[\\w-]+(?: [\\w-]+){0,4}(?:[,;]? but|[,;] (?:it|they|we|this)(?:['’](?:s|re)| is| are))\\b|(?<![\"“‘'])\\b(?:it|this|that)(?:['’]s| is)(?: not|n['’]t) (?:just |only )?(?:about )?[^.!?,;]{1,40}[.,;] (?:it|this|that)(?:['’]s| is)\\b"
   flags: giu
 severity: minor
 fix:

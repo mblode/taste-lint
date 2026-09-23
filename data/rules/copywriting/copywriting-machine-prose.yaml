@@ -42,11 +42,14 @@ mechanical:
       tapestry,
       testament to,
       it's important to remember,
+      here is some,
+      here's some,
+      here are some,
     ]
 question:
   context: []
   instructions: >-
-    Read the TEXT. Return true when it reads as generated boilerplate: a chatbot opener ("I'd be happy to", "Let's dive in"), a vague attribution ("experts believe", "studies show") with no source, a stock flourish ("game-changer", "unlock the power of", "in today's fast-paced world", "a testament to"), or a symmetrical both-sides summary that adds no information. Return false when the TEXT makes a specific claim with a named source, gives an instruction, tells a concrete story, or quotes these phrases in order to warn against them.
+    Read the TEXT. Return true when it reads as generated boilerplate: a chatbot opener or preamble ("I'd be happy to", "Let's dive in", "Here is some copy for"), a vague attribution ("experts believe", "studies show") with no source, a stock flourish ("game-changer", "unlock the power of", "in today's fast-paced world", "a testament to"), a sentence that announces its own importance instead of making the point ("here is where it gets interesting", "the implications are significant"), a false contrast that denies a claim nobody made ("not just a tool, it is a way of working"), or a symmetrical both-sides summary that adds no information. Return false when the TEXT makes a specific claim with a named source, gives an instruction, tells a concrete story, or quotes these phrases in order to warn against them.
   criteria:
     true:
       what: Generated boilerplate.
