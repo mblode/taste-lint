@@ -22,7 +22,7 @@ export function ProofStats({ stats }: { stats: ProofStat[] }) {
           <dt className="text-sm text-muted-foreground">
             {stat.href ? (
               <a
-                className="underline underline-offset-4 hover:decoration-2"
+                className="-my-3.5 inline-block py-3.5 underline underline-offset-4 hover:decoration-2"
                 href={stat.href}
                 rel="noopener noreferrer"
                 target="_blank"
