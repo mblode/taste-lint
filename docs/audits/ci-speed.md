@@ -35,13 +35,22 @@ Predicted: the run takes the longer of the two jobs, each about 18s of setup plu
 
 ## After
 
-Pending: the first runs on `main` after this change.
+Run 35908788242 on `main` (commit 88ea1aa), first attempt plus two re-runs:
+
+| Attempt | Run  | `cli` | `web` | `web` queue |
+| ------- | ---- | ----- | ----- | ----------- |
+| 1       | 1:31 | 0:48  | 0:54  | 0:37        |
+| 2       | 0:47 | 0:44  | 0:44  | 0:02        |
+| 3       | 0:56 | 0:53  | 0:47  | 0:03        |
+
+Median 0:56, down from 1:22. Observed saving: 26 seconds. Projected saving: 22 seconds. Confirmed. The first attempt waited 37s for a hosted runner; the other repositories on this account start three to five jobs within seconds, so the wait was provisioning, not a concurrency cap. Runner time rose from about 1:29 to 1:40 per run.
 
 ## Trend
 
 | Week       | Test files | Median run | p90  |
 | ---------- | ---------- | ---------- | ---- |
 | 2026-09-21 | 36         | 1:22       | 1:31 |
+| 2026-09-24 | 36         | 0:56       | 1:31 |
 
 This is far under the five-minute point where an agent loop starts waiting on checks. Re-measure when the median passes 2:30 or the test count doubles.
 
