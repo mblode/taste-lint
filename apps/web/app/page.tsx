@@ -213,7 +213,7 @@ export default async function Home() {
               <li className="flex items-center gap-3" key={link.label}>
                 {index > 0 && <span aria-hidden="true">·</span>}
                 <a
-                  className="inline-flex min-h-12 items-center text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex min-h-12 min-w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                   href={link.href}
                 >
                   {link.label}
