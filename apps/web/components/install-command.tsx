@@ -78,7 +78,7 @@ function CommandPanel({
         </code>
         <button
           aria-label={`Copy install command ${label.toLowerCase()}`}
-          className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 font-medium text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] [&_svg]:size-4"
+          className="inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 font-medium text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] [&_svg]:size-4"
           onClick={copy}
           type="button"
         >
@@ -87,8 +87,20 @@ function CommandPanel({
           ) : (
             <CopyIcon aria-hidden="true" />
           )}
-          <span className="min-w-[6ch] text-start">
-            {state === "copied" ? "Copied" : "Copy"}
+          {/* Both labels share one grid cell, so the button is exactly as wide
+              as "Copied" and does not shift when the label swaps. */}
+          <span className="grid text-start">
+            <span
+              className={`col-start-1 row-start-1 ${state === "copied" ? "invisible" : ""}`}
+            >
+              Copy
+            </span>
+            <span
+              aria-hidden={state !== "copied"}
+              className={`col-start-1 row-start-1 ${state === "copied" ? "" : "invisible"}`}
+            >
+              Copied
+            </span>
           </span>
         </button>
       </div>

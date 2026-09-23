@@ -267,6 +267,27 @@
   display: none;
 }
 
+/* Accordion (Faq, RuleList): native <details> keeps every answer in the
+   server HTML, so the motion lives here. Height and opacity ease together on
+   the Blode accordion curve; browsers without interpolate-size snap the
+   height and still fade. */
+details {
+  interpolate-size: allow-keywords;
+}
+details::details-content {
+  block-size: 0;
+  opacity: 0;
+  overflow-y: clip;
+  transition:
+    block-size 300ms cubic-bezier(0.645, 0.045, 0.355, 1),
+    opacity 300ms cubic-bezier(0.645, 0.045, 0.355, 1),
+    content-visibility 300ms allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
 /* Reveal: the one once-only moment, below the fold. Visible by default so
    the server HTML and no-script readers see everything. */
 .reveal[data-phase="waiting"] {
