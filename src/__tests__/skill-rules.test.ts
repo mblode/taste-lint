@@ -105,6 +105,42 @@ describe.each([
     "# Demo\n\n```\nnpm test\n```\n",
     "# Demo\n\n```bash\nnpm test\n```\n",
   ],
+  [
+    "copywriting-dead-link",
+    "a.tsx",
+    '<a href="#">Start free trial</a>',
+    '<a href="/signup">Start free trial</a>',
+  ],
+  [
+    "craft-decorative-ordinals",
+    "a.tsx",
+    'const cards = [{ number: "01", title: "Sync" }];',
+    'const steps = [{ title: "Install" }, { title: "Pick a folder" }];',
+  ],
+  [
+    "copywriting-external-arrow-internal-link",
+    "a.tsx",
+    '<a href="/docs">Read the docs ↗</a>',
+    '<a href="https://github.com/x" target="_blank">Source ↗</a>',
+  ],
+  [
+    "copywriting-slogan-headings",
+    "a.tsx",
+    "<h1>Same file. Different flights. Both edits kept.</h1>",
+    "<h1>Keep a shared folder in sync across your team’s laptops.</h1>",
+  ],
+  [
+    "craft-eyebrow-overuse",
+    "a.tsx",
+    '<p className="text-xs uppercase">Part 0</p>\n<h2>Heading 0</h2>\n<p className="text-xs uppercase">Part 1</p>\n<h2>Heading 1</h2>\n<p className="text-xs uppercase">Part 2</p>\n<h2>Heading 2</h2>\n',
+    '<p className="text-xs uppercase">Part 0</p>\n<h2>Heading 0</h2>\n<p className="text-xs uppercase">Part 1</p>\n<h2>Heading 1</h2>\n',
+  ],
+  [
+    "copywriting-fact-padding",
+    "a.tsx",
+    "<p>14-day trial</p><p>14 day trial</p><p>Start your 14-day trial</p><p>14-day free</p>",
+    "<p>14-day trial, no card.</p><p>$8 per seat per month.</p>",
+  ],
 ])("%s", (id, file, bad, good) => {
   it("fires on the tell", () => {
     expect(fires(id, file, bad)).toBe(true);

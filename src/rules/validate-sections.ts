@@ -215,6 +215,7 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
     "docType",
     "role",
     "smartQuotesAtBuild",
+    "minWords",
   ]);
   const out: Preconditions = {};
   if (raw.notInCode !== undefined) {
@@ -238,6 +239,12 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
       fail(file, "preconditions.smartQuotesAtBuild may only be false");
     }
     out.smartQuotesAtBuild = false;
+  }
+  if (raw.minWords !== undefined) {
+    if (!Number.isInteger(raw.minWords) || (raw.minWords as number) < 1) {
+      fail(file, "preconditions.minWords must be a positive integer");
+    }
+    out.minWords = raw.minWords as number;
   }
   return out;
 };

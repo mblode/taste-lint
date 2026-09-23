@@ -1,3 +1,5 @@
+# Widened 2026-09-23 with the tee-ups Opus, Fable and Grok wrote in the
+# generation test.
 # Hand-cut from mblode/agent-skills skills/ghostwriter/references/tells.md (structure tells).
 id: copywriting-tee-up
 title: Tees up a point instead of stating it
@@ -8,9 +10,9 @@ source:
     path: skills/ghostwriter/references/tells.md,
     line: 15,
   }
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
-  regex: "(?<![\"“‘'])\\bhere['’]s the (?:thing|kicker|catch|deal|twist)\\b|(?<![\"“‘'])\\bthe (?:kicker|catch|twist)\\?|(?<![\"“‘'])\\bwhat struck me (?:was|is)\\b|(?<![\"“‘'])\\blet that sink in\\b"
+  regex: "(?<![\"“‘'])\\bhere['’]s the (?:thing|kicker|catch|deal|twist)\\b|(?<![\"“‘'])\\bthe (?:kicker|catch|twist)\\?|(?<![\"“‘'])\\bwhat struck me (?:was|is)\\b|(?<![\"“‘'])\\blet that sink in\\b|(?<![\"“‘'])\\bhere['’]s (?:a quick way to|the short version)\\b|(?<![\"“‘'])\\bthe part worth knowing\\b|(?<![\"“‘'])\\bthat['’]s the whole (?:pitch|idea|point|story)\\b"
   flags: giu
 severity: minor
 fix:

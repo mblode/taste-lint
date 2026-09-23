@@ -10,22 +10,30 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: generic_language
-unit: [paragraph]
+# Prose wherever it is: a Markdown paragraph or a JSX sentence. Under five
+# words is a label, button or greeting, not prose.
+unit: [paragraph, jsx-text]
+preconditions: { minWords: 5, notInCode: true }
 question:
   context: [docType]
   instructions: >-
-    Does the writing rely on generic or interchangeable language? Ignore a passage where the nouns and verbs name specific things, even if a few common words appear.
+    Could TEXT sit unchanged on a competitor's page and stay just as true? Return true when it could because its words are abstract (platform, solution, experience, empower, seamless, value, teamwork, flow) instead of naming what this product does. Return false when TEXT names a specific object, action, number, limit or place, however short, and for instructions, validation messages, greetings, sign-offs, labels, and titles or headings that say what a page or section contains. A slogan headline is judged like any sentence.
   criteria:
     true:
       what: Words that could describe any product or team.
       examples:
         - "Our robust, seamless platform empowers teams to unlock powerful insights and drive meaningful outcomes."
         - "This comprehensive approach leverages best practices to deliver value at scale."
+        - "Collaboration, Elevated for the Modern Team"
+        - "Less busywork. More momentum."
     false:
-      what: Words that name the thing.
+      what: Words that name the thing, however plainly.
       examples:
         - "The sync engine merges edits made offline without overwriting anyone else, so field staff can work in basements and tunnels."
-        - "The audit found 14 buttons labelled Submit; renaming them to the action cut support tickets about forms by a quarter."
+        - "Free for up to 3 projects. No card needed."
+        - "Use 60 characters or fewer."
+        - "Where your files live, and what happens when you go offline."
+        - "How Northwind merges two offline edits"
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:

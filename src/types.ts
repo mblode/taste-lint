@@ -79,6 +79,8 @@ export const CONTEXT_KEYS = [
   "element",
   "role",
   "neighbours",
+  "earlier",
+  "brief",
 ] as const;
 export type ContextKey = (typeof CONTEXT_KEYS)[number];
 
@@ -132,6 +134,8 @@ export interface Preconditions {
   role?: Role[];
   /** Skip Markdown units when the project curls quotes at build time. */
   smartQuotesAtBuild?: false;
+  /** Skip units shorter than this many words: a label or a greeting is not prose. */
+  minWords?: number;
 }
 
 export interface ReviewProcedure {
@@ -205,6 +209,10 @@ export interface UnitContext {
   fontScale?: Record<string, string>;
   section?: string;
   headingAbove?: string;
+  /** Sentences said earlier in the file that share content words with this unit. */
+  earlier?: string;
+  /** What the product is and does, from `lint --brief`: the facts copy may state. */
+  brief?: string;
   docType: DocType;
   element?: string;
   attr?: string;
@@ -443,6 +451,8 @@ export interface CorpusItem {
   labelSource: "manifest" | "manifest-weak" | "hand" | "sweep" | "ai";
   labelModel?: string;
   labelPromptHash?: string;
+  /** Why a hand labeller decided as they did; feeds rubric edits. */
+  note?: string;
   source: { repo: string; path: string; id?: string; option?: string };
   split: "dev" | "holdout";
 }

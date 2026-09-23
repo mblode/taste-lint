@@ -10,11 +10,14 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: fabricated_specificity
-unit: [paragraph]
+# Prose wherever it is: a Markdown paragraph or a JSX sentence. Under five
+# words is a label, button or greeting, not prose.
+unit: [paragraph, jsx-text]
+preconditions: { minWords: 5, notInCode: true }
 question:
-  context: [docType]
+  context: [docType, brief]
   instructions: >-
-    Does the writing include suspiciously specific details without grounding or attribution? Ignore a number, name or date the passage attributes to a source, a test, or the writer\u0027s own measurement.
+    Does the writing include suspiciously specific details without grounding or attribution? Ignore a number, name or date the passage attributes to a source, a test, or the writer’s own measurement. When BRIEF is given, it is the product’s own source of truth: a detail BRIEF states is grounded, and a specific that BRIEF does not state is ungrounded however plainly it is written.
   criteria:
     true:
       what: Precise-sounding detail with no source in sight.

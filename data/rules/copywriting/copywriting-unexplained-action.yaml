@@ -8,11 +8,14 @@ source:
   repo: every.to
   path: https://every.to/also-true-for-humans/mini-vibe-check-typesafe-s-jev-judged-everything-i-ve-written-in-0-7-seconds
   line: 1
-unit: [paragraph]
+# Prose wherever it is: a Markdown paragraph or a JSX sentence. Under five
+# words is a label, button or greeting, not prose.
+unit: [paragraph, jsx-text]
+preconditions: { minWords: 5, notInCode: true }
 question:
   context: [docType]
   instructions: >-
-    Read the TEXT. Return true when it asks the reader to do, or describes someone doing, an action whose concrete steps cannot be pictured from the words (teach a calendar, activate the culture, leverage the learnings). Return false when the action names a thing a person could start doing now, or when the TEXT is a heading or label that a following paragraph will explain.
+    Read the TEXT. Return true when it asks the reader to do, or describes someone doing, an action whose concrete steps cannot be pictured from the words (teach a calendar, activate the culture, leverage the learnings). Return false when the action names a thing a person could start doing now, or when the TEXT is a heading or label that a following paragraph will explain, a button label, or a numbered step in a procedure.
   criteria:
     true:
       what: An action with no picturable steps.

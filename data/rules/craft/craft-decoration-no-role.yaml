@@ -1,3 +1,4 @@
+# The mechanical regex is widened from the source: an empty element hung off the box by a negative offset counts as decorative, and so does a large bordered ring (GPT-6 and Opus output, 2026-09-23).
 id: craft-decoration-no-role
 title: Stacked decorative layers with no role
 categoryId: generic-decoration
@@ -14,7 +15,7 @@ unit:
   - source
 mechanical:
   flags: gus
-  regex: <(?:div|span)\b(?=[^>]*?(?:\babsolute\b|\bfixed\b))(?=[^>]*?(?:pointer-events-none|aria-hidden))(?=[^>]*?(?:gradient|bg-linear|bg-radial|\bblur|backdrop-blur|mix-blend|opacity-))(?![^>]*?(?:size-\[max\(100%|pointer-fine:hidden|bg-clip-text|\bmask-))[^>]*?/>
+  regex: '<(?:div|span)\b(?=[^>]*?(?:\babsolute\b|\bfixed\b))(?=[^>]*?(?:pointer-events-none|aria-hidden|["\s]-(?:inset|top|right|bottom|left)-(?:[2-9]|\d{2})\b))(?=[^>]*?(?:gradient|bg-linear|bg-radial|\bblur|backdrop-blur|mix-blend|opacity-|(?=[^>]*?\brounded-full\b)(?=[^>]*?\bborder\b)(?=[^>]*?\b(?:h|w|size)-(?:[2-9]\d|\d{3})\b)))(?![^>]*?(?:size-\[max\(100%|pointer-fine:hidden|bg-clip-text|\bmask-))[^>]*?/>'
 severity: minor
 fix:
   hint: "A blurred blob, a grid overlay, a noise layer and a radial glow behind the heading: absolutely positioned elements that contain nothing and mean nothing. Cut them until each remaining layer has a job a reader could name."

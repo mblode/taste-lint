@@ -13,7 +13,7 @@ import { AnswerCache } from "../map/cache.js";
 import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "../map/jev.js";
 import { loadRules, readTuning, resolveRulesDir } from "../rules/load.js";
 import { validateRule } from "../rules/validate.js";
-import type { Evaluate, Rule, Tuning } from "../types.js";
+import type { CorpusItem, Evaluate, Rule, Tuning } from "../types.js";
 import { loadCorpus, resolveCorpusDir } from "./corpus.js";
 import { evaluateRules, scoreItems } from "./metrics.js";
 import type { RuleEval } from "./metrics.js";
@@ -30,7 +30,15 @@ export interface TuneOptions {
   model?: string;
   apiKey?: string;
   minItems?: number;
+  /** Only items from these label sources, e.g. `hand`. */
+  sources?: CorpusItem["labelSource"][];
 }
+
+const fromSources = (
+  items: CorpusItem[],
+  sources?: CorpusItem["labelSource"][]
+): CorpusItem[] =>
+  sources ? items.filter((item) => sources.includes(item.labelSource)) : items;
 
 export interface TuneContext {
   evaluate?: Evaluate;
@@ -131,9 +139,10 @@ export const runTune = async (
   const knownRuleIds = new Set(
     loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
-  const allItems = loadCorpus(resolveCorpusDir(options.corpusDir), rules, {
-    knownRuleIds,
-  });
+  const allItems = fromSources(
+    loadCorpus(resolveCorpusDir(options.corpusDir), rules, { knownRuleIds }),
+    options.sources
+  );
   const items = allItems.filter((item) => item.split === "dev");
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
@@ -245,6 +254,7 @@ export interface TuneAbOptions {
   resultsDir?: string;
   model?: string;
   apiKey?: string;
+  sources?: CorpusItem["labelSource"][];
 }
 
 export const runTuneAb = async (
@@ -267,9 +277,10 @@ export const runTuneAb = async (
   const knownRuleIds = new Set(
     loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
-  const items = loadCorpus(resolveCorpusDir(options.corpusDir), [rule], {
-    knownRuleIds,
-  }).filter((i) => i.split === "dev" && rule.id in i.labels);
+  const items = fromSources(
+    loadCorpus(resolveCorpusDir(options.corpusDir), [rule], { knownRuleIds }),
+    options.sources
+  ).filter((i) => i.split === "dev" && rule.id in i.labels);
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(path.join(resultsDir, "cache"));

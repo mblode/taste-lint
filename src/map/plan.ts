@@ -31,6 +31,8 @@ export interface Plan {
   skipped: Map<string, Record<string, string>>;
 }
 
+const WORD = /[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu;
+
 // Rendered units come from a URL, not a file, so only the unit kind gates them.
 const inScope = (rule: Rule, unit: Unit): boolean =>
   unit.kind === "element" ||
@@ -53,6 +55,10 @@ const passesPreconditions = (
     return false;
   }
   if (p.role && !p.role.includes(unit.context.role)) {
+    return false;
+  }
+  // Words, not whitespace tokens: "/ seat / month" is two words.
+  if (p.minWords && (unit.text.match(WORD)?.length ?? 0) < p.minWords) {
     return false;
   }
   if (

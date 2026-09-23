@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { loadCorpus, splitFor } from "../eval/corpus.js";
 import { InputError } from "../lib/errors.js";
+import { suppressionsFor } from "../reduce/suppress.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import { buildQuestion } from "../rules/question.js";
 import type { CorpusItem, Rule, SystemOneNoul, Unit } from "../types.js";
@@ -15,27 +16,50 @@ export interface LabelSample {
   criterion: string;
   rubric?: SystemOneNoul;
   label: boolean | null;
+  /** Hand labelling: the labeller could not decide, a rubric gap. */
+  unsure?: boolean;
+  note?: string;
   item: Omit<CorpusItem, "labels" | "labelSource">;
 }
+// Likely failures first, so a timeboxed labelling session spends its time on
+// them: the author's own ignore comment, the mechanical check firing where
+// Jev said no, then Jev's review band. Order hints the stratum, never the score.
+const STRATA = ["ignored", "disagree", "review", "high", "negative"] as const;
 export const makeSamples = (
   units: Unit[],
   rules: Rule[],
   answers: Map<string, Record<string, number>>,
   negatives: Map<string, Set<string>>,
   perStratum = 3,
-  sourceRepo = "scan"
+  sourceRepo = "scan",
+  sources = new Map<string, string[]>()
 ): LabelSample[] => {
   const buckets = new Map<string, LabelSample[]>();
   const seen = new Set<string>();
   const semanticRules = rules.filter((rule) => rule.question);
   for (const unit of units) {
     for (const rule of semanticRules) {
+      const answered = answers.get(unit.id)?.[rule.id];
       const probability =
-        answers.get(unit.id)?.[rule.id] ??
-        (negatives.get(unit.id)?.has(rule.id) ? 0 : undefined);
+        answered ?? (negatives.get(unit.id)?.has(rule.id) ? 0 : undefined);
       if (probability === undefined) {
         continue;
       }
+      const ignores = suppressionsFor(sources.get(unit.file) ?? [], unit.line);
+      const stratum: (typeof STRATA)[number] =
+        ignores.has(rule.id) ||
+        ignores.has("all") ||
+        ignores.has(rule.source.ruleId?.toLowerCase() ?? rule.id)
+          ? "ignored"
+          : answered !== undefined &&
+              rule.mechanical &&
+              answered < rule.thresholds.review
+            ? "disagree"
+            : probability < rule.thresholds.review
+              ? "negative"
+              : probability < rule.thresholds.act
+                ? "review"
+                : "high";
       const { docType, role, headingAbove } = unit.context;
       const context = {
         docType,
@@ -83,17 +107,17 @@ export const makeSamples = (
         rubric,
         ruleId: rule.id,
       };
-      const bucket = `${rule.id}:${docType}:${probability < rule.thresholds.review ? "negative" : probability < rule.thresholds.act ? "review" : "high"}`;
+      const bucket = `${STRATA.indexOf(stratum)}:${rule.id}:${docType}`;
       const list = buckets.get(bucket) ?? [];
       list.push(sample);
       buckets.set(bucket, list);
     }
   }
-  return [...buckets.values()]
-    .flatMap((list) =>
+  return [...buckets.entries()]
+    .toSorted(([a], [b]) => a.localeCompare(b))
+    .flatMap(([, list]) =>
       list.toSorted((a, b) => a.id.localeCompare(b.id)).slice(0, perStratum)
-    )
-    .toSorted((a, b) => a.id.localeCompare(b.id));
+    );
 };
 export const labelsToCorpus = (
   file: string,
@@ -160,6 +184,9 @@ export const labelsToCorpus = (
     }
     items.push({
       ...row.item,
+      ...(typeof row.note === "string" && row.note.trim()
+        ? { note: row.note.trim() }
+        : {}),
       labelSource: ai ? "ai" : "hand",
       ...(ai
         ? {

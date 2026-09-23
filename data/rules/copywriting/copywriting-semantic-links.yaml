@@ -4,7 +4,7 @@ id: copywriting-semantic-links
 title: Use Semantic Links for Navigation
 categoryId: page-structure
 source:
-  line: 9
+  line: 10
   path: skills/ui-design/rules/nav-semantic-links.md
   repo: mblode/agent-skills
   ruleId: nav-semantic-links
@@ -26,4 +26,4 @@ review:
   exceptions: A redundant card shortcut around an accessible real link can be intentional.
   evidence: The actual destination, nested links, handler behavior, and keyboard or browser navigation options.
   verification: Verify keyboard navigation, open-in-new-tab, and copy-link behavior while preserving legitimate larger click targets.
-  sourceHash: 09e2de7a3e263b2dd145eb661ac460d9e49e3b360841bb3e8484f5f62d602347
+  sourceHash: 156607414ec8464ecc9e40d0441c9242ec94547f5de51ed83d04d6333c305470

@@ -10,7 +10,7 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: boilerplate_offer
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
   flags: gui
   regex: "let me know|feel free to|happy to help|hope this helps|if you have any (?:other |further )?questions|reach out if"

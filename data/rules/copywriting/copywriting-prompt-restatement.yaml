@@ -10,11 +10,14 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: prompt_restatement
-unit: [paragraph]
+# Prose wherever it is: a Markdown paragraph or a JSX sentence. Under five
+# words is a label, button or greeting, not prose.
+unit: [paragraph, jsx-text]
+preconditions: { minWords: 5, notInCode: true }
 question:
   context: [docType]
   instructions: >-
-    Does the writing read like it is restating an implied prompt or assignment? Ignore a heading or a stated question the passage then answers.
+    Does the writing read like it is restating an implied prompt or assignment? Ignore a heading or a stated question the passage then answers. Return false for a greeting, a sign-off, a button or link label, a bare list label, or a heading on its own: they are not prose.
   criteria:
     true:
       what: The passage announces the task it was given instead of doing it.

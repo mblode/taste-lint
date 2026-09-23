@@ -74,11 +74,15 @@ A Jev rule is promoted only by `taste-lint tune --write`, and only when the fixe
 
 ## Promoting a rule
 
-1. Run a lint with `--samples results/blind.json` to export blind samples for the Jev rules that ran, without their predicted scores.
-2. Label each sample `true`, `false` or `null`. `scripts/prepare-labels.mjs` prepares the file for an agent session.
-3. `taste-lint eval labels results/blind.json --out data/corpus/<name>.jsonl` converts the labels into a corpus.
-4. `taste-lint eval --only <rule>` reports precision, recall and calibration with Wilson intervals.
-5. `taste-lint tune --write` promotes the rule or leaves it review-only.
+A judge nobody has checked settles hard cases with the model’s biases. Work this loop in order and repeat it; human time comes last, spent only on what the AI loop can’t settle.
+
+1. **Get it working.** `taste-lint eval` should report `Jev: N requests` with no errors. A rejected key fails the run instead of reporting a judge that never fires.
+2. **Find failure modes.** `taste-lint eval --only <rule> --split dev --disagreements` lists every row where the judge and the label disagree at the review threshold. Group them by cause first: the judge was never asked, the rubric reads plain text as a violation, or the label is wrong.
+3. **Fix them with AI.** Have an agent rewrite the rule’s `question` from the dev disagreements. Confirm each wording with `taste-lint tune ab --rule <rule> --variant <file>`, then check the holdout with `eval --split holdout`. Each edit should be a general policy, not a patch for one row.
+4. **Then optimise cost**, then speed: gates, preconditions and batching, measured with the same eval.
+5. **Then label the residue yourself.** Export samples with `lint --samples results/blind.json` (likely failures first), label them with `taste-lint eval label results/blind.json --minutes 120`, list rubric gaps with `eval gaps`, and import with `eval labels results/blind.json --out data/corpus/<name>.jsonl`. `tune --source hand --write` then promotes the rule, or leaves it review-only, on the untouched holdout.
+
+To reuse an AI labeller, label the same samples both ways and run `taste-lint eval agreement results/blind.json results/ai.json`. Trust its labels only for rules where the agreement lower bound clears the floor.
 
 A wrong finding is corpus evidence. Add the unit with the correct label rather than lowering a threshold by hand.
 
@@ -122,6 +126,7 @@ console.log(result.summary, result.usage.costUsd);
 | `--dry-run` |  | Plan and print units, requests and estimated cost without calling Jev |
 | `--since <ref>` |  | Report only findings on lines changed since a Git revision |
 | `--only <ids>` |  | Comma-separated rule ids |
+| `--brief <file>` |  | What the product is and does. Copy that claims anything else is flagged by `copywriting-invented-capability` |
 | `--exclude <globs>` |  | Comma-separated globs to skip, added to `taste-lint.config.json` |
 | `--fail-on <severity>` | `minor` | Lowest severity that fails the run |
 | `--fix` |  | Apply deterministic fixes to act-band findings |

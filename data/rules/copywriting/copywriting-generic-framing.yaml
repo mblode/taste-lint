@@ -1,6 +1,7 @@
 # One of the 21 AI-writing checks Every ran with Jev (Mike Taylor, "Jev judged
-# everything I've written in 0.7 seconds", 15 Sep 2026). The question is the
-# published wording; the second sentence says what to ignore.
+# everything I've written in 0.7 seconds", 15 Sep 2026). The question started as
+# the published wording; it now also says what cannot be a violation, because
+# Jev read plain labels, identifiers and instructions as violations (2026-09-23 eval).
 # Candidate list from EveryInc/compound-writing skills/cw-ai-check/SKILL.md, category 1 (generic frames and openers).
 id: copywriting-generic-framing
 title: Relies on generic framing instead of concrete context
@@ -10,22 +11,27 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: generic_framing
-unit: [paragraph]
+# Prose wherever it is: a Markdown paragraph or a JSX sentence. Under five
+# words is a label, button or greeting, not prose.
+unit: [paragraph, jsx-text]
+preconditions: { minWords: 5, notInCode: true }
 question:
   context: [docType]
   instructions: >-
-    Does the writing rely on generic framing instead of concrete context? Ignore a first sentence that names a specific product, person, number, place or date.
+    Does the writing open or connect with a generic frame, a sentence that sets up the topic with claims that would fit any topic, instead of concrete context? Only a sentence that frames can be generic framing. Answer no for text that frames nothing: labels, names, headings, identifiers, URLs, placeholders, instructions to the reader, and plain statements of fact or opinion. Short or unspecific is not the same as generic. Ignore a first sentence that names a specific product, person, number, place or date.
   criteria:
     true:
-      what: A frame that would fit any topic.
+      what: A setup sentence whose frame would fit any topic.
       examples:
         - "In today's fast-paced world, teams need tools that help them move quickly and stay aligned."
         - "When it comes to onboarding, first impressions matter more than ever."
     false:
-      what: A frame anchored in the specific situation.
+      what: A frame anchored in the specific situation, or text that does no framing at all.
       examples:
         - "Our onboarding email had a 9 percent click rate in August; the one paragraph we changed took it to 21."
         - "Three of the five new hires this quarter could not find the deploy runbook in their first week."
+        - "Run commands from the repository root:"
+        - "Pricing"
 thresholds: { review: 0.4, act: 0.75 }
 severity: minor
 fix:

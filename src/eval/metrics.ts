@@ -9,7 +9,12 @@ import { makeRecorder } from "../lib/record.js";
 import { binaryMetrics, calibrationTable } from "../lib/stats.js";
 import type { BinaryMetrics } from "../lib/stats.js";
 import { AnswerCache } from "../map/cache.js";
-import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "../map/jev.js";
+import {
+  DEFAULT_MODEL,
+  evaluateFromEnv,
+  KEY_HINT,
+  ProviderError,
+} from "../map/jev.js";
 import { judge } from "../map/judge.js";
 import type { JevJob } from "../map/plan.js";
 import { band } from "../reduce/bands.js";
@@ -18,6 +23,7 @@ import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
 import { abstainCandidates } from "./candidates.js";
 import { loadCorpus, resolveCorpusDir, unitFromItem } from "./corpus.js";
 import { corpusCoverage, pairedOutcomes } from "./coverage.js";
+import { renderDisagreements } from "./label.js";
 
 export interface EvalOptions {
   check?: boolean;
@@ -26,6 +32,10 @@ export interface EvalOptions {
   only?: string[];
   split?: "dev" | "holdout" | "all";
   includeWeak?: boolean;
+  /** Only items from these label sources; `hand` measures agreement with you. */
+  sources?: CorpusItem["labelSource"][];
+  /** List each item where the judge and the label disagree at the review threshold. */
+  disagreements?: boolean;
   dryRun?: boolean;
   noCache?: boolean;
   resultsDir?: string;
@@ -324,8 +334,12 @@ export const runEval = async (
   if (options.split && options.split !== "all") {
     items = items.filter((i) => i.split === options.split);
   }
+  if (options.sources) {
+    const sources = new Set(options.sources);
+    items = items.filter((i) => sources.has(i.labelSource));
+  }
   if (!items.length) {
-    throw new Error("No corpus items in the selected split.");
+    throw new Error("No corpus items in the selected split and label sources.");
   }
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
@@ -351,6 +365,11 @@ export const runEval = async (
       model,
       recorder,
     });
+  // A rejected key leaves every answer unknown; metrics over that would read
+  // as a judge that never fires rather than a judge that never ran.
+  if (unknowns.some((u) => u.reason === "auth")) {
+    throw new ProviderError("auth", 401);
+  }
   const labelSources: Record<string, number> = {};
   for (const item of items) {
     labelSources[item.labelSource] = (labelSources[item.labelSource] ?? 0) + 1;
@@ -388,7 +407,10 @@ export const runEval = async (
       (labelSources.ai
         ? `AI-labeled reference: ${labelSources.ai} items. Metrics measure agreement with AI labels, not human judgments.\n`
         : "") +
-      renderEval(evals, usage, Boolean(options.dryRun), pendingRequests),
+      renderEval(evals, usage, Boolean(options.dryRun), pendingRequests) +
+      (options.disagreements && !options.dryRun
+        ? renderDisagreements(evals, items, rules)
+        : ""),
     rules: evals,
     usage,
   };

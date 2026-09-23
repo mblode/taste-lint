@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern, narrowed to JSX.
+id: copywriting-external-arrow-internal-link
+title: External-link arrow on a link that stays on the site
+categoryId: page-structure
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-external-arrow-internal-link.md
+  line: 10
+  ruleId: slop-external-arrow-internal-link
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '<(?:(?:a|Link)\b(?![^>]*target="_blank")(?:=>|[^>])*\bhref="(?:#|/(?!/))[^"]*"|button\b)(?:=>|[^>])*>(?:(?!</(?:a|Link|button)>)[\s\S]){0,300}?(?:↗|&#8599;|&nearr;|ArrowUpRight|ExternalLink)'
+  flags: gu
+severity: minor
+fix:
+  hint: Remove the arrow. It promises a new site or tab; keep it for links that leave.
+status: review-only
+review:
+  applicability: "An up-right arrow sits on a link to a route or anchor on the same site."
+  exceptions: "A link that opens a new tab or another site, where the arrow is true."
+  evidence: "The href and target of the link carrying the arrow."
+  verification: "Confirm the link stays on the site, then remove the arrow."
+  sourceHash: 526719aa2eb755c1615c9100e8c9e433ddfd2965270148b94f1a66841f5f47d4
+handWritten: [mechanical]

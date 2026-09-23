@@ -10,7 +10,7 @@ source:
   path: https://typesafe-parallel-judgment-lab.every-4573.chatgpt.site/downloads/typesafe-lab-source.zip (scripts/run-ai-checker.mjs)
   line: 1
   ruleId: excessive_hedging
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
   phrases:
     - might

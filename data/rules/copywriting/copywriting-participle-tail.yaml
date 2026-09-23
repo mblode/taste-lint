@@ -8,7 +8,7 @@ source:
     path: skills/ghostwriter/references/tells.md,
     line: 16,
   }
-unit: [paragraph]
+unit: [paragraph, jsx-text]
 mechanical:
   regex: "(?<![\"“‘']),\\s+(?:ensuring|highlighting|underscoring|showcasing|emphasi[sz]ing|reinforcing|cementing|solidifying|fostering|signall?ing)\\b"
   flags: giu
