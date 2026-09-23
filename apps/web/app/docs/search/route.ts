@@ -4,7 +4,7 @@ import path from "node:path";
 import docsConfig from "../../../../../docs/docs.json" with { type: "json" };
 
 // Cache Components prerenders this at build time: it reads only files in the
-// repo, never the request (formerly `dynamic = "force-static"`).
+// repo, never the request.
 
 // Blode.md's published tenant does not expose /search yet. Build the same
 // title/path index from our public navigation until that endpoint is available.

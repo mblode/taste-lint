@@ -1,7 +1,7 @@
 import { llmsTxt } from "../../lib/llms.js";
 
 // Nothing here reads the request, so Cache Components prerenders it at build
-// time like robots.txt and sitemap.xml (formerly `dynamic = "force-static"`).
+// time like robots.txt and sitemap.xml.
 
 export const GET = () =>
   new Response(llmsTxt(), {
