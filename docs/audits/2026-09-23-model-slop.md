@@ -15,25 +15,25 @@ No purple gradients, no "Trusted by" logo rows, almost no invented stats or test
 
 ## What replaced it
 
-| Failure                                                                      | Models                                | Caught by                                                             |
-| ---------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------- |
-| Raw palette colours instead of tokens                                        | Opus 157, Fable 111, Grok 64, Sol 44  | `craft-raw-colour-class`                                              |
-| Hex arbitrary values, text under 12px                                        | Astra 278, Sol 158                    | `craft-arbitrary-value`                                               |
-| Traffic-light dots over nothing                                              | Opus, Astra, Sol                      | `craft-faux-product-chrome` (widened to any colour)                   |
-| Blurred blobs and rings hung off the box                                     | Sol, Astra, Opus                      | `craft-decoration-no-role` (widened)                                  |
-| Spaced em dashes in interface copy (unspaced ones are accepted)              | 9 of 12 across Fable, Opus, Sol, Grok | `copywriting-em-dash-in-ui` (new, review-only)                        |
-| `href="#"`                                                                   | Fable 3, Opus 2, Sol 2, Astra 1       | `copywriting-dead-link` (new)                                         |
-| Eyebrow label over nearly every heading                                      | Sol, Astra, Opus                      | `craft-eyebrow-overuse` (new)                                         |
-| 01 / 02 / 03 on cards that are not steps                                     | Astra, Sol                            | `craft-decorative-ordinals` (new)                                     |
-| ↗ on internal links                                                          | Astra                                 | `copywriting-external-arrow-internal-link` (new)                      |
-| Emoji in UI                                                                  | Astra 8, Sol 8                        | `copywriting-emoji-in-ui`                                             |
-| The same few facts restated (the trial 8 times)                              | Opus                                  | `copywriting-fact-padding` (new)                                      |
-| Invented settings, modes and app shell                                       | Grok, Sol                             | Jev only; needs the brief                                             |
-| Competitor claims                                                            | Fable                                 | Jev only                                                              |
-| Slogan fragments ("Same file. Different flights.", "A folder, not a portal") | Astra, Sol, Opus, Fable, Grok         | `copywriting-slogan-headings` (new)                                   |
-| Convergent lines ("Stay in sync. Keep it simple.")                           | Astra and Sol                         | `copywriting-slogan-headings` when in a heading; otherwise not caught |
-| Tee-ups ("Here's a quick way to", "That's the whole pitch")                  | Fable, Opus, Grok                     | `copywriting-tee-up` (widened)                                        |
-| Straight quotes in UI                                                        | Opus 37, Fable 40                     | `typography-straight-quotes`                                          |
+| Failure | Models | Caught by |
+| --- | --- | --- |
+| Raw palette colours instead of tokens | Opus 157, Fable 111, Grok 64, Sol 44 | `craft-raw-colour-class` |
+| Hex arbitrary values, text under 12px | Astra 278, Sol 158 | `craft-arbitrary-value` |
+| Traffic-light dots over nothing | Opus, Astra, Sol | `craft-faux-product-chrome` (widened to any colour) |
+| Blurred blobs and rings hung off the box | Sol, Astra, Opus | `craft-decoration-no-role` (widened) |
+| Spaced em dashes in interface copy (unspaced ones are accepted) | 9 of 12 across Fable, Opus, Sol, Grok | `copywriting-em-dash-in-ui` (new, review-only) |
+| `href="#"` | Fable 3, Opus 2, Sol 2, Astra 1 | `copywriting-dead-link` (new) |
+| Eyebrow label over nearly every heading | Sol, Astra, Opus | `craft-eyebrow-overuse` (new) |
+| 01 / 02 / 03 on cards that are not steps | Astra, Sol | `craft-decorative-ordinals` (new) |
+| ↗ on internal links | Astra | `copywriting-external-arrow-internal-link` (new) |
+| Emoji in UI | Astra 8, Sol 8 | `copywriting-emoji-in-ui` |
+| The same few facts restated (the trial 8 times) | Opus | `copywriting-fact-padding` (new) |
+| Invented settings, modes and app shell | Grok, Sol | Jev only; needs the brief |
+| Competitor claims | Fable | Jev only |
+| Slogan fragments ("Same file. Different flights.", "A folder, not a portal") | Astra, Sol, Opus, Fable, Grok | `copywriting-slogan-headings` (new) |
+| Convergent lines ("Stay in sync. Keep it simple.") | Astra and Sol | `copywriting-slogan-headings` when in a heading; otherwise not caught |
+| Tee-ups ("Here's a quick way to", "That's the whole pitch") | Fable, Opus, Grok | `copywriting-tee-up` (widened) |
+| Straight quotes in UI | Opus 37, Fable 40 | `typography-straight-quotes` |
 
 ## Each model's signature
 
@@ -58,27 +58,27 @@ An audit of every Jev copy finding on the 60 outputs:
 
 Rubric fixes, rerun live on the same outputs:
 
-| Rule               | Before | After | What dropped                                                                                |
-| ------------------ | ------ | ----- | ------------------------------------------------------------------------------------------- |
-| generic-language   | 42     | 22    | greetings, sign-offs, buttons, bare headings; one stock line ("Thanks for giving it a go.") |
-| prompt-restatement | 10     | 5     | the same                                                                                    |
-| unexplained-action | 6      | 5     | a numbered step                                                                             |
-| idea-repetition    | 190    | 165   | little: the judge still flags first mentions                                                |
+| Rule | Before | After | What dropped |
+| --- | --- | --- | --- |
+| generic-language | 42 | 22 | greetings, sign-offs, buttons, bare headings; one stock line ("Thanks for giving it a go.") |
+| prompt-restatement | 10 | 5 | the same |
+| unexplained-action | 6 | 5 | a numbered step |
+| idea-repetition | 190 | 165 | little: the judge still flags first mentions |
 
 ## Fixed from principles
 
 Each fix gives the judge the evidence it was missing, instead of more rubric wording. Rerun live on the same 60 outputs with `--brief` set to the generation facts:
 
-| Rule                   | Rubric fix | Principles fix | Why                                                                                                                                                                  |
-| ---------------------- | ---------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| idea-repetition        | 165        | 26             | Asked only when an earlier sentence in the file shares content words (`EARLIER:` in the state), so a first mention is never judged                                   |
-| generic-language       | 22         | 2              | Prose rules skip units under five words, so labels and price fragments never reach them                                                                              |
-| prompt-restatement     | 5          | 1              | The same gate                                                                                                                                                        |
-| fabricated-specificity | 18         | 0              | With a brief, the brief’s own facts are not fabricated. All 18 old findings were brief facts                                                                         |
-| generic-framing        | 2          | 14             | Prose rules now read JSX text. Most new findings are real slogans                                                                                                    |
-| mechanism-over-outcome | 21         | 52             | The same. Nearly all restate “local network first, encrypted relay” with no outcome, which is the rule’s intent                                                      |
-| invented-capability    | none       | 42             | New, needs `--brief`. At 0.6 and above (14) it catches competitor claims, “Relay only” and invented pricing policies; below 0.6 it is mostly paraphrase of the brief |
-| antithesis-contrast    | none       | 2              | New candidate rule: `, not X` and a sentence opening “Not” are sent to Jev, which separates contrast slogans from plain instructions                                 |
+| Rule | Rubric fix | Principles fix | Why |
+| --- | --- | --- | --- |
+| idea-repetition | 165 | 26 | Asked only when an earlier sentence in the file shares content words (`EARLIER:` in the state), so a first mention is never judged |
+| generic-language | 22 | 2 | Prose rules skip units under five words, so labels and price fragments never reach them |
+| prompt-restatement | 5 | 1 | The same gate |
+| fabricated-specificity | 18 | 0 | With a brief, the brief’s own facts are not fabricated. All 18 old findings were brief facts |
+| generic-framing | 2 | 14 | Prose rules now read JSX text. Most new findings are real slogans |
+| mechanism-over-outcome | 21 | 52 | The same. Nearly all restate “local network first, encrypted relay” with no outcome, which is the rule’s intent |
+| invented-capability | none | 42 | New, needs `--brief`. At 0.6 and above (14) it catches competitor claims, “Relay only” and invented pricing policies; below 0.6 it is mostly paraphrase of the brief |
+| antithesis-contrast | none | 2 | New candidate rule: `, not X` and a sentence opening “Not” are sent to Jev, which separates contrast slogans from plain instructions |
 
 idea-repetition is now right about half the time. Its remaining false positives are price and trial facts repeated where the reader acts on them.
 
@@ -86,13 +86,13 @@ idea-repetition is now right about half the time. Its remaining false positives 
 
 Dev split, strong labels only. Precision stayed at 100% for every rule below.
 
-| Rule                   | Recall before | Recall after | Change                                                                                                         |
-| ---------------------- | ------------- | ------------ | -------------------------------------------------------------------------------------------------------------- |
-| claim-without-evidence | 50%           | 80%          | Rounded boasts ("10,000+ teams", "up to 5x", unnamed "trusted by") count as claims; comparatives join the gate |
-| dead-weight-hedges     | 75%           | 100%         | Sweep label corrected                                                                                          |
-| register-shift         | 25%           | 100%         | Three sweep labels corrected                                                                                   |
-| reader-first           | 13%           | 25%          | "Now with X"                                                                                                   |
-| machine-prose          | 0/3           | 0/3          | Gate adds "here is some"; see below                                                                            |
+| Rule | Recall before | Recall after | Change |
+| --- | --- | --- | --- |
+| claim-without-evidence | 50% | 80% | Rounded boasts ("10,000+ teams", "up to 5x", unnamed "trusted by") count as claims; comparatives join the gate |
+| dead-weight-hedges | 75% | 100% | Sweep label corrected |
+| register-shift | 25% | 100% | Three sweep labels corrected |
+| reader-first | 13% | 25% | "Now with X" |
+| machine-prose | 0/3 | 0/3 | Gate adds "here is some"; see below |
 
 - **Sweep labels.** Four `tt-sweep-sample` items were labelled against the rule definition. They now carry the labels that taste-training's own `sweep-runner.tsx` detectors give them.
 - **JSX blind spot.** Ten phrase-gated tell rules read only Markdown, so "not just a tool, it is a way of working" in a hero went unflagged. They now read JSX text as well. On the five models' output and on donebear's marketing site they add 0 requests, because the gate fires only on a tell.
