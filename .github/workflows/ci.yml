@@ -6,8 +6,10 @@ on:
       - main
   pull_request:
 
+# Two parallel jobs: the Next.js build is CPU-bound and was the longest step
+# on the old single job's path. Ledger: docs/audits/ci-speed.md.
 jobs:
-  build:
+  cli:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,10 +38,10 @@ jobs:
             echo "origin/main does not exist yet; skipping changeset status"
           fi
 
-      # The same umbrella a developer runs locally: check, typecheck, test,
-      # build, packed smoke test, rules check, fixture dry run.
+      # verify:full locally is verify:cli plus verify:web: check, build,
+      # typecheck, test, packed smoke test, rules check, fixture dry run.
       - name: Verify
-        run: npm run verify:full
+        run: npm run verify:cli
 
       - name: Checkout current agent-skills catalogue
         uses: actions/checkout@v6
@@ -49,3 +51,21 @@ jobs:
 
       - name: Check ported rules against the current catalogue
         run: npm run port-rules -- --skills-dir .work/agent-skills --check
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify
+        run: npm run verify:web
