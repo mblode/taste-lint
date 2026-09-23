@@ -31,11 +31,11 @@ question:
         - TODO
       what: >-
         - Skip files with `// ui-audit-ignore:states-layout-shift`.
-        
+
         - Below-the-fold `content-visibility: auto` may CLS-shift inside its own subtree (acceptable).
-        
+
         - Skip components declaring `min-height` via CSS class (Tailwind `min-h-*`); inspect class strings first.
-        
+
         - Skip Storybook fixtures.
     "true":
       examples:

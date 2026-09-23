@@ -93,29 +93,30 @@ const invalid = (key: string, expected: string): never => {
   );
 };
 
+const object = (value: unknown, key: string): Record<string, unknown> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return invalid(key, "an object");
+  }
+  return value as Record<string, unknown>;
+};
+const keys = (
+  value: Record<string, unknown>,
+  allowed: string[],
+  prefix: string
+) => {
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) {
+      invalid(`${prefix}${key}`, `one of ${allowed.join(", ")}`);
+    }
+  }
+};
+const strings = (value: unknown, key: string) => {
+  if (!Array.isArray(value) || value.some((v) => typeof v !== "string")) {
+    invalid(key, "an array of strings");
+  }
+};
+
 export function validateConfig(raw: unknown): asserts raw is UserConfig {
-  const object = (value: unknown, key: string): Record<string, unknown> => {
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      return invalid(key, "an object");
-    }
-    return value as Record<string, unknown>;
-  };
-  const keys = (
-    value: Record<string, unknown>,
-    allowed: string[],
-    prefix: string
-  ) => {
-    for (const key of Object.keys(value)) {
-      if (!allowed.includes(key)) {
-        invalid(`${prefix}${key}`, `one of ${allowed.join(", ")}`);
-      }
-    }
-  };
-  const strings = (value: unknown, key: string) => {
-    if (!Array.isArray(value) || value.some((v) => typeof v !== "string")) {
-      invalid(key, "an array of strings");
-    }
-  };
   const value = object(raw, "config");
   keys(
     value,
