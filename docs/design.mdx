@@ -19,6 +19,7 @@ A rule writes only what cannot be derived. The loader fills in `domain` from the
 - Anything that counts, compares or measures is a code rule in `src/rules/code/*.ts`, with `check(unit)` in place of `mechanical`. The loader returns both kinds in one list.
 - `preconditions.notGenerated` skips minified bundles and files that say they are generated.
 - `mechanical.absent` pairs with `regex`. The rule fires only when `regex` matches and `absent` matches nowhere in the unit.
+- `mechanical.codeOnly` masks strings and comments in a JS or TS `source` unit, so a pattern quoted in a string or a comment never fires.
 - `thresholds.act` and `thresholds.review` are per rule. At or above `act` fails the run; between the two prints a review note; below is silent.
 - `severity` (`major` or `minor`) says how bad a finding is if real. It is independent of probability.
 - `source` points at the exact file and line the rule was harvested from. `handWritten` lists the keys `scripts/port-rules.ts` must not overwrite.

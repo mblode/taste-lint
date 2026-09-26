@@ -14,6 +14,7 @@ unit:
   - source
 mechanical:
   regex: '\b(?:describe|it|test|suite)\.(?:skip|todo)\s*\(\s*["''`]|\bx(?:it|describe|test)\s*\(\s*["''`]'
+  codeOnly: true
 preconditions:
   notGenerated: true
 severity: minor

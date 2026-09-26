@@ -105,6 +105,8 @@ export interface Mechanical {
   minMatches?: number;
   /** The rule fires only when this regex matches nowhere in the unit. */
   absent?: string;
+  /** Source units only: ignore matches inside strings and comments. */
+  codeOnly?: true;
 }
 
 export interface CriterionSide {

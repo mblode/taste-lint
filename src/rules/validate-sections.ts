@@ -151,6 +151,7 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
     "phrases",
     "minMatches",
     "absent",
+    "codeOnly",
   ]);
   const out: Mechanical = {};
   if (raw.flags !== undefined && typeof raw.flags !== "string") {
@@ -183,6 +184,12 @@ export const mechanical = (file: string, v: unknown): Mechanical => {
       fail(file, "mechanical.minMatches must be a positive integer");
     }
     out.minMatches = raw.minMatches as number;
+  }
+  if (raw.codeOnly !== undefined) {
+    if (raw.codeOnly !== true) {
+      fail(file, "mechanical.codeOnly may only be true");
+    }
+    out.codeOnly = true;
   }
   if (raw.absent !== undefined) {
     out.absent = str(file, raw, "absent");

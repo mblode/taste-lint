@@ -2,7 +2,7 @@
 
 import { LineIndex, makeUnit } from "../extract/units.js";
 import { matchesAny } from "../lib/glob.js";
-import { toFinding } from "../reduce/finding.js";
+import { atOffset, toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
 import { isCandidateRule } from "../rules/review.js";
 import type {
@@ -83,7 +83,7 @@ export const mechanicalFinding = (
   hit: MechanicalHit
 ): Finding => {
   const candidate = isCandidateRule(rule);
-  const finding = {
+  const finding: Finding = {
     ...toFinding(
       rule,
       unit,
@@ -101,22 +101,13 @@ export const mechanicalFinding = (
         }
       : {}),
   };
-  if (unit.kind === "source" && hit.offset !== undefined) {
-    const at = new LineIndex(unit.text).positionAt(hit.offset);
-    return {
-      ...finding,
-      column: at.column,
-      endColumn: at.column,
-      endLine: at.line,
-      line: at.line,
-    };
-  }
-  return finding;
+  return atOffset(finding, unit, hit.offset);
 };
 
 // A whole file too long for one question is judged on the lines around the
 // candidate match instead of abstaining. The window keeps the file's unit id,
-// so its answer counts for the file; its line is where the window starts.
+// so its answer counts for the file; its line is where the window starts, and
+// the job's hit offset is rebased onto the window so a finding names the match.
 const WINDOW_CHARS = 12_000;
 export const windowAround = (
   unit: Unit,
@@ -162,6 +153,7 @@ export const planRequests = (
   const mechanical: Finding[] = [];
   const jobs: JevJob[] = [];
   const unknowns: Unknown[] = [];
+  const abstainedPerRun = new Set<string>();
   for (const unit of units) {
     if (unit.kind === "file") {
       continue;
@@ -212,6 +204,15 @@ export const planRequests = (
             );
       } catch (error) {
         if (error instanceof UnresolvedError) {
+          if (error.perRun) {
+            const key = `${rule.id}\0${error.message}`;
+            if (abstainedPerRun.has(key)) {
+              applied.delete(rule.id);
+              skippedRules[rule.id] = "precondition";
+              continue;
+            }
+            abstainedPerRun.add(key);
+          }
           unknowns.push({
             file: unit.file,
             line: unit.line,
@@ -238,7 +239,11 @@ export const planRequests = (
             ? windowAround(unit, rule, hit.offset)
             : undefined;
         if (window) {
-          jobs.push({ rules: [{ hit, rule }], unit: window });
+          const offset = (hit.offset ?? 0) - window.sourceStart;
+          jobs.push({
+            rules: [{ hit: { ...hit, offset }, rule }],
+            unit: window,
+          });
           continue;
         }
         unknowns.push({

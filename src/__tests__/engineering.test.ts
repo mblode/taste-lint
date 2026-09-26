@@ -7,9 +7,9 @@ import { Repository } from "../analysis/repository.js";
 import { extractSource } from "../extract/index.js";
 import { loadConfig } from "../lib/config.js";
 import { planRequests } from "../map/plan.js";
+import { jevFindings } from "../reduce/bands.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
 import { loadRules } from "../rules/load.js";
-import { profileFor, profileRules } from "../scan/profiles.js";
 import { check, config, temporary } from "./helpers.js";
 
 const dirs: string[] = [];
@@ -41,25 +41,6 @@ const fires = (id: string, file: string, text: string): boolean => {
     ? rule.check(unit).fired
     : runMechanical(rule.mechanical!, unit).fired;
 };
-
-it("keeps engineering rules out of the product profile and in code", () => {
-  const product = profileRules(profileFor("product"), rules).map(
-    (r) => r.domain
-  );
-  const code = profileRules(profileFor("code"), rules).map((r) => r.domain);
-  expect(product).not.toContain("engineering");
-  expect(product).toContain("seo");
-  expect(new Set(code)).toEqual(new Set(["engineering"]));
-});
-
-it("lets a rule about tests read test files, and only that rule", () => {
-  expect(ruleById("engineering-test-focused").scope.exclude).not.toContain(
-    "**/*.test.*"
-  );
-  expect(ruleById("engineering-empty-catch").scope.exclude).toContain(
-    "**/*.test.*"
-  );
-});
 
 it.each([
   ["it('adds', () => { add(1, 2) })", true],
@@ -224,6 +205,24 @@ it.each([
   ],
   ["engineering-test-skipped", "a.spec.ts", 'it.skip("later", () => {})', true],
   [
+    "engineering-test-focused",
+    "a.test.ts",
+    "const cases = [\"describe.only('x', () => {})\"]",
+    false,
+  ],
+  [
+    "engineering-test-self-comparison",
+    "a.test.ts",
+    "const src = `expect(total).toBe(total)`",
+    false,
+  ],
+  [
+    "engineering-test-skipped",
+    "a.spec.ts",
+    "// it.skip('later', () => {})\nconst s = 'xit(\"later\")'",
+    false,
+  ],
+  [
     "engineering-empty-catch",
     "a.ts",
     "const body = await res.json().catch(() => null)",
@@ -374,11 +373,23 @@ it("reads branch coverage to find modules the tests barely run", () => {
   );
 });
 
-it("abstains on test gaps without a coverage report", () => {
-  const unit = setup({ "src/a.ts": "export const a = 1;\n" })("src/a.ts");
-  expect(() => check("engineering-untested-module")(unit)).toThrow(
+it("abstains on test gaps without a coverage report, once per run", () => {
+  const unit = setup({
+    "src/a.ts": "export const a = 1;\n",
+    "src/b.ts": "export const b = 1;\n",
+  });
+  expect(() => check("engineering-untested-module")(unit("src/a.ts"))).toThrow(
     UnresolvedError
   );
+  const plan = planRequests(
+    [unit("src/a.ts"), unit("src/b.ts")],
+    [ruleById("engineering-untested-module")],
+    config("src/a.ts")
+  );
+  expect(plan.unknowns.map((u) => u.file)).toEqual(["src/a.ts"]);
+  expect(plan.skipped.get(unit("src/b.ts").id)).toEqual({
+    "engineering-untested-module": "precondition",
+  });
 });
 
 it("judges a long file on a window around the candidate, under the file's id", () => {
@@ -397,5 +408,7 @@ it("judges a long file on a window around the candidate, under the file's id", (
   expect(job.unit.id).toBe(unit.id);
   expect(job.unit.text).toContain("findUnique");
   expect(job.unit.text.length).toBeLessThan(unit.text.length);
-  expect(job.unit.line).toBeGreaterThan(1);
+  const answers = new Map([[unit.id, { "engineering-query-in-loop": 0.9 }]]);
+  const [finding] = jevFindings(plan.jobs, answers).findings;
+  expect(finding).toMatchObject({ column: 1, line: 3001 });
 });

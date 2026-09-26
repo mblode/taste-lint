@@ -14,6 +14,7 @@ unit:
   - source
 mechanical:
   regex: \b(?:describe|it|test|context|suite)\.only\s*\(|\bf(?:it|describe)\s*\(
+  codeOnly: true
 preconditions:
   notGenerated: true
 severity: major

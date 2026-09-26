@@ -69,11 +69,18 @@ export const profileFor = (name: string): Profile => {
     }
     case "code": {
       return {
-        exclude: [...artifacts, ...internal],
+        // Config and env files carry committed secrets; lockfiles never do.
+        exclude: [
+          ...artifacts,
+          ...internal,
+          "**/package-lock.json",
+          "**/pnpm-lock.yaml",
+        ],
         include: [
           "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}",
-          "**/package.json",
-          "**/.github/workflows/*.{yml,yaml}",
+          "**/*.{json,yml,yaml,toml}",
+          "**/.env",
+          "**/.env.*",
         ],
         name,
         objective:
