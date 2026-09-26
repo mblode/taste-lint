@@ -1,0 +1,33 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-ci-no-concurrency
+title: Pull request runs are never cancelled
+categoryId: ci-pipeline
+source:
+  repo: mblode/agent-skills
+  path: skills/ci-speedup/references/levers.md
+  line: 27
+scope:
+  include:
+    - "**/.github/workflows/*.{yml,yaml}"
+unit:
+  - source
+mechanical:
+  regex: '^\s*pull_request\s*:|^on:\s*\[?[^\n]*\bpull_request\b(?!_)'
+  flags: gmu
+  absent: "^\\s*concurrency\\s*:"
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: "Add concurrency with group: ${{ github.workflow }}-${{ github.ref }} and cancel-in-progress: ${{ github.event_name == 'pull_request' }}, so a new push cancels the superseded run."
+status: review-only
+review:
+  applicability: A workflow runs on pull requests with no concurrency group.
+  exceptions: Workflows whose runs are cheap and fast enough that overlap costs nothing.
+  evidence: How long the workflow runs and how often pushes supersede each other.
+  verification: Push twice to a pull request and confirm the first run is cancelled.
+  sourceHash: e77e0720c06af3b77909c1bcc0b77e02a1254c2aa3465cebfd816e4ff8dee354
+handWritten:
+  - mechanical
+  - fix
+  - scope

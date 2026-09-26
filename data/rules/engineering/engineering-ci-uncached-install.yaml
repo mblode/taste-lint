@@ -1,0 +1,32 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-ci-uncached-install
+title: Dependencies installed with no cache
+categoryId: ci-pipeline
+source:
+  repo: mblode/agent-skills
+  path: skills/ci-speedup/references/levers.md
+  line: 35
+scope:
+  include:
+    - "**/.github/workflows/*.{yml,yaml}"
+unit:
+  - source
+mechanical:
+  regex: \b(?:npm ci|npm install|pnpm install|yarn install|bun install)\b
+  absent: \bcache\s*:|actions/cache@|cache-dependency-path
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: "Add cache: npm (or pnpm, yarn) to actions/setup-node, then time a cached run against the old one. A whole node_modules cache keyed on the lockfile can win for npm."
+status: review-only
+review:
+  applicability: A workflow installs dependencies with no cache.
+  exceptions: Workflows that run rarely, or runners with a warm local cache.
+  evidence: Install time in recent runs.
+  verification: Add the cache and compare install time over two runs.
+  sourceHash: e77e0720c06af3b77909c1bcc0b77e02a1254c2aa3465cebfd816e4ff8dee354
+handWritten:
+  - mechanical
+  - fix
+  - scope

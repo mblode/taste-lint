@@ -6,6 +6,8 @@ import { gfmFromMarkdown } from "mdast-util-gfm";
 import { gfm } from "micromark-extension-gfm";
 import { parseSync } from "oxc-parser";
 
+import { collectFiles } from "../lib/glob.js";
+
 export interface DocumentNode {
   type: string;
   value?: string;
@@ -30,7 +32,7 @@ export interface SourceFacts {
   parseError?: string;
   repository: Pick<
     Repository,
-    "root" | "read" | "resolve" | "exists" | "manifest"
+    "root" | "read" | "resolve" | "exists" | "manifest" | "files"
   >;
 }
 
@@ -44,6 +46,7 @@ export const nodeText = (node: DocumentNode): string =>
 export class Repository {
   readonly root: string;
   private readonly contents = new Map<string, string | undefined>();
+  private readonly listings = new Map<string, string[]>();
 
   constructor(root: string) {
     this.root = fs.realpathSync(root);
@@ -74,6 +77,17 @@ export class Repository {
     }
     this.contents.set(file, text);
     return text;
+  }
+
+  /** Every file under `dir` the scan could read, with the scan's own ignores. */
+  files(dir: string): string[] {
+    const cached = this.listings.get(dir);
+    if (cached) {
+      return cached;
+    }
+    const listed = collectFiles(this.root, [dir], ["**/*"]);
+    this.listings.set(dir, listed);
+    return listed;
   }
 
   exists(file: string): boolean {

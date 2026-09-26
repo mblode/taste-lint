@@ -1,0 +1,43 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-template-residue
+title: Placeholder or debug residue
+categoryId: code-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/ai-slop-patterns.md
+  line: 167
+scope:
+  include:
+    - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: //\s*TODO:?\s*(?:implement\b|add (?:error handling|logic|validation|your)|handle (?:the )?(?:error|this))|\b[Aa]dd your (?:logic|code|implementation) here\b|console\.log\(\s*["'`](?:here|test|debug|asdf|foo|bar|hit|called|reached|[0-9]+|x+)[!.]*["'`]\s*\)
+  flags: giu
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: Implement the placeholder or delete it, and remove debug logging before it ships.
+status: review-only
+review:
+  applicability: A placeholder comment or debug log is in shipped code.
+  exceptions: Examples and scaffolds meant to be filled in by users.
+  evidence: Whether the placeholder has an implementation elsewhere.
+  verification: Implement or delete it, then run the tests.
+  sourceHash: 2cc5159af691557ba07c0027746413516f4185251dbd6f91980b134ecd8da494
+handWritten:
+  - mechanical
+  - fix
+  - scope

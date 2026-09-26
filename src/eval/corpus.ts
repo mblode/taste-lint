@@ -280,7 +280,12 @@ export const unitFromItem = (item: CorpusItem): Unit => {
     },
     endColumn: 1,
     endLine: 1,
-    file: `corpus/${item.id}${item.kind === "class-list" || item.kind === "element" ? ".tsx" : item.kind === "paragraph" || item.kind === "heading" ? ".md" : ".tsx"}`,
+    // A whole-file item keeps its real path so rules scoped to tests, routes
+    // or workflows see the file they were written for.
+    file:
+      item.kind === "source"
+        ? `corpus/${item.id}/${item.source.path}`
+        : `corpus/${item.id}${item.kind === "paragraph" || item.kind === "heading" ? ".md" : ".tsx"}`,
     id: item.id,
     inCode: false,
     kind: item.kind,

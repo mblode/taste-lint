@@ -1,6 +1,8 @@
 // The 33 failure-mode categories, copied from
 // mblode/taste-training apps/web/content/categories.ts. Every rule carries one
 // of these ids so a finding links back to the lesson that teaches the fix.
+// The engineering and seo categories are taste-lint's own, harvested from the
+// tidy, test-audit, ci-speedup and seo skills in mblode/agent-skills.
 
 import type { Domain } from "../types.js";
 
@@ -85,6 +87,16 @@ export const CATEGORIES: readonly Category[] = [
   },
   { domain: "product", id: "design-decisions", label: "Design decisions" },
   { domain: "product", id: "agent-trust", label: "Agent trust" },
+  { domain: "engineering", id: "performance", label: "Performance" },
+  { domain: "engineering", id: "data-access", label: "Data access" },
+  { domain: "engineering", id: "test-value", label: "Test value" },
+  { domain: "engineering", id: "test-gaps", label: "Test gaps" },
+  { domain: "engineering", id: "dead-code", label: "Dead code" },
+  { domain: "engineering", id: "code-quality", label: "Code quality" },
+  { domain: "engineering", id: "telemetry", label: "Telemetry" },
+  { domain: "engineering", id: "sensitive-data", label: "Sensitive data" },
+  { domain: "engineering", id: "ci-pipeline", label: "CI pipeline" },
+  { domain: "seo", id: "search-visibility", label: "Search visibility" },
 ];
 
 export const CATEGORY_BY_ID: ReadonlyMap<string, Category> = new Map(

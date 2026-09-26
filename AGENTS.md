@@ -23,7 +23,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Setup facts
 
-- `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines.
+- `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `code`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines.
 - Mechanical rules run without a key. Uncached Jev work needs `AI_GATEWAY_API_KEY` (legacy `TYPESAFE_API_KEY` still works). `--dry-run` plans without calls. Tests inject fake evaluators and never call a model.
 - `scripts/*.ts` run with `node --experimental-strip-types`. Use Node 24 for anything you will report.
 - `port-rules --check` expects a sibling checkout at `../agent-skills`.

@@ -43,11 +43,13 @@ Checks bill your key and cache between runs. `--dry-run` previews the cost first
 - **Motion:** `transition-all` and `transition: all`, ease-in, linear easing, transitions over 300ms, entrances from scale zero, `framer-motion` imports.
 - **Copy:** the [ghostwriter](https://github.com/mblode/agent-skills/tree/main/skills/ghostwriter) structure tells (participle tails, “it’s not X, it’s Y”, “Here’s the thing”), “click here” links, “successfully” toasts, emoji in UI, nominalisations, anthropomorphism, long sentences that chain clauses.
 - **Typography:** straight quotes, three-dot ellipses, hyphens for dashes, `x` for ×, missing space before a unit, light weights on small body text, uppercase without tracking.
+- **Code** (`--profile code`): N+1 queries, unbounded reads, blocking sync calls in handlers, tests that assert nothing or only that a mock was called, logic your coverage report shows no test runs, commented-out code, unused dependencies, dropped errors, secrets and personal data in logs, CI runs that never cancel.
+- **Search:** pages with no metadata, a missing `metadataBase`, sitemap or robots, noindex on public pages, canonical URLs on a dev host.
 - **Under review:** vague errors, empty states with no action, bare “Confirm” labels, claims with nothing to check, missing error states. These go to [Jev by TypeSafe AI](https://docs.typesafe.ai/introduction), which answers with a probability.
 
-28 checks block. 125 more report and never fail a run. They are pattern ports nobody has yet watched on a real codebase, and Jev questions no labelled corpus has yet promoted. See [usage](https://blode.co/taste-lint/docs/usage) for how promotion works.
+28 checks block. 177 more report and never fail a run. They are pattern ports nobody has yet watched on a real codebase, and Jev questions no labelled corpus has yet promoted. See [usage](https://blode.co/taste-lint/docs/usage) for how promotion works.
 
-Profiles scope a run: `product` (tsx, jsx, css), `writing` (md, mdx, README), `instructions` (AGENTS.md, skills, plans), `all`.
+Profiles scope a run: `product` (tsx, jsx, css), `writing` (md, mdx, README), `instructions` (AGENTS.md, skills, plans), `code` (source, tests, CI), `all`.
 
 Add your own voice with a rule pack: `"rules": ["$GHOSTWRITER_HOME/taste-lint"]` in `taste-lint.config.json` checks drafts against your [ghostwriter](https://github.com/mblode/agent-skills/tree/main/skills/ghostwriter) profile.
 

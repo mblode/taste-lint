@@ -15,8 +15,9 @@ A rule writes only what cannot be derived. The loader fills in `domain` from the
 
 - A mechanical section alone runs in code (`tier: mechanical`). A raw-source regex only nominates a candidate. Its match does not prove the source skill’s conclusion.
 - A question alone sends one question per matching unit (`tier: jev`).
-- Both together make the mechanical part a candidate filter (`tier: both`). Only units it fires on go to Jev, and the mechanical hit never surfaces alone.
+- Both together make the mechanical part a candidate filter (`tier: both`). Only units it fires on go to Jev, and the mechanical hit never surfaces alone. A whole file past the context budget is judged on a window around the first candidate match, under the file’s unit id.
 - Anything that counts, compares or measures is a code rule in `src/rules/code/*.ts`, with `check(unit)` in place of `mechanical`. The loader returns both kinds in one list.
+- `preconditions.notGenerated` skips minified bundles and files that say they are generated.
 - `mechanical.absent` pairs with `regex`. The rule fires only when `regex` matches and `absent` matches nowhere in the unit.
 - `thresholds.act` and `thresholds.review` are per rule. At or above `act` fails the run; between the two prints a review note; below is silent.
 - `severity` (`major` or `minor`) says how bad a finding is if real. It is independent of probability.
