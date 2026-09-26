@@ -1,0 +1,32 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: seo-sitemap-build-time-lastmod
+title: Sitemap lastmod is the build time
+categoryId: search-visibility
+source:
+  repo: mblode/agent-skills
+  path: skills/seo/references/indexing-policy.md
+  line: 11
+scope:
+  include:
+    - "**/sitemap.{ts,js,mjs,tsx}"
+    - "**/sitemap/**/*.{ts,js}"
+unit:
+  - source
+mechanical:
+  regex: lastModified\s*:\s*new\s+Date\(\s*\)|lastmod\s*:\s*new\s+Date\(\s*\)
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: Use each page's real content modification date, or omit lastModified. A date that changes on every build tells crawlers every page changed.
+status: review-only
+review:
+  applicability: A sitemap sets lastModified to the current time.
+  exceptions: A sitemap of pages that truly change on every build.
+  evidence: Where each page's real modification date lives.
+  verification: Fetch the built sitemap and confirm lastmod matches content changes.
+  sourceHash: 2f3d680262b93b5ecf37c7780218f03221541b5f2c12dca6d11ed61d898b5a0e
+handWritten:
+  - mechanical
+  - fix
+  - scope

@@ -1,0 +1,42 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-heavy-dependency
+title: Imports a heavy library with a native replacement
+categoryId: performance
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/performance-checklist.md
+  line: 58
+scope:
+  include:
+    - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: (?:\bfrom\s*|\brequire\s*\(\s*|\bimport\s*\(\s*)["'](?:moment|moment-timezone|lodash|underscore|jquery|request|axios)["']
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: "Use the platform: Intl and Temporal or date-fns for dates, native array and object methods for lodash, fetch for request and axios. Import lodash per method (lodash/debounce) if a helper is truly needed."
+status: review-only
+review:
+  applicability: The import ships to a browser bundle or a cold-start path where size matters.
+  exceptions: Server-only scripts, a library already used across the codebase with no migration planned, or a subpath import.
+  evidence: Where the import runs, the bundle or cold-start cost, and which functions are used.
+  verification: Replace the calls, then compare bundle size and run the affected tests.
+  sourceHash: cd498eb7cc281571fbed2ad29d7730a2d583305e39a8b0fdbc9d3f60a41aa4b2
+handWritten:
+  - mechanical
+  - fix
+  - scope

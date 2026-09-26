@@ -10,6 +10,8 @@ export const DOMAINS = [
   "motion",
   "product",
   "authoring",
+  "engineering",
+  "seo",
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -136,6 +138,8 @@ export interface Preconditions {
   smartQuotesAtBuild?: false;
   /** Skip units shorter than this many words: a label or a greeting is not prose. */
   minWords?: number;
+  /** Skip minified bundles and files marked as generated. */
+  notGenerated?: true;
 }
 
 export interface ReviewProcedure {
@@ -224,6 +228,8 @@ export interface UnitContext {
   interpolated?: boolean;
   parseError?: string;
   mdxFallback?: boolean;
+  /** The file is minified or says it is generated; nobody edits it by hand. */
+  generated?: boolean;
 }
 
 export interface Unit {

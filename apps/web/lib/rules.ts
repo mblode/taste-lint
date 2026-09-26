@@ -12,8 +12,10 @@ export const DOMAIN_LABELS: Record<string, string> = {
   authoring: "Agent instructions",
   copywriting: "Copy",
   craft: "Visual craft",
+  engineering: "Engineering",
   interaction: "Interaction",
   motion: "Motion",
   product: "Product",
+  seo: "Search",
   typography: "Typography",
 };

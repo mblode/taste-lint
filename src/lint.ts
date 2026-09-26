@@ -48,7 +48,7 @@ export interface LintOptions {
   root?: string;
   /** Files or directories relative to `root`. Default `["."]`. */
   targets?: string[];
-  /** Scope files and rule domains (`product`, `writing`, `instructions`, `all`); rules keep their own status. */
+  /** Scope files and rule domains (`product`, `writing`, `instructions`, `code`, `all`); rules keep their own status. */
   profile?: ProfileName;
   /** Report only findings on lines changed since this Git revision. */
   since?: string;

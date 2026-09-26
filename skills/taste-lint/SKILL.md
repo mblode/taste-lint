@@ -1,7 +1,7 @@
 ---
 name: taste-lint
 description: >-
-  Runs the taste-lint taste linter (copywriting, typography, interaction and motion rules answered by TypeSafe Jev probabilities plus mechanical checks) and reads its findings, bands and scorecard. Use when asked to "run taste-lint", "lint the copy", "check the typography in these components", "is this finding a blocker", or to measure how a rewrite moved the scorecard. For rewriting the words use docs-writing or ui-design; for a full type system review use typography-audit.
+  Runs the taste-lint taste linter (copywriting, typography, interaction and motion rules answered by TypeSafe Jev probabilities plus mechanical checks) and reads its findings, bands and scorecard. `--profile code` adds engineering scans: performance, N+1 queries and unbounded reads, low-value and missing tests, dead code, dropped errors, sensitive data and CI. Use when asked to "run taste-lint", "lint the copy", "check the typography in these components", "scan for N+1 queries", "find dead code", "is this finding a blocker", or to measure how a rewrite moved the scorecard. For rewriting the words use docs-writing or ui-design; for a full type system review use typography-audit.
 ---
 
 # taste-lint
@@ -18,6 +18,7 @@ Is not: the rules themselves (they ship inside the package and trace back to the
 | --- | --- |
 | `taste-lint lint --profile product --dry-run` | Every mechanical check, no key, no calls. Act findings already fail here. Always first. |
 | `taste-lint lint --profile product` | The run with Jev review notes. Needs the user’s `AI_GATEWAY_API_KEY` (Vercel AI Gateway). Results land in `results/lint-<timestamp>.json`; answers are cached under `results/cache`, so a rerun over unchanged files costs nothing. |
+| `taste-lint lint --profile code` | Source, tests and CI: performance, data access, test value and gaps, dead code, telemetry, sensitive data. Every rule here reports and never fails a run. |
 | `taste-lint lint --since origin/main --output sarif` | Only findings on changed lines, for code review tools. |
 | `taste-lint lint <paths> --output json` | For scripts: findings, scorecard and usage on stdout, and an error as a `{ error, code, message }` envelope instead of text. `--output sarif` for code scanning. |
 | `taste-lint lint --url <url>` | Computed styles through style-capture and a local Chromium; `--selector` narrows the page. |
