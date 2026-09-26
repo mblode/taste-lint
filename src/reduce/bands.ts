@@ -1,6 +1,6 @@
 import type { JevJob } from "../map/plan.js";
 import type { Band, Finding, Rule } from "../types.js";
-import { toFinding } from "./finding.js";
+import { atOffset, toFinding } from "./finding.js";
 
 export const band = (
   probability: number,
@@ -37,7 +37,13 @@ export const jevFindings = (
         silent.push({ ruleId: rule.id, unitId: job.unit.id });
         continue;
       }
-      findings.push(toFinding(rule, job.unit, p, b, hit?.evidence));
+      findings.push(
+        atOffset(
+          toFinding(rule, job.unit, p, b, hit?.evidence),
+          job.unit,
+          hit?.offset
+        )
+      );
     }
   }
   return { findings, silent };

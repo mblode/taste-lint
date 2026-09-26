@@ -70,4 +70,8 @@ export const SUPPORTED_GLOBS = [
   "**/*.json",
   "**/*.yaml",
   "**/*.yml",
+  // Read as whole-file source for committed secrets.
+  "**/*.toml",
+  "**/.env",
+  "**/.env.*",
 ];

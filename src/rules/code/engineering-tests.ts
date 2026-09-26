@@ -193,7 +193,8 @@ export const untestedModule = (unit: Unit): MechanicalHit => {
   const found = summaryFor(repository, unit.file);
   if (!found) {
     throw new UnresolvedError(
-      "Needs coverage/coverage-summary.json: run the tests with the json-summary coverage reporter"
+      "Needs coverage/coverage-summary.json: run the tests with the json-summary coverage reporter",
+      { perRun: true }
     );
   }
   // Keys are absolute paths, or relative to the directory coverage ran in.
