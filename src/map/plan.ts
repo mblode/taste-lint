@@ -1,6 +1,6 @@
 // Decide which rules apply to which units and build one Jev job per unit.
 
-import { LineIndex } from "../extract/units.js";
+import { LineIndex, makeUnit } from "../extract/units.js";
 import { matchesAny } from "../lib/glob.js";
 import { toFinding } from "../reduce/finding.js";
 import { runMechanical, UnresolvedError } from "../reduce/mechanical.js";
@@ -49,6 +49,9 @@ const passesPreconditions = (
     return true;
   }
   if (p.notInCode && unit.inCode) {
+    return false;
+  }
+  if (p.notGenerated && unit.context.generated) {
     return false;
   }
   if (p.docType && !p.docType.includes(unit.context.docType)) {
@@ -109,6 +112,43 @@ export const mechanicalFinding = (
     };
   }
   return finding;
+};
+
+// A whole file too long for one question is judged on the lines around the
+// candidate match instead of abstaining. The window keeps the file's unit id,
+// so its answer counts for the file; its line is where the window starts.
+const WINDOW_CHARS = 12_000;
+export const windowAround = (
+  unit: Unit,
+  rule: Rule,
+  offset: number
+): Unit | undefined => {
+  for (
+    let half = WINDOW_CHARS / 2;
+    half >= 1500;
+    half = Math.floor(half * 0.75)
+  ) {
+    const from = unit.text.lastIndexOf("\n", Math.max(0, offset - half)) + 1;
+    const next = unit.text.indexOf(
+      "\n",
+      Math.min(unit.text.length, offset + half)
+    );
+    const to = next === -1 ? unit.text.length : next;
+    const window: Unit = {
+      ...makeUnit(unit.file, new LineIndex(unit.text), {
+        context: unit.context,
+        kind: "source",
+        sourceEnd: to,
+        sourceStart: from,
+        text: unit.text.slice(from, to),
+      }),
+      id: unit.id,
+    };
+    if (!missingEvidence(window, rule)) {
+      return window;
+    }
+  }
+  return undefined;
 };
 
 export const planRequests = (
@@ -191,6 +231,16 @@ export const planRequests = (
       }
       const reason = missingEvidence(unit, rule);
       if (reason) {
+        const window =
+          rule.tier === "both" &&
+          unit.kind === "source" &&
+          hit.offset !== undefined
+            ? windowAround(unit, rule, hit.offset)
+            : undefined;
+        if (window) {
+          jobs.push({ rules: [{ hit, rule }], unit: window });
+          continue;
+        }
         unknowns.push({
           file: unit.file,
           line: unit.line,

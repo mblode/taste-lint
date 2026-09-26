@@ -216,6 +216,7 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
     "role",
     "smartQuotesAtBuild",
     "minWords",
+    "notGenerated",
   ]);
   const out: Preconditions = {};
   if (raw.notInCode !== undefined) {
@@ -240,6 +241,12 @@ export const preconditions = (file: string, v: unknown): Preconditions => {
     }
     out.smartQuotesAtBuild = false;
   }
+  if (raw.notGenerated !== undefined) {
+    if (raw.notGenerated !== true) {
+      fail(file, "preconditions.notGenerated may only be true");
+    }
+    out.notGenerated = true;
+  }
   if (raw.minWords !== undefined) {
     if (!Number.isInteger(raw.minWords) || (raw.minWords as number) < 1) {
       fail(file, "preconditions.minWords must be a positive integer");
@@ -263,13 +270,15 @@ const INCLUDE_BY_KIND: Record<UnitKind, string[]> = {
 };
 
 // Every rule skips tests, stories and changelogs; a rule adds to this list,
-// never repeats it.
+// never repeats it. A rule whose include names test files is about tests, so
+// it keeps them.
+const TEST_EXCLUDE = ["**/*.test.*", "**/*.spec.*"];
 export const RULE_EXCLUDE = [
-  "**/*.test.*",
-  "**/*.spec.*",
+  ...TEST_EXCLUDE,
   "**/*.stories.*",
   "**/CHANGELOG.md",
 ];
+const TEST_GLOB = /\.(?:test|spec)\.|__tests__/u;
 
 export const scopeFor = (
   file: string,
@@ -295,7 +304,10 @@ export const scopeFor = (
   if (include.length === 0) {
     fail(file, "scope.include needs at least one glob");
   }
-  return { exclude: [...new Set([...RULE_EXCLUDE, ...exclude])], include };
+  const defaults = include.some((glob) => TEST_GLOB.test(glob))
+    ? RULE_EXCLUDE.filter((glob) => !TEST_EXCLUDE.includes(glob))
+    : RULE_EXCLUDE;
+  return { exclude: [...new Set([...defaults, ...exclude])], include };
 };
 
 export const fix = (file: string, v: unknown): Fix => {

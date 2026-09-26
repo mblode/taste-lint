@@ -1,0 +1,42 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-debug-log-in-ui
+title: console.log left in a component
+categoryId: code-quality
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/ai-slop-patterns.md
+  line: 170
+scope:
+  include:
+    - "**/*.{tsx,jsx}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: \bconsole\.(?:log|debug|dir|table)\s*\(
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: Delete it, or send the event through the app's logger or analytics so it is kept on purpose.
+status: review-only
+review:
+  applicability: A console call runs in shipped component code.
+  exceptions: Development-only branches, error boundaries that log on purpose, and storybook files.
+  evidence: Whether the call is guarded by an environment check.
+  verification: Delete it and check the console in the browser.
+  sourceHash: 2cc5159af691557ba07c0027746413516f4185251dbd6f91980b134ecd8da494
+handWritten:
+  - mechanical
+  - fix
+  - scope

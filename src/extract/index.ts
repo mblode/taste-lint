@@ -15,6 +15,14 @@ export const extractFile = (config: Config, relativeFile: string): Unit[] => {
   return extractSource(config, relativeFile, source, repository);
 };
 
+// A minified bundle has lines no person writes; a generated file says so in
+// its first lines.
+const GENERATED_HEADER =
+  /@generated\b|\bDO NOT EDIT\b|\bauto-?generated\b|\bThis file (?:was|is) (?:automatically )?generated\b/iu;
+export const isGenerated = (source: string): boolean =>
+  GENERATED_HEADER.test(source.slice(0, 600)) ||
+  source.split("\n", 200).some((line) => line.length > 1000);
+
 export const extractSource = (
   config: Config,
   file: string,
@@ -29,7 +37,11 @@ export const extractSource = (
       : [];
   attachEarlier(units);
   const whole = makeUnit(file, new LineIndex(source), {
-    context: { docType, role: "unknown" },
+    context: {
+      docType,
+      role: "unknown",
+      ...(isGenerated(source) ? { generated: true } : {}),
+    },
     kind: "source",
     sourceEnd: source.length,
     sourceStart: 0,

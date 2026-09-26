@@ -1,0 +1,43 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-insecure-random-token
+title: Math.random used for a token or secret
+categoryId: sensitive-data
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/security-checklist.md
+  line: 67
+scope:
+  include:
+    - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: (?:token|secret|nonce|password|passcode|otp|salt|sessionId|apiKey|inviteCode|resetCode|verificationCode)\w*\s*[:=][^;\n]{0,80}Math\.random\(
+  flags: giu
+preconditions:
+  notGenerated: true
+severity: major
+fix:
+  hint: Use crypto.randomUUID() or crypto.getRandomValues. Math.random is predictable and must never produce a secret.
+status: review-only
+review:
+  applicability: Math.random produces a value used as a secret or unguessable id.
+  exceptions: Non-secret ids such as React keys or animation seeds.
+  evidence: What the value protects and who could guess it.
+  verification: Switch to crypto.randomUUID or getRandomValues and run the tests.
+  sourceHash: 59bfe3831e3d608f088cb0792dbc2d26edc745edc51c4afaff12b7cd69bcf6ea
+handWritten:
+  - mechanical
+  - fix
+  - scope

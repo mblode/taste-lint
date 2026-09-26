@@ -96,7 +96,7 @@ it("describes required arguments, option values and choices for agents", () => {
   ]);
   expect(lint.options).toContainEqual(
     expect.objectContaining({
-      enum: ["product", "writing", "instructions", "all"],
+      enum: ["product", "writing", "instructions", "code", "all"],
       flag: "--profile",
       required: false,
     })

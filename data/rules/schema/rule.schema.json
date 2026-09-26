@@ -186,6 +186,9 @@
         "notInCode": {
           "const": true
         },
+        "notGenerated": {
+          "const": true
+        },
         "docType": {
           "type": "array",
           "items": {

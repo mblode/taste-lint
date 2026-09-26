@@ -1,0 +1,32 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-test-skipped
+title: Skipped or placeholder test
+categoryId: test-value
+source:
+  repo: mblode/agent-skills
+  path: skills/test-audit/SKILL.md
+  line: 53
+scope:
+  include:
+    - "**/*.{test,spec}.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+    - "**/__tests__/**/*.{ts,tsx,js,jsx,mts,mjs}"
+unit:
+  - source
+mechanical:
+  regex: '\b(?:describe|it|test|suite)\.(?:skip|todo)\s*\(\s*["''`]|\bx(?:it|describe|test)\s*\(\s*["''`]'
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: Fix and re-enable the test, or delete it. A skipped test reads as coverage and guards nothing.
+status: review-only
+review:
+  applicability: A skipped or todo test sits in a committed test file.
+  exceptions: A skip gated on platform or environment with a stated reason, and todo entries tracked in an issue.
+  evidence: Why it was skipped (history, a linked issue) and whether the behaviour is covered elsewhere.
+  verification: Re-enable and run it, or delete it and confirm another test covers the behaviour.
+  sourceHash: 6076596823eef4018e5d7215fac7707b71ec10fc5858998b9fce47b80c9743c6
+handWritten:
+  - mechanical
+  - fix
+  - scope

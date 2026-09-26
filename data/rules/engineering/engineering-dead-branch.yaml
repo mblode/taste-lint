@@ -1,0 +1,42 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-dead-branch
+title: Branch that can never run
+categoryId: dead-code
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/ai-slop-patterns.md
+  line: 141
+scope:
+  include:
+    - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: \bif\s*\(\s*(?:false|0|!1|!true|null|undefined)\s*\)|\bwhile\s*\(\s*false\s*\)
+preconditions:
+  notGenerated: true
+severity: minor
+fix:
+  hint: Delete the branch and anything only it reaches. Version control keeps the history.
+status: review-only
+review:
+  applicability: A condition is a literal that never changes.
+  exceptions: A deliberate debug toggle documented in place, or generated code.
+  evidence: The branch body and anything reachable only from it.
+  verification: Delete the branch and run the type check and tests.
+  sourceHash: 2cc5159af691557ba07c0027746413516f4185251dbd6f91980b134ecd8da494
+handWritten:
+  - mechanical
+  - fix
+  - scope

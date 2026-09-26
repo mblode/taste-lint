@@ -25,6 +25,7 @@ export const PROFILE_NAMES = [
   "product",
   "writing",
   "instructions",
+  "code",
   "all",
 ] as const;
 export type ProfileName = (typeof PROFILE_NAMES)[number];
@@ -66,6 +67,19 @@ export const profileFor = (name: string): Profile => {
           "Review repository instructions, skill authoring and implementation plans",
       };
     }
+    case "code": {
+      return {
+        exclude: [...artifacts, ...internal],
+        include: [
+          "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts}",
+          "**/package.json",
+          "**/.github/workflows/*.{yml,yaml}",
+        ],
+        name,
+        objective:
+          "Review source, tests and CI for performance, data access, test value, dead code, telemetry and sensitive data",
+      };
+    }
     case "all": {
       return {
         exclude: artifacts,
@@ -98,8 +112,11 @@ export const profileRules = (profile: Profile, rules: Rule[]): Rule[] =>
       case "writing": {
         return !document && ["copywriting", "typography"].includes(rule.domain);
       }
+      case "code": {
+        return rule.domain === "engineering";
+      }
       default: {
-        return !document;
+        return !document && rule.domain !== "engineering";
       }
     }
   });

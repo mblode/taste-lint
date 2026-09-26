@@ -43,7 +43,28 @@ A profile is a scope. It picks files and rule domains and never changes a rule�
 | `product` | tsx, jsx, css, scss | copy, typography, interaction, motion |
 | `writing` | md, mdx | copywriting and typography |
 | `instructions` | AGENTS.md, CLAUDE.md, skills, plans | authoring and document structure |
+| `code` | ts, tsx, js, tests, package.json, GitHub workflows | engineering: performance, data access, test value and gaps, dead code, code quality, telemetry, sensitive data, CI |
 | `all` | everything supported | the whole catalog |
+
+Search visibility (page metadata, `metadataBase`, sitemap and robots, noindex, canonical hosts) runs under `product`, because it reads the same pages.
+
+### The code profile
+
+`--profile code` reviews source the way the [tidy](https://github.com/mblode/agent-skills/tree/main/skills/tidy), [test-audit](https://github.com/mblode/agent-skills/tree/main/skills/test-audit) and [ci-speedup](https://github.com/mblode/agent-skills/tree/main/skills/ci-speedup) skills do:
+
+- **Performance:** blocking sync calls in request handlers, independent awaits run in sequence, formatters rebuilt every render, heavy libraries with native replacements.
+- **Data access:** a query per item in a loop, list reads with no limit, related writes with no transaction.
+- **Test value:** tests that assert nothing, compare a value with itself, check only that a mock was called, render and check presence, or snapshot a change detector. Focused and skipped tests.
+- **Test gaps:** modules whose branches the tests mostly never run, where the logic can reach users or data. Reads `coverage/coverage-summary.json`, so run your tests with the `json-summary` coverage reporter first; without a report the rule reports unknown. CLI entry points and `commands/` folders are skipped, because tests that run the binary are invisible to coverage.
+- **Dead code:** commented-out code, branches that can never run, flags hard-coded to one value, dependencies nothing imports.
+- **Code quality:** files over 1000 lines, blocks repeated in one file, type bypasses, rethrow-only catches, comments that restate the code, placeholder residue.
+- **Telemetry:** errors dropped in an empty catch, failures turned into a default with no record.
+- **Sensitive data:** committed keys, credentials or personal data in logs, tokens in `localStorage`, `Math.random` for secrets.
+- **CI:** pull request runs that are never cancelled or that cancel default-branch runs, full clones nothing reads, uncached installs, coverage collected on every pull request.
+
+Tests are in scope for the rules about tests and out of scope for the rest. Minified bundles and files marked as generated are skipped. A whole file too long for one question is judged on the lines around the match.
+
+Two scans are not lint rules. Migration planning traces flows across a codebase to write a plan: use the [planning](https://github.com/mblode/agent-skills/tree/main/skills/planning) skill. Compliance against your organisation’s policy needs that policy: write it as a rule pack (below), one question per requirement.
 
 ```bash
 taste-lint lint --profile product --dry-run
@@ -65,7 +86,7 @@ In GitHub Actions, upload the SARIF so findings land on the pull request diff. M
 
 ## What blocks and what reports
 
-28 rules are `active` and fail a run. All of them are mechanical: a regex, a parsed file or a measured value decides. The other 125 are `review-only`:
+28 rules are `active` and fail a run. All of them are mechanical: a regex, a parsed file or a measured value decides. The other 177 are `review-only`:
 
 - **Pattern ports** from `ui-design`, `ui-animation` and `typography-audit` that match raw source. A match nominates a candidate; it does not prove the skill’s conclusion.
 - **Jev questions**, one per rule, that need a labelled corpus before they may block.
@@ -122,7 +143,7 @@ console.log(result.summary, result.usage.costUsd);
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--profile <name>` |  | `product`, `writing`, `instructions` or `all`; paths default to `.` |
+| `--profile <name>` |  | `product`, `writing`, `instructions`, `code` or `all`; paths default to `.` |
 | `--dry-run` |  | Plan and print units, requests and estimated cost without calling Jev |
 | `--since <ref>` |  | Report only findings on lines changed since a Git revision |
 | `--only <ids>` |  | Comma-separated rule ids |

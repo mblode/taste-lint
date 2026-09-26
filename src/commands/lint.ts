@@ -42,7 +42,7 @@ export function registerLintCommand(program: Command): void {
     .addOption(
       new Option(
         "--profile <name>",
-        "Scope: product (tsx, jsx, css), writing (md, mdx), instructions (AGENTS.md, skills, plans) or all"
+        "Scope: product (tsx, jsx, css), writing (md, mdx), instructions (AGENTS.md, skills, plans), code (source, tests, CI) or all"
       ).choices(PROFILE_NAMES)
     )
     .option(

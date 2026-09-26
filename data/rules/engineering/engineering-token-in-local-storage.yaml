@@ -1,0 +1,43 @@
+# Hand-authored for taste-lint's code profile from the rule's source in mblode/agent-skills.
+id: engineering-token-in-local-storage
+title: Auth token stored in localStorage
+categoryId: sensitive-data
+source:
+  repo: mblode/agent-skills
+  path: skills/tidy/references/security-checklist.md
+  line: 54
+scope:
+  include:
+    - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
+  exclude:
+    - "**/*.d.ts"
+    - "**/*.min.js"
+    - "**/*.gen.*"
+    - "**/*.generated.*"
+    - "**/generated/**"
+    - "**/__generated__/**"
+    - "**/vendor/**"
+    - "**/fixtures/**"
+    - "**/__fixtures__/**"
+    - "**/migrations/**"
+unit:
+  - source
+mechanical:
+  regex: \b(?:localStorage|sessionStorage)\.setItem\(\s*["'`][^"'`]*(?:token|jwt|session|auth|credential)[^"'`]*["'`]
+  flags: giu
+preconditions:
+  notGenerated: true
+severity: major
+fix:
+  hint: Keep session tokens in an HttpOnly, Secure, SameSite cookie. Any script on the page, including an injected one, can read localStorage.
+status: review-only
+review:
+  applicability: A session or auth token is written to web storage.
+  exceptions: Non-secret values whose key happens to contain token, such as a design token name.
+  evidence: What the stored value is and who can read it.
+  verification: Move it to an HttpOnly cookie and confirm the session still works.
+  sourceHash: 59bfe3831e3d608f088cb0792dbc2d26edc745edc51c4afaff12b7cd69bcf6ea
+handWritten:
+  - mechanical
+  - fix
+  - scope
