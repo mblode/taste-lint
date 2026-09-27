@@ -38,8 +38,9 @@ jobs:
             echo "origin/main does not exist yet; skipping changeset status"
           fi
 
-      # verify:full locally is verify:cli plus verify:web: check, build,
-      # typecheck, test, packed smoke test, rules check, fixture dry run.
+      # npm run verify (and verify:full) locally is verify:cli plus
+      # verify:web: check, build, typecheck, test, packed smoke test,
+      # rules check, fixture dry run.
       - name: Verify
         run: npm run verify:cli
 

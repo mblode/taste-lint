@@ -10,8 +10,9 @@ npm run build:cli                                  # only the published CLI
 npm run check && npm run typecheck                 # edit loop
 npx vitest run src/__tests__/rules.test.ts --reporter=dot   # one suite, quiet
 npm run taste                                      # lint this repo with its own rules; CI runs it
-npm run verify                                     # lint, types, tests, build, packed smoke test
-npm run verify:full                                # verify:cli plus verify:web; CI runs the two as parallel jobs, plus port-rules --check
+npm run verify:quick                               # fast edit-loop gate: lint, types, tests, build, packed smoke test (no rules check, no taste, no web)
+npm run verify                                     # CI-equivalent gate: verify:cli plus verify:web; same as verify:full
+npm run verify:full                                # same as verify; verify:cli plus verify:web; CI runs the two as parallel jobs, plus port-rules --check
 npm run verify:cli                                 # check, CLI build, types, tests, packed smoke test, rules check, taste
 npm run verify:web                                 # Next build, web types, web tests
 npm run fix                                        # ultracite autofix; scope it when unrelated changes exist
@@ -23,8 +24,8 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Verification
 
-- A change is proven when `npm run verify:full` and `npm run port-rules -- --skills-dir ../agent-skills --check` pass: the same checks CI runs. On 27 Sep 2026 both passed: 303 CLI tests, 17 web tests, the packed smoke test, `rules check` (205 active rules) and the `taste` dry run.
-- `npm run verify` exists and is what factory workers run, but it skips `rules check` and `taste`, so it can pass while CI fails. Run `verify:full` before calling a change done.
+- A change is proven when `npm run verify` (same as `npm run verify:full`) and `npm run port-rules -- --skills-dir ../agent-skills --check` pass: the same checks CI runs. On 27 Sep 2026 both passed: 303 CLI tests, 17 web tests, the packed smoke test, `rules check` (205 active rules) and the `taste` dry run.
+- `npm run verify` is `verify:cli && verify:web`, the same set of checks CI's two jobs run, so it cannot pass while CI fails; it is what factory workers run. `npm run verify:quick` (check, build, typecheck, test, packed smoke test only, no rules check, no taste, no web) is a faster edit-loop pass, not a substitute for `verify` before calling a change done.
 - Landing page changes: also run `npm run test:instant --workspace @taste-lint/web` (Playwright; builds with `NEXT_INSTANT_TEST=1` and serves on port 3210). CI does not run it.
 - Rule precision is proven by a live holdout `eval`, not by the tests (see Promoting a rule).
 - Gaps: no `doctor` script (one would check Node 24, the `../agent-skills` sibling and the Jev key) and no feature map.
@@ -53,7 +54,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 1. YAML under `data/rules/<domain>/<id>.yaml` with `id` equal to the filename: `id`, `title`, `categoryId`, `source`, `unit`, then `mechanical` (regex, phrases, `absent`) or `question` or both, `severity`, `fix.hint`, `status`. A `source` rule also names `scope.include`. See `data/rules/copywriting/copywriting-canned-phrasing.yaml` (both) and `data/rules/interaction/interaction-no-error-state.yaml` (source).
 2. Anything that counts or measures: a `codeRule` in `src/rules/code/typography.ts` or `classes.ts`, with a unit test through `check(id)` from `src/__tests__/helpers.ts`.
-3. `node dist/cli.js rules check`, then `npm run verify:full`. A Jev-backed rule ships `review-only`; only `tune --write` promotes it.
+3. `node dist/cli.js rules check`, then `npm run verify`. A Jev-backed rule ships `review-only`; only `tune --write` promotes it.
 
 ## Promoting a rule
 
@@ -80,4 +81,4 @@ A wrong finding is corpus evidence: add the unit with the correct label instead 
 
 `docs/design.mdx` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary. `docs/typesafe.mdx`: the Jev integration. Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev, and read the live TypeSafe docs before changing questions, state or confidence handling.
 
-CI layout: a new CLI check goes in `verify:cli`, a new web check in `verify:web`, never straight into `verify:full`, or CI skips it. The web build is CPU-bound and sets the run's length; timings and the next levers are in `docs/audits/ci-speed.md`.
+CI layout: a new CLI check goes in `verify:cli`, a new web check in `verify:web`, never straight into `verify` or `verify:full`, or CI skips it. The web build is CPU-bound and sets the run's length; timings and the next levers are in `docs/audits/ci-speed.md`.
