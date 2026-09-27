@@ -21,6 +21,14 @@ node dist/cli.js schema                            # every command, flag and def
 npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule still matches its source
 ```
 
+## Verification
+
+- A change is proven when `npm run verify:full` and `npm run port-rules -- --skills-dir ../agent-skills --check` pass: the same checks CI runs. On 27 Sep 2026 both passed: 303 CLI tests, 17 web tests, the packed smoke test, `rules check` (205 active rules) and the `taste` dry run.
+- `npm run verify` exists and is what factory workers run, but it skips `rules check` and `taste`, so it can pass while CI fails. Run `verify:full` before calling a change done.
+- Landing page changes: also run `npm run test:instant --workspace @taste-lint/web` (Playwright; builds with `NEXT_INSTANT_TEST=1` and serves on port 3210). CI does not run it.
+- Rule precision is proven by a live holdout `eval`, not by the tests (see Promoting a rule).
+- Gaps: no `doctor` script (one would check Node 24, the `../agent-skills` sibling and the Jev key) and no feature map.
+
 ## Setup facts
 
 - `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `code`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines.
@@ -51,7 +59,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 Rule count is not the metric. Precision on real repositories is. Work the loop in this order and repeat; do not skip ahead:
 
-1. Get it working: `eval` runs live with `Jev: N requests` and no errors. A rejected key fails the run; the working key is in `.env.local`.
+1. Get it working: `eval` runs live with `Jev: N requests` and no errors. A rejected key fails the run. The working key is in the main checkout's `.env.local`, which the CLI never loads and a new worktree does not have: pass it with `node --env-file=<main checkout>/.env.local dist/cli.js eval ...`.
 2. Find failure modes: `eval --only <rule> --split dev --disagreements`. Group the rows by cause (the judge never asked, the rubric reads plain text as a violation, the label is wrong) before touching anything.
 3. Fix the judge's failure modes with AI: an agent rewrites the question from dev disagreements, confirmed with `tune ab` and then a holdout `eval`. Every edit is general policy, never a patch for one row. Never edit from holdout disagreements.
 4. Only then optimise cost (gates, preconditions, batching), then speed.
