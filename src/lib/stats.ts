@@ -94,9 +94,13 @@ export interface BinaryMetrics {
   tn: number;
   precision: number;
   recall: number;
+  /** True negative rate (specificity): tn / (tn + fp). */
+  tnr: number;
   f1: number;
   precisionCI: [number, number];
+  /** Recall is the true positive rate; this is its Wilson interval. */
   recallCI: [number, number];
+  tnrCI: [number, number];
 }
 
 // Precision, recall and F1 for one rule over labelled (label, predicted) pairs.
@@ -120,6 +124,7 @@ export const binaryMetrics = (
   }
   const precision = tp + fp === 0 ? 0 : tp / (tp + fp);
   const recall = tp + fn === 0 ? 0 : tp / (tp + fn);
+  const tnr = tn + fp === 0 ? 0 : tn / (tn + fp);
   const f1 =
     precision + recall === 0
       ? 0
@@ -133,9 +138,18 @@ export const binaryMetrics = (
     recall,
     recallCI: wilson(tp, tp + fn),
     tn,
+    tnr,
+    tnrCI: wilson(tn, tn + fp),
     tp,
   };
 };
+
+// Two Wilson intervals overlap: a cheap "could be the same rate" screen for a
+// delta headline. It is conservative (wider than a paired test), which is why
+// `mcnemar` is still the call for a paired significance verdict; use this
+// where only two independent proportions (e.g. train vs test) are in hand.
+export const ciOverlap = (a: [number, number], b: [number, number]): boolean =>
+  a[0] <= b[1] && b[0] <= a[1];
 
 // Calibration table: observed positive rate per predicted-probability bucket.
 export const calibrationTable = (

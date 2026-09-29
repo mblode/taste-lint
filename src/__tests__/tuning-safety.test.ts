@@ -86,6 +86,37 @@ it("pairs A/B results by sample identity when the variant lacks context", async 
   expect(result.report).toContain("1 paired dev items; 1 excluded");
   expect(result.report).toContain("discordant=0");
 });
+it("refuses a variant that quotes a corpus item instead of stating policy", async () => {
+  const options = setup();
+  const variantFile = path.join(
+    path.dirname(options.variantFile),
+    "quoting.yaml"
+  );
+  fs.writeFileSync(
+    variantFile,
+    [
+      "question:",
+      "  instructions: Is the text generic?",
+      "  criteria:",
+      "    true:",
+      "      what: generic framing",
+      "      examples:",
+      "        - The first paragraph frames the topic generically.",
+      "    false:",
+      "      what: specific framing",
+      "      examples:",
+      "        - The document opens with a concrete customer scenario.",
+      "",
+    ].join("\n")
+  );
+  const result = await runTuneAb(
+    { ...options, ruleId: options.id, variantFile },
+    { evaluate: fakeEvaluate(() => 0.9) }
+  );
+  expect(result.exitCode).toBe(2);
+  expect(result.report).toContain("General-policy guard failed");
+  expect(result.report).toContain("first");
+});
 it("rejects an A/B verdict after provider failure", async () => {
   const options = setup();
   const result = await runTuneAb(
