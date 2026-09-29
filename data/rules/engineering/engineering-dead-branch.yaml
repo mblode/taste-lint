@@ -5,7 +5,7 @@ categoryId: dead-code
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/ai-slop-patterns.md
-  line: 141
+  line: 155
 scope:
   include:
     - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
@@ -35,7 +35,7 @@ review:
   exceptions: A deliberate debug toggle documented in place, or generated code.
   evidence: The branch body and anything reachable only from it.
   verification: Delete the branch and run the type check and tests.
-  sourceHash: 2cc5159af691557ba07c0027746413516f4185251dbd6f91980b134ecd8da494
+  sourceHash: 2caa14d4d3875ab1b8d2041551a62e79e7cb2af5e1594c553767240e39205c9b
 handWritten:
   - mechanical
   - fix
