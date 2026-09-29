@@ -5,7 +5,7 @@ categoryId: code-quality
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/ai-slop-patterns.md
-  line: 23
+  line: 24
 scope:
   include:
     - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"

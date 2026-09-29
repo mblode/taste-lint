@@ -5,7 +5,7 @@ categoryId: code-quality
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/ai-slop-patterns.md
-  line: 170
+  line: 184
 scope:
   include:
     - "**/*.{tsx,jsx}"
@@ -35,7 +35,7 @@ review:
   exceptions: Development-only branches, error boundaries that log on purpose, and storybook files.
   evidence: Whether the call is guarded by an environment check.
   verification: Delete it and check the console in the browser.
-  sourceHash: 2cc5159af691557ba07c0027746413516f4185251dbd6f91980b134ecd8da494
+  sourceHash: 2caa14d4d3875ab1b8d2041551a62e79e7cb2af5e1594c553767240e39205c9b
 handWritten:
   - mechanical
   - fix
