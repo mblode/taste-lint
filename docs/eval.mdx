@@ -1,0 +1,44 @@
+---
+title: Eval and hillclimb
+description: How rule precision is measured, tuned and promoted against a held-out corpus.
+---
+
+# Eval and hillclimb
+
+`eval` and `tune` follow the eval design and hillclimbing practice from [Anthropic’s guide to automating eval design and hillclimbing](https://claude.dev/blog/automating-eval-design-and-hillclimbing/). Rule count is not the metric; precision on real repositories is.
+
+## Corpus and split
+
+`data/corpus/*.jsonl` holds labelled units under `src/eval/corpus.ts`. Every item gets a deterministic 80/20 `dev`/`holdout` split from a seeded hash of its id (or its source family, so paired examples stay on the same side), not a random draw per run. An edit only ever reads `dev`; `holdout` stays unseen until a validation run.
+
+`eval coverage` reports label balance and split overlap without any API calls. Overlapping source files, example families or duplicate text between `dev` and `holdout` weaken held-out evidence, even before a threshold is chosen.
+
+## Threshold tuning and promotion
+
+`tune` picks the lowest `act` threshold per rule on `dev` whose precision lower bound (Wilson, 95%) clears `--floor` (default 0.8). `tune --write` records the decision in `data/rules/tuning.json`, but only after `promotionEvidence` (`src/eval/promotion.ts`) validates that threshold on the independent `holdout` split. A rule whose holdout precision does not clear the floor is written `review-only`, even if `dev` looked strong: that is the overfit guard. Rerun `tune --write` once holdout evidence supports the rule; nothing promotes on train performance alone.
+
+`tune ab` compares two question wordings for one rule on `dev` with a paired McNemar test, and warns when there are fewer than 10 discordant pairs (underpowered).
+
+## Diagnostics to run with every baseline
+
+- **Grader consistency** (`eval consistency`): asks the same question twice with the answer cache bypassed and reports the flip rate with a Wilson interval. A wording or a precondition that is not actually deterministic shows up here before it costs a promotion cycle.
+- **Infrastructure errors**: a timeout, a rejected key or a malformed response is recorded as `provider_error`, `invalid_response` or `timeout` (never a raw body). It is counted in `usage.errors` and excluded from precision and recall. `eval --check` treats any error as incomplete, not a failing rule.
+- **Headroom**: `eval` warns when a rule’s precision or recall lower bound already clears 95% on enough evidence. Past that floor there is no quality left to hillclimb; the next lever is cost (a cheaper model, fewer calls, or a mechanical replacement of the question), not the rubric.
+
+## General policy, not one row
+
+An edit from `eval --only <rule> --split dev --disagreements` must generalise past the row that triggered it. `tune ab` mechanically rejects a variant whose question text shares a 6-word run with any corpus item labelled for that rule, dev or holdout. That is the smell of a patch for one case, not a policy for the rule.
+
+## Reading a run
+
+Every non-dry `eval` and `tune` run writes one JSONL line per request, plus one `kind: "case"` line per (item, rule) pair, to `results/`, ending in a summary line. `eval --html <file>` renders those cases into a static, offline HTML report: one table per rule, one row per item, linking the item’s own text. Nothing in the report calls out to a network.
+
+## Order of operations
+
+1. Get the rule working: `eval` runs live with no errors.
+2. Find failure modes: `eval --only <rule> --split dev --disagreements`.
+3. Fix the judge, not the corpus: edit the question from `dev` disagreements, confirm with `tune ab`, then a holdout `eval`. Never edit from a holdout disagreement.
+4. Only then optimise cost, then speed.
+5. Only then hand the residue to a person: rows the loop could not settle.
+
+See `AGENTS.md` in the repository root for the exact commands.

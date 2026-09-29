@@ -17,6 +17,11 @@ import type { CorpusItem, Evaluate, Rule, Tuning } from "../types.js";
 import { loadCorpus, resolveCorpusDir } from "./corpus.js";
 import { evaluateRules, scoreItems } from "./metrics.js";
 import type { RuleEval } from "./metrics.js";
+import {
+  checkGeneralPolicy,
+  questionStrings,
+  renderOriginalityHits,
+} from "./originality.js";
 import { promotionEvidence } from "./promotion.js";
 import type { PromotionEvidence } from "./promotion.js";
 
@@ -277,10 +282,23 @@ export const runTuneAb = async (
   const knownRuleIds = new Set(
     loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
   );
-  const items = fromSources(
-    loadCorpus(resolveCorpusDir(options.corpusDir), [rule], { knownRuleIds }),
-    options.sources
-  ).filter((i) => i.split === "dev" && rule.id in i.labels);
+  const allLabelled = loadCorpus(resolveCorpusDir(options.corpusDir), [rule], {
+    knownRuleIds,
+  }).filter((i) => rule.id in i.labels);
+  // A rewrite must be general policy, never a quote of a labelled example
+  // (dev or holdout): check before spending a single request on it.
+  if (variant.question) {
+    const hits = checkGeneralPolicy(
+      questionStrings(variant.question),
+      allLabelled
+    );
+    if (hits.length > 0) {
+      return { exitCode: 2, report: renderOriginalityHits(hits) };
+    }
+  }
+  const items = fromSources(allLabelled, options.sources).filter(
+    (i) => i.split === "dev"
+  );
   const model = options.model ?? DEFAULT_MODEL;
   const resultsDir = options.resultsDir ?? defaultResultsDir();
   const cache = new AnswerCache(path.join(resultsDir, "cache"));

@@ -26,7 +26,12 @@ try {
     "--pack-destination",
     temporary,
   ]);
-  const [packed] = JSON.parse(packOutput.slice(packOutput.indexOf("[")));
+  // npm 12 prints `pack --json --workspace` as an object keyed by workspace.
+  const start = packOutput.search(/[[{]/u);
+  const parsed = JSON.parse(packOutput.slice(start));
+  const [packed] = Array.isArray(parsed)
+    ? parsed
+    : Object.values(parsed).flat();
   assert.ok(
     packed.files.some(
       (file) =>
