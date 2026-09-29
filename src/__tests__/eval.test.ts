@@ -72,6 +72,63 @@ it("evaluates a single rule against the shipped corpus without rejecting other l
   expect(result.report).toMatch(/precision n\/a \(no positive predictions\)/);
 });
 
+it("renders an offline HTML report only when asked, with a row per case", async () => {
+  const withoutHtml = await runEval({
+    corpusDir: path.join(root, "data/corpus"),
+    dryRun: true,
+    only: ["copywriting-claim-without-evidence"],
+    resultsDir: temporary(),
+    rulesDir: path.join(root, "data/rules"),
+  });
+  expect(withoutHtml.html).toBeUndefined();
+  const withHtml = await runEval({
+    corpusDir: path.join(root, "data/corpus"),
+    dryRun: true,
+    html: true,
+    only: ["copywriting-claim-without-evidence"],
+    resultsDir: temporary(),
+    rulesDir: path.join(root, "data/rules"),
+  });
+  expect(withHtml.html).toContain("<!doctype html>");
+  expect(withHtml.html).toContain("copywriting-claim-without-evidence");
+});
+
+it("warns on headroom once a rule's precision lower bound clears 95%", async () => {
+  const corpusDir = temporary();
+  const id = "copywriting-generic-framing";
+  // Wilson's lower bound on tp/(tp+fp) with fp=0 is exactly tp/(tp+z^2); at
+  // least 74 positive predictions are needed to clear the 95% headroom floor.
+  const rows = Array.from({ length: 160 }, (_, i) => ({
+    categoryId: "reader-first-framing",
+    context: { docType: "explanation", role: "body" },
+    id: `example-${i}`,
+    kind: "paragraph",
+    labelSource: "hand",
+    labels: { [id]: i % 2 === 0 },
+    source: { path: `example-${i}.md`, repo: "test" },
+    split: i < 80 ? "dev" : "holdout",
+    text: `${i % 2 === 0 ? "Violation" : "Acceptable"} example number ${i} for the rule.`,
+  }));
+  fs.writeFileSync(
+    path.join(corpusDir, "items.jsonl"),
+    rows.map((row) => JSON.stringify(row)).join("\n")
+  );
+  const evaluate = fakeEvaluate((_id, state) =>
+    state.includes("Violation") ? 0.9 : 0.1
+  );
+  const result = await runEval(
+    {
+      corpusDir,
+      only: [id],
+      resultsDir: temporary(),
+      rulesDir: path.join(root, "data/rules"),
+    },
+    { evaluate }
+  );
+  expect(result.report).toMatch(/Headroom:/);
+  expect(result.report).toMatch(/tune for cost instead/);
+}, 20_000);
+
 it("tunes over the dev split with an injected evaluate and rejects a bad floor", async () => {
   const options = {
     corpusDir: path.join(root, "data/corpus"),

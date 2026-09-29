@@ -4,6 +4,7 @@ import { decideThreshold } from "../eval/tune.js";
 import {
   binaryMetrics,
   calibrationTable,
+  ciOverlap,
   mcnemar,
   wilson,
 } from "../lib/stats.js";
@@ -26,6 +27,11 @@ it("computes Wilson intervals and McNemar like agent-evals", () => {
   expect(wilson(0, 0)).toEqual([0, 1]);
 });
 
+it("flags overlapping Wilson intervals as within noise", () => {
+  expect(ciOverlap([0.4, 0.6], [0.5, 0.7])).toBe(true);
+  expect(ciOverlap([0.1, 0.2], [0.5, 0.7])).toBe(false);
+});
+
 it("computes precision, recall and a calibration table", () => {
   const m = binaryMetrics([
     { label: true, predicted: true },
@@ -39,6 +45,7 @@ it("computes precision, recall and a calibration table", () => {
     precision: 0.5,
     recall: 0.5,
     tn: 1,
+    tnr: 0.5,
     tp: 1,
   });
   const table = calibrationTable([

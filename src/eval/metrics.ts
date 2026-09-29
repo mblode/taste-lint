@@ -21,9 +21,12 @@ import { band } from "../reduce/bands.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import type { Config, CorpusItem, Evaluate, Rule, Unit } from "../types.js";
 import { abstainCandidates } from "./candidates.js";
+import { recordCases } from "./cases.js";
 import { loadCorpus, resolveCorpusDir, unitFromItem } from "./corpus.js";
 import { corpusCoverage, pairedOutcomes } from "./coverage.js";
+import { headroomWarnings, renderHeadroomWarnings } from "./headroom.js";
 import { renderDisagreements } from "./label.js";
+import { renderHtmlReport } from "./report.js";
 
 export interface EvalOptions {
   check?: boolean;
@@ -41,6 +44,8 @@ export interface EvalOptions {
   resultsDir?: string;
   model?: string;
   apiKey?: string;
+  /** Render a static offline HTML report linking every case; see docs/eval.mdx. */
+  html?: boolean;
 }
 
 export interface EvalContext {
@@ -70,6 +75,8 @@ export interface EvalResult {
   referenceCoverage?: ReturnType<typeof corpusCoverage>;
   labelSources?: Record<string, number>;
   report: string;
+  /** Static offline HTML report, present only when `options.html` was set. */
+  html?: string;
   exitCode: number;
   rules: RuleEval[];
   usage: {
@@ -375,6 +382,7 @@ export const runEval = async (
     labelSources[item.labelSource] = (labelSources[item.labelSource] ?? 0) + 1;
   }
   const evals = evaluateRules(items, rules, probabilities, unknowns, skipped);
+  recordCases(recorder, evals, items, rules);
   recorder?.summary({
     rules: evals.map((e) => ({
       id: e.ruleId,
@@ -398,6 +406,7 @@ export const runEval = async (
         : 0;
   return {
     exitCode,
+    html: options.html ? renderHtmlReport(evals, items) : undefined,
     labelSources,
     referenceCoverage: corpusCoverage(items, rules),
     report:
@@ -408,6 +417,7 @@ export const runEval = async (
         ? `AI-labeled reference: ${labelSources.ai} items. Metrics measure agreement with AI labels, not human judgments.\n`
         : "") +
       renderEval(evals, usage, Boolean(options.dryRun), pendingRequests) +
+      renderHeadroomWarnings(headroomWarnings(evals)) +
       (options.disagreements && !options.dryRun
         ? renderDisagreements(evals, items, rules)
         : ""),

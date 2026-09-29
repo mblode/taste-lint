@@ -1,6 +1,9 @@
+import fs from "node:fs";
+
 import { Option } from "commander";
 import type { Command } from "commander";
 
+import { renderConsistency, runConsistency } from "../eval/consistency.js";
 import { loadCorpus, resolveCorpusDir } from "../eval/corpus.js";
 import { corpusCoverage, renderCoverage } from "../eval/coverage.js";
 import {
@@ -11,7 +14,8 @@ import {
   renderGaps,
 } from "../eval/label.js";
 import { runEval } from "../eval/metrics.js";
-import { DEFAULT_MODEL } from "../map/jev.js";
+import { defaultResultsDir } from "../lib/config.js";
+import { DEFAULT_MODEL, evaluateFromEnv, KEY_HINT } from "../map/jev.js";
 import { loadRules, resolveRulesDir } from "../rules/load.js";
 import { labelsToCorpus } from "../scan/samples.js";
 import type { CorpusItem } from "../types.js";
@@ -79,12 +83,17 @@ export function registerEvalCommand(program: Command): void {
     .option("--no-cache", "Ignore cached answers")
     .option("--results-dir <path>", "Where logs and cache live")
     .option("--model <id>", "Jev model id", DEFAULT_MODEL)
+    .option(
+      "--html <file>",
+      "Write a static offline HTML report linking every case"
+    )
     .action(async (options) => {
       const result = await runEval({
         check: options.check,
         corpusDir: options.corpus,
         disagreements: options.disagreements,
         dryRun: options.dryRun,
+        html: Boolean(options.html),
         includeWeak: options.includeWeak,
         model: options.model,
         noCache: !options.cache,
@@ -97,6 +106,10 @@ export function registerEvalCommand(program: Command): void {
         sources: parseSources(options.source),
         split: options.split,
       });
+      if (options.html && result.html) {
+        fs.writeFileSync(options.html, result.html);
+        process.stdout.write(`Wrote ${options.html}\n`);
+      }
       process.stdout.write(
         options.output === "json"
           ? `${JSON.stringify(result, null, 2)}\n`
@@ -191,5 +204,55 @@ export function registerEvalCommand(program: Command): void {
       const rows = labelAgreement(hand, other, floor);
       process.stdout.write(renderAgreement(rows, floor));
       process.exitCode = rows.every((r) => r.trusted) ? 0 : 1;
+    });
+  command
+    .command("consistency")
+    .description(
+      "Ask the judge the same question twice, cache bypassed, and report the flip rate; run with every baseline"
+    )
+    .option("--corpus <path>", "Corpus directory")
+    .option("--rules <path>", "Rules directory")
+    .option("--only <ids>", "Comma-separated rule ids")
+    .addOption(
+      new Option("--split <name>", "Evaluation split")
+        .choices(["dev", "holdout", "all"])
+        .default("all")
+    )
+    .option("--sample <n>", "Items to double-judge", "30")
+    .option("--results-dir <path>", "Where logs and cache live")
+    .option("--model <id>", "Jev model id", DEFAULT_MODEL)
+    .action(async (options) => {
+      const rulesDir = resolveRulesDir(options.rules);
+      const rules = loadRules(rulesDir, {
+        allowDraft: false,
+        only: options.only
+          ?.split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean),
+      }).filter((r) => r.tier !== "mechanical");
+      const knownRuleIds = new Set(
+        loadRules(rulesDir, { allowDraft: true }).map((r) => r.id)
+      );
+      let items = loadCorpus(resolveCorpusDir(options.corpus), rules, {
+        knownRuleIds,
+      });
+      if (options.split && options.split !== "all") {
+        items = items.filter((i) => i.split === options.split);
+      }
+      const evaluate = evaluateFromEnv();
+      if (!evaluate) {
+        throw new Error(`${KEY_HINT} Consistency needs live answers.`);
+      }
+      const sampleSize = Number(options.sample);
+      if (!(Number.isInteger(sampleSize) && sampleSize > 0)) {
+        throw new Error("--sample must be a positive integer");
+      }
+      const result = await runConsistency(items, rules, evaluate, {
+        model: options.model,
+        resultsDir: options.resultsDir ?? defaultResultsDir(),
+        sampleSize,
+      });
+      process.stdout.write(renderConsistency(result));
+      process.exitCode = result.errors > 0 ? 2 : 0;
     });
 }
