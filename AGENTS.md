@@ -26,6 +26,8 @@ npm run fix                                        # ultracite autofix; scope it
 node dist/cli.js lint --profile product --dry-run  # units, requests, estimated cost; no calls
 node dist/cli.js rules check                       # validate data/rules
 node dist/cli.js schema                            # every command, flag and default as JSON
+node dist/cli.js eval --html results/report.html   # static offline report, one row per (item, rule)
+node dist/cli.js eval consistency --only <rule>     # ask twice, cache bypassed; report the flip rate
 npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule still matches its source
 ```
 
@@ -65,15 +67,18 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Promoting a rule
 
-Rule count is not the metric. Precision on real repositories is. Work the loop in this order and repeat; do not skip ahead:
+Rule count is not the metric. Precision on real repositories is. This loop follows [Anthropic's guide to automating eval design and hillclimbing](https://claude.dev/blog/automating-eval-design-and-hillclimbing/); see `docs/eval.mdx` for the published version. Work the loop in this order and repeat; do not skip ahead:
 
 1. Get it working: `eval` runs live with `Jev: N requests` and no errors. A rejected key fails the run. The working key is in the main checkout's `.env.local`, which the CLI never loads and a new worktree does not have: pass it with `node --env-file=<main checkout>/.env.local dist/cli.js eval ...`.
-2. Find failure modes: `eval --only <rule> --split dev --disagreements`. Group the rows by cause (the judge never asked, the rubric reads plain text as a violation, the label is wrong) before touching anything.
-3. Fix the judge's failure modes with AI: an agent rewrites the question from dev disagreements, confirmed with `tune ab` and then a holdout `eval`. Every edit is general policy, never a patch for one row. Never edit from holdout disagreements.
-4. Only then optimise cost (gates, preconditions, batching), then speed.
-5. Only then ask Matthew to label the residue: rows the AI loop could not settle, suspect labels, and rules with no positives. Export them with `lint --samples`, label with `eval label`, turn unsure answers into rubric edits with `eval gaps`, and trust an agent labeller for a rule only after `eval agreement` clears the floor.
+2. Find failure modes: `eval --only <rule> --split dev --disagreements`. Group the rows by cause (the judge never asked, the rubric reads plain text as a violation, the label is wrong) before touching anything. Run `eval consistency --only <rule>` alongside: a flip rate above noise means the wording or a precondition is not actually deterministic, and no threshold fixes that.
+3. Fix the judge's failure modes with AI: an agent rewrites the question from dev disagreements, confirmed with `tune ab` and then a holdout `eval`. Every edit is general policy, never a patch for one row; `tune ab` mechanically refuses a variant that shares a 6-word run with a corpus item. Never edit from holdout disagreements.
+4. Check headroom before spending more rounds on quality: `eval` warns when a rule's precision or recall lower bound already clears 95% on enough evidence. Past that floor, tune for cost (cheaper model, fewer calls, a mechanical replacement) or stop.
+5. Only then optimise cost (gates, preconditions, batching), then speed.
+6. Only then ask Matthew to label the residue: rows the AI loop could not settle, suspect labels, and rules with no positives. Export them with `lint --samples`, label with `eval label`, turn unsure answers into rubric edits with `eval gaps`, and trust an agent labeller for a rule only after `eval agreement` clears the floor.
 
 A wrong finding is corpus evidence: add the unit with the correct label instead of lowering a threshold by hand.
+
+`eval --html <file>` writes a static offline HTML report (one row per item per rule, linking the item's text) from the same run; every non-dry `eval` or `tune` run also writes one JSONL line per request and per case to `results/`, so a disagreement or an error is traceable after the fact.
 
 ## Invariants
 
@@ -86,6 +91,6 @@ A wrong finding is corpus evidence: add the unit with the correct label instead 
 
 ## Contracts
 
-`docs/design.mdx` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary. `docs/typesafe.mdx`: the Jev integration. Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev, and read the live TypeSafe docs before changing questions, state or confidence handling.
+`docs/design.mdx` (https://blode.co/taste-lint/docs/design): the rule, unit, request and finding contracts, the pipeline map, the glossary. `docs/typesafe.mdx`: the Jev integration. `docs/eval.mdx` (https://blode.co/taste-lint/docs/eval): the eval and hillclimb workflow: split, tuning, promotion, diagnostics, and the offline HTML report. Use the installed `.agents/skills/typesafe-ai/SKILL.md` when working on Jev, and read the live TypeSafe docs before changing questions, state or confidence handling.
 
 CI layout: a new CLI check goes in `verify:cli`, a new web check in `verify:web`, never straight into `verify` or `verify:full`, or CI skips it. The web build is CPU-bound and sets the run's length; timings and the next levers are in `docs/audits/ci-speed.md`.
