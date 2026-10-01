@@ -46,6 +46,14 @@ export function registerLintCommand(program: Command): void {
       ).choices(PROFILE_NAMES)
     )
     .option(
+      "--staged",
+      "Lint the files staged in Git, as staged; for pre-commit hooks"
+    )
+    .option(
+      "--no-error-on-unmatched-pattern",
+      "Pass when no file is selected, and skip missing or unsupported paths; for lint-staged and lefthook {staged_files}"
+    )
+    .option(
       "--since <ref>",
       "Report only findings on lines changed since this Git revision"
     )
@@ -88,6 +96,8 @@ export function registerLintCommand(program: Command): void {
         options: {
           profile?: ProfileName;
           since?: string;
+          staged?: boolean;
+          errorOnUnmatchedPattern: boolean;
           samples?: string;
           brief?: string;
           root: string;
@@ -107,8 +117,17 @@ export function registerLintCommand(program: Command): void {
           selector: string;
         }
       ) => {
-        const targets = paths.length === 0 && options.profile ? ["."] : paths;
-        if (targets.length === 0 && !options.url) {
+        const targets =
+          paths.length === 0 && options.profile && !options.staged
+            ? ["."]
+            : paths;
+        if (options.staged && (options.url || paths.length > 0)) {
+          throw new InputError(
+            "INVALID_ARGUMENT",
+            "--staged lints the files in Git's index; drop the paths and --url, or drop --staged."
+          );
+        }
+        if (targets.length === 0 && !options.url && !options.staged) {
           throw new InputError(
             "INVALID_ARGUMENT",
             "Pass at least one path, --profile or --url"
@@ -150,6 +169,7 @@ export function registerLintCommand(program: Command): void {
           {
             brief: options.brief,
             dryRun: options.dryRun,
+            errorOnUnmatchedPattern: options.errorOnUnmatchedPattern,
             exclude: options.exclude
               ?.split(",")
               .map((s) => s.trim())
@@ -168,7 +188,8 @@ export function registerLintCommand(program: Command): void {
             resultsDir: options.resultsDir,
             root: options.root,
             since: options.since,
-            targets,
+            staged: options.staged,
+            targets: options.staged ? undefined : targets,
           },
           {
             onEvidence: options.samples
@@ -245,7 +266,14 @@ export function registerLintCommand(program: Command): void {
         if (options.brief) {
           retryArgs.push("--brief", options.brief);
         }
-        retryArgs.push("--", ...targets);
+        if (!options.errorOnUnmatchedPattern) {
+          retryArgs.push("--no-error-on-unmatched-pattern");
+        }
+        if (options.staged) {
+          retryArgs.push("--staged");
+        } else {
+          retryArgs.push("--", ...targets);
+        }
         const rerun =
           result.status === "incomplete"
             ? retryArgs.map(quote).join(" ")

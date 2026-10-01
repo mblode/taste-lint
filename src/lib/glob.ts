@@ -69,13 +69,16 @@ export const matchesAny = (relative: string, globs: string[]): boolean =>
 export const toPosix = (p: string): string => p.split(path.sep).join("/");
 
 // Walk `targets` (files or directories) under `root` and return relative
-// forward-slash paths matching `include` and not `exclude`.
+// forward-slash paths matching `include` and not `exclude`. A hook runner
+// passes every staged file, so with `errorOnUnmatched: false` a missing or
+// unsupported explicit target is skipped instead of failing the run.
 export const collectFiles = (
   root: string,
   targets: string[],
   include: string[],
   exclude: string[] = [],
-  diagnostics?: { excluded: number; messages: string[] }
+  diagnostics?: { excluded: number; messages: string[] },
+  { errorOnUnmatched = true }: { errorOnUnmatched?: boolean } = {}
 ): string[] => {
   const excludes = [...DEFAULT_EXCLUDE, ...exclude];
   const ignoredResult = spawnSync(
@@ -131,6 +134,9 @@ export const collectFiles = (
     try {
       stat = fs.statSync(abs);
     } catch (error) {
+      if (!errorOnUnmatched) {
+        return;
+      }
       const code =
         (error as NodeJS.ErrnoException).code === "ENOENT"
           ? "TARGET_NOT_FOUND"
@@ -165,7 +171,7 @@ export const collectFiles = (
     }
     if (matchesAny(rel, include)) {
       out.add(rel);
-    } else if (explicit) {
+    } else if (explicit && errorOnUnmatched) {
       throw new InputError(
         "UNSUPPORTED_TARGET",
         `Unsupported target ${abs}. Use Markdown, MDX, TSX, JSX, CSS or SCSS.`,

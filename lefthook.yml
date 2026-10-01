@@ -34,12 +34,10 @@ pre-commit:
       glob: "*.{ts,tsx}"
       run: npx vitest run src/__tests__/evidence.test.ts src/__tests__/tuning-safety.test.ts
     - name: taste
-      glob: "*.{md,mdx,tsx,jsx,css}"
-      exclude:
-        - "LICENSE.md"
-        - "apps/web/fixtures/**"
-        - "src/__tests__/fixtures/**"
-        - "data/**"
-        - "docs/{plans,audits,evaluations,reviews}/**"
-      # The tool lints its own copy. Mechanical checks only, so no key is needed.
-      run: npx tsdown --silent && node dist/cli.js lint --dry-run {staged_files}
+      # The same scan as `npm run taste` in CI, limited to the staged files and
+      # read from the index, so a partly staged file is checked as committed.
+      # taste-lint.config.json owns the excludes; the glob only skips the build
+      # when nothing taste-lint reads is staged. Mechanical checks only, so no
+      # key is needed.
+      glob: "*.{md,mdx,ts,tsx,js,jsx,mjs,css,json,yml,yaml}"
+      run: npx tsdown --silent && node dist/cli.js lint --staged --profile all --dry-run
