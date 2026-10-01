@@ -41,7 +41,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 ## Setup facts
 
-- `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `code`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines.
+- `lint` is the one user-facing command. `--profile` scopes files and rule domains (`product`, `writing`, `instructions`, `code`, `all`) and never changes a rule’s status. `--since <ref>` reports only changed lines. `--staged` lints the index (what the commit will contain); `--no-error-on-unmatched-pattern` lets a hook runner pass every staged path.
 - Mechanical rules run without a key. Uncached Jev work needs `AI_GATEWAY_API_KEY` (legacy `TYPESAFE_API_KEY` still works). `--dry-run` plans without calls. Tests inject fake evaluators and never call a model.
 - `scripts/*.ts` run with `node --experimental-strip-types`. Use Node 24 for anything you will report.
 - `port-rules --check` expects a sibling checkout at `../agent-skills`.
@@ -53,6 +53,7 @@ npm run port-rules -- --skills-dir ../agent-skills --check   # every ported rule
 
 - `npm run fix` can change semantics: it unescapes `U+2014` into a literal em dash (which the house test rejects) and turns `split("")` into a spread over code points.
 - `rules check` prints `N active rules`; active means not draft. Most of the pack is `review-only` on purpose. A `review-only` rule never fails a run, and the tty report only counts its findings unless `--verbose`.
+- A `lint` run that selects no files exits 2, dry run included: a scan of nothing is not a pass. `--staged` and `--no-error-on-unmatched-pattern` turn that into exit 0 for hooks. The pre-commit hook runs `lint --staged --profile all --dry-run`, so excludes live only in `taste-lint.config.json`.
 - `lint --dry-run` exits 1 on any act-band mechanical finding, so the fixtures (deliberate straight quotes) fail it by design. Their counts are asserted in `src/__tests__/lint.test.ts`.
 - `eval` without `--include-weak` skips every item whose category maps to more than one rule.
 - `port-rules --check` compares only `source` and, when not hand-written, `mechanical`. `--write` regenerates every unshipped source rule as a draft under `data/rule-drafts/`; prune before committing.
