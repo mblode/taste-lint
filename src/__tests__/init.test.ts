@@ -126,6 +126,15 @@ it("appends to a husky hook and adds the prepare script", () => {
   );
   expect(manifest.scripts.prepare).toBe("husky");
 });
+it("warns when an existing prepare script would not install husky", () => {
+  const root = project({ scripts: { prepare: "tsc" } });
+  const result = initProject({ hook: "husky", install: false, root });
+  expect(result.hook?.notes[0]).toMatch(/Add husky to the prepare script/);
+  expect(
+    JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8"))
+      .scripts.prepare
+  ).toBe("tsc");
+});
 it("merges a lint-staged entry that tolerates ignored and unsupported files", () => {
   const command =
     "taste-lint lint --profile writing --dry-run --no-error-on-unmatched-pattern";

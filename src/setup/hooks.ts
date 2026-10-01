@@ -9,17 +9,11 @@ import path from "node:path";
 import YAML from "yaml";
 
 import { InputError } from "../lib/errors.js";
+import { profileFor } from "../scan/profiles.js";
+import type { Manager } from "./init.js";
 
 export const hooks = ["lefthook", "husky", "lint-staged"] as const;
 export type Hook = (typeof hooks)[number];
-type Manager = "npm" | "pnpm" | "yarn" | "bun";
-
-// Files each profile reads; with --staged the CLI filters again, so these
-// globs only let the runner skip the job when nothing relevant is staged.
-const GLOBS: Record<string, string> = {
-  product: "*.{tsx,jsx,css,scss}",
-  writing: "*.{md,mdx}",
-};
 const LEFTHOOK_FILES = [
   "lefthook.yml",
   "lefthook.yaml",
@@ -227,7 +221,11 @@ export const planHook = (
   manifest: Record<string, unknown>,
   dependencies: Record<string, unknown>
 ): HookPlan => {
-  const glob = GLOBS[profile] ?? GLOBS.writing;
+  // The profile owns which files it reads; the runner's glob only skips the
+  // job when nothing relevant is staged. A glob with no slash matches at any
+  // depth in both lefthook and lint-staged, so drop the leading `**/`.
+  const [include] = profileFor(profile).include;
+  const glob = include.replace(/^\*\*\//u, "");
   const staged = [
     ...exec(pm, "taste-lint"),
     "lint",
@@ -243,11 +241,17 @@ export const planHook = (
   } else if (hook === "husky") {
     plan.writes = husky(root, staged);
     plan.activate = exec(pm, "husky");
-    const scripts = manifest.scripts as Record<string, unknown> | undefined;
-    if (!scripts?.prepare) {
+    // prepare is what installs the hook for everyone who clones the repo.
+    const prepare = (manifest.scripts as Record<string, unknown> | undefined)
+      ?.prepare;
+    if (!prepare) {
       plan.manifest = (m) => {
         m.scripts = { ...(m.scripts as object), prepare: "husky" };
       };
+    } else if (!String(prepare).includes("husky")) {
+      plan.notes.push(
+        `Add husky to the prepare script (${String(prepare)}), or fresh clones will not run the hook.`
+      );
     }
   } else {
     // lint-staged hands over the staged paths and stashes unstaged hunks, so

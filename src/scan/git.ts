@@ -45,10 +45,66 @@ export const stagedFiles = (root: string): string[] =>
     .split("\0")
     .filter(Boolean);
 
-// The staged blob, which is what the commit will contain. The working tree can
-// differ when only some hunks of a file were added.
-export const stagedSource = (root: string, file: string): string =>
-  git(root, ["show", `:./${file}`], NOT_A_REPOSITORY);
+// The staged blobs, which are what the commit will contain. The working tree
+// can differ when only some hunks of a file were added. Two Git processes
+// whatever the file count: the index listing names each blob, and one
+// cat-file batch reads them all.
+export const stagedSources = (
+  root: string,
+  files: string[]
+): Map<string, string> => {
+  const sources = new Map<string, string>();
+  if (files.length === 0) {
+    return sources;
+  }
+  const wanted = new Set(files);
+  // Identical files share one blob, so a blob can name several paths.
+  const blobs = new Map<string, string[]>();
+  for (const entry of git(
+    root,
+    ["ls-files", "--stage", "-z"],
+    NOT_A_REPOSITORY
+  ).split("\0")) {
+    // <mode> <oid> <stage>\t<path>; stage 0 is the merged, committable entry.
+    const tab = entry.indexOf("\t");
+    const [, oid, stage] = entry.slice(0, tab).split(" ");
+    const file = entry.slice(tab + 1);
+    if (stage === "0" && wanted.has(file)) {
+      blobs.set(oid, [...(blobs.get(oid) ?? []), file]);
+    }
+  }
+  let output: Buffer;
+  try {
+    output = execFileSync("git", ["-C", root, "cat-file", "--batch"], {
+      input: [...blobs.keys()].join("\n"),
+      maxBuffer: 256 * 1024 * 1024,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch {
+    throw new InputError(...NOT_A_REPOSITORY);
+  }
+  // Each object is "<oid> blob <size>\n", <size> bytes, then "\n".
+  for (let at = 0; at < output.length;) {
+    const newline = output.indexOf(10, at);
+    const [oid, , size] = output.subarray(at, newline).toString().split(" ");
+    const start = newline + 1;
+    const end = start + Number(size);
+    const text = output.subarray(start, end).toString("utf-8");
+    for (const file of blobs.get(oid) ?? []) {
+      sources.set(file, text);
+    }
+    at = end + 1;
+  }
+  const unread = files.find((file) => !sources.has(file));
+  if (unread) {
+    throw new InputError(
+      "STAGED_READ_FAILED",
+      `Cannot read the staged copy of ${unread}. Resolve any merge conflict in it, then retry.`,
+      { path: unread }
+    );
+  }
+  return sources;
+};
 
 export interface ChangedLines {
   ranges: Map<string, [number, number][]>;

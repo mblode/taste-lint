@@ -59,6 +59,15 @@ it("lints the staged blob, not the working tree", async () => {
   expect(clean.exitCode).toBe(0);
 });
 
+it("reads every staged path when files share one blob", async () => {
+  const { git, lint, write } = repository();
+  write("a.md", QUOTED);
+  write("docs/b.md", QUOTED);
+  git("add", "a.md", "docs/b.md");
+  const result = await lint({ staged: true });
+  expect(quotes(result).map((f) => f.file)).toEqual(["a.md", "docs/b.md"]);
+});
+
 it("passes when nothing staged is in scope", async () => {
   const { git, lint, write } = repository();
   const nothing = await lint({ staged: true });

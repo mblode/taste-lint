@@ -26,7 +26,7 @@ import { loadRules, resolveRulesDir } from "./rules/load.js";
 import {
   changedLines,
   stagedFiles,
-  stagedSource,
+  stagedSources,
   touchesChange,
 } from "./scan/git.js";
 import { profileFor, profileIncludes, profileRules } from "./scan/profiles.js";
@@ -180,11 +180,11 @@ export const runLint = async (
   const units: Unit[] = [];
   const sources = new Map<string, string[]>();
   const repository = new Repository(config.root);
-  const read = options.staged
-    ? (file: string) => stagedSource(config.root, file)
-    : (file: string) => fs.readFileSync(path.join(config.root, file), "utf-8");
+  const staged = options.staged ? stagedSources(config.root, files) : undefined;
   for (const file of files) {
-    const source = read(file);
+    const source =
+      staged?.get(file) ??
+      fs.readFileSync(path.join(config.root, file), "utf-8");
     units.push(...extractSource(config, file, source, repository));
     sources.set(file, source.split("\n"));
   }
