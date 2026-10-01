@@ -8,7 +8,7 @@ import { detectHook, hooks, planHook } from "./hooks.js";
 import type { Hook } from "./hooks.js";
 
 export const managers = ["npm", "pnpm", "yarn", "bun"] as const;
-type Manager = (typeof managers)[number];
+export type Manager = (typeof managers)[number];
 const lockfiles: Record<Manager, string[]> = {
   bun: ["bun.lock", "bun.lockb"],
   npm: ["package-lock.json", "npm-shrinkwrap.json"],
