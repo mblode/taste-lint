@@ -59,6 +59,15 @@ it("lints the staged blob, not the working tree", async () => {
   expect(clean.exitCode).toBe(0);
 });
 
+it("lints a staged file that is gone from the working tree", async () => {
+  const { git, lint, root, write } = repository();
+  write("note.md", QUOTED);
+  git("add", "note.md");
+  fs.rmSync(path.join(root, "note.md"));
+  const result = await lint({ staged: true });
+  expect(quotes(result)).toHaveLength(1);
+});
+
 it("reads every staged path when files share one blob", async () => {
   const { git, lint, write } = repository();
   write("a.md", QUOTED);
@@ -104,7 +113,7 @@ it("rejects paths and --fix with --staged", async () => {
 });
 
 it("fails an empty selection unless unmatched patterns are allowed", async () => {
-  const { lint, write } = repository();
+  const { lint, root, write } = repository();
   write("taste-lint.config.json", '{ "exclude": ["drafts/**"] }');
   write("drafts/idea.md", QUOTED);
   write("notes.txt", "Not a supported file.");
@@ -121,6 +130,16 @@ it("fails an empty selection unless unmatched patterns are allowed", async () =>
   });
   expect(lenient.exitCode).toBe(0);
   expect(lenient.scope.files).toBe(0);
+
+  const above = path.join(path.dirname(root), "above.md");
+  await expect(lint({ targets: [above] })).rejects.toThrow(
+    /outside the project root/
+  );
+  const skipped = await lint({
+    errorOnUnmatchedPattern: false,
+    targets: [above],
+  });
+  expect(skipped.exitCode).toBe(0);
 
   write("note.md", QUOTED);
   const mixed = await lint({
