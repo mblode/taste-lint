@@ -9,7 +9,7 @@ import { Repository } from "./analysis/repository.js";
 import { extractSource, SUPPORTED_GLOBS } from "./extract/index.js";
 import { defaultResultsDir, loadConfig } from "./lib/config.js";
 import { InputError } from "./lib/errors.js";
-import { collectFiles } from "./lib/glob.js";
+import { collectFiles, selectPaths } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
 import { chunkQuestions } from "./map/batch.js";
@@ -162,21 +162,23 @@ export const runLint = async (
   const resultsDir = options.resultsDir ?? defaultResultsDir();
 
   const scan = { excluded: 0, messages: [] as string[] };
-  const files =
-    targets.length > 0
-      ? collectFiles(
-          config.root,
-          targets,
-          SUPPORTED_GLOBS,
-          [
-            ...config.exclude,
-            ...(options.exclude ?? []),
-            ...(profile?.exclude ?? []),
-          ],
-          scan,
-          { errorOnUnmatched: strict }
-        ).filter((file) => !profile || profileIncludes(profile, file))
+  const excludes = [
+    ...config.exclude,
+    ...(options.exclude ?? []),
+    ...(profile?.exclude ?? []),
+  ];
+  // Staged paths come from the index, so they are filtered without reading
+  // the working tree, where a staged file may no longer exist.
+  const selected = options.staged
+    ? selectPaths(targets, SUPPORTED_GLOBS, excludes, scan)
+    : targets.length > 0
+      ? collectFiles(config.root, targets, SUPPORTED_GLOBS, excludes, scan, {
+          errorOnUnmatched: strict,
+        })
       : [];
+  const files = selected.filter(
+    (file) => !profile || profileIncludes(profile, file)
+  );
   const units: Unit[] = [];
   const sources = new Map<string, string[]>();
   const repository = new Repository(config.root);
