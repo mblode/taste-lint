@@ -68,14 +68,54 @@ export const matchesAny = (relative: string, globs: string[]): boolean =>
 
 export const toPosix = (p: string): string => p.split(path.sep).join("/");
 
+const outside = (relative: string): boolean =>
+  relative === ".." || relative.startsWith("../") || path.isAbsolute(relative);
+
+// Filter paths already known to be files, such as Git's staged list, without
+// touching the disk: a staged file can be gone from the working tree. A path
+// is excluded when it, or any directory above it, matches.
+export const selectPaths = (
+  paths: string[],
+  include: string[],
+  exclude: string[],
+  diagnostics?: { excluded: number }
+): string[] => {
+  const excludes = [...DEFAULT_EXCLUDE, ...exclude];
+  const excluded = (file: string): boolean => {
+    for (
+      let directory = path.posix.dirname(file);
+      directory !== ".";
+      directory = path.posix.dirname(directory)
+    ) {
+      if (
+        matchesAny(directory, excludes) ||
+        matchesAny(`${directory}/`, excludes)
+      ) {
+        return true;
+      }
+    }
+    return matchesAny(file, excludes);
+  };
+  const kept = paths.filter(
+    (file) => !excluded(file) && matchesAny(file, include)
+  );
+  if (diagnostics) {
+    diagnostics.excluded += paths.length - kept.length;
+  }
+  return kept.toSorted();
+};
+
 // Walk `targets` (files or directories) under `root` and return relative
-// forward-slash paths matching `include` and not `exclude`.
+// forward-slash paths matching `include` and not `exclude`. A hook runner
+// passes every staged file, so with `errorOnUnmatched: false` a missing or
+// unsupported explicit target is skipped instead of failing the run.
 export const collectFiles = (
   root: string,
   targets: string[],
   include: string[],
   exclude: string[] = [],
-  diagnostics?: { excluded: number; messages: string[] }
+  diagnostics?: { excluded: number; messages: string[] },
+  { errorOnUnmatched = true }: { errorOnUnmatched?: boolean } = {}
 ): string[] => {
   const excludes = [...DEFAULT_EXCLUDE, ...exclude];
   const ignoredResult = spawnSync(
@@ -115,6 +155,18 @@ export const collectFiles = (
   const visited = new Set<string>();
   const visit = (abs: string, explicit = false): void => {
     const rel = toPosix(path.relative(root, abs));
+    // Config, excludes and reports all resolve against root, so a path above
+    // it cannot be linted as if it were inside.
+    if (outside(rel)) {
+      if (!errorOnUnmatched) {
+        return;
+      }
+      throw new InputError(
+        "TARGET_OUTSIDE_ROOT",
+        `Target ${abs} is outside the project root ${root}. Pass --root to a directory that contains it.`,
+        { path: abs }
+      );
+    }
     // Exclude before stat: ignored build trees may contain dangling symlinks.
     if (
       rel &&
@@ -131,6 +183,9 @@ export const collectFiles = (
     try {
       stat = fs.statSync(abs);
     } catch (error) {
+      if (!errorOnUnmatched) {
+        return;
+      }
       const code =
         (error as NodeJS.ErrnoException).code === "ENOENT"
           ? "TARGET_NOT_FOUND"
@@ -165,7 +220,7 @@ export const collectFiles = (
     }
     if (matchesAny(rel, include)) {
       out.add(rel);
-    } else if (explicit) {
+    } else if (explicit && errorOnUnmatched) {
       throw new InputError(
         "UNSUPPORTED_TARGET",
         `Unsupported target ${abs}. Use Markdown, MDX, TSX, JSX, CSS or SCSS.`,

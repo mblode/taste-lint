@@ -75,12 +75,11 @@ export const renderTty = (
     );
   }
   if (result.scope) {
+    const types = Object.entries(result.scope.byDocType)
+      .map(([type, n]) => `${type}: ${n}`)
+      .join(", ");
     out.push(
-      `Scope: ${result.scope.files} files; ${Object.entries(
-        result.scope.byDocType
-      )
-        .map(([type, n]) => `${type}: ${n}`)
-        .join(", ")}; ${result.scope.excluded} excluded paths.`,
+      `Scope: ${result.scope.files} files; ${types ? `${types}; ` : ""}${result.scope.excluded} excluded paths.`,
       ...result.scope.diagnostics
     );
   }
@@ -163,7 +162,11 @@ export const renderTty = (
     );
   }
   if (result.scope?.files === 0 && result.units === 0) {
-    out.push("NO SCAN - no supported units selected");
+    out.push(
+      result.exitCode === 0
+        ? paint("green", "PASS - no supported files to lint")
+        : paint("red", "NO SCAN - no supported units selected")
+    );
   } else if (result.status === "incomplete") {
     out.push(
       paint(

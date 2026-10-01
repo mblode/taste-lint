@@ -9,7 +9,7 @@ import { Repository } from "./analysis/repository.js";
 import { extractSource, SUPPORTED_GLOBS } from "./extract/index.js";
 import { defaultResultsDir, loadConfig } from "./lib/config.js";
 import { InputError } from "./lib/errors.js";
-import { collectFiles } from "./lib/glob.js";
+import { collectFiles, selectPaths } from "./lib/glob.js";
 import { makeRecorder } from "./lib/record.js";
 import { costUsd } from "./lib/tokens.js";
 import { chunkQuestions } from "./map/batch.js";
@@ -23,7 +23,12 @@ import type { FixFunction } from "./reduce/fixes.js";
 import { buildScorecard } from "./reduce/scorecard.js";
 import { applySuppressions } from "./reduce/suppress.js";
 import { loadRules, resolveRulesDir } from "./rules/load.js";
-import { changedLines, touchesChange } from "./scan/git.js";
+import {
+  changedLines,
+  stagedFiles,
+  stagedSources,
+  touchesChange,
+} from "./scan/git.js";
 import { profileFor, profileIncludes, profileRules } from "./scan/profiles.js";
 import type { ProfileName } from "./scan/profiles.js";
 import type {
@@ -48,6 +53,10 @@ export interface LintOptions {
   root?: string;
   /** Files or directories relative to `root`. Default `["."]`. */
   targets?: string[];
+  /** Lint the files staged in Git's index, reading their staged content. Replaces `targets`; implies `errorOnUnmatchedPattern: false`. */
+  staged?: boolean;
+  /** Fail (exit 2) when no file is selected, and on a missing or unsupported target. Default `true`; hook runners pass `false`. */
+  errorOnUnmatchedPattern?: boolean;
   /** Scope files and rule domains (`product`, `writing`, `instructions`, `code`, `all`); rules keep their own status. */
   profile?: ProfileName;
   /** Report only findings on lines changed since this Git revision. */
@@ -118,8 +127,23 @@ export const runLint = async (
 ): Promise<LintRun> => {
   const stderr = ctx.stderr ?? ((t: string) => process.stderr.write(t));
   const stdout = ctx.stdout ?? ((t: string) => process.stdout.write(t));
-  const targets = options.targets ?? ["."];
+  if (options.staged && options.targets?.length) {
+    throw new InputError(
+      "INVALID_ARGUMENT",
+      "--staged lints the files in Git's index; drop the paths, or drop --staged."
+    );
+  }
+  if (options.staged && options.fix) {
+    throw new InputError(
+      "INVALID_ARGUMENT",
+      "--fix writes the working tree, but --staged reads the index. Pass the staged paths with --no-error-on-unmatched-pattern instead."
+    );
+  }
   const config = loadConfig(options.root ?? process.cwd());
+  const targets = options.staged
+    ? stagedFiles(config.root)
+    : (options.targets ?? ["."]);
+  const strict = !options.staged && options.errorOnUnmatchedPattern !== false;
   const rulesDir = resolveRulesDir(options.rulesDir);
   const profile = options.profile ? profileFor(options.profile) : undefined;
   const loaded = loadRules(rulesDir, {
@@ -138,25 +162,31 @@ export const runLint = async (
   const resultsDir = options.resultsDir ?? defaultResultsDir();
 
   const scan = { excluded: 0, messages: [] as string[] };
-  const files =
-    targets.length > 0
-      ? collectFiles(
-          config.root,
-          targets,
-          SUPPORTED_GLOBS,
-          [
-            ...config.exclude,
-            ...(options.exclude ?? []),
-            ...(profile?.exclude ?? []),
-          ],
-          scan
-        ).filter((file) => !profile || profileIncludes(profile, file))
+  const excludes = [
+    ...config.exclude,
+    ...(options.exclude ?? []),
+    ...(profile?.exclude ?? []),
+  ];
+  // Staged paths come from the index, so they are filtered without reading
+  // the working tree, where a staged file may no longer exist.
+  const selected = options.staged
+    ? selectPaths(targets, SUPPORTED_GLOBS, excludes, scan)
+    : targets.length > 0
+      ? collectFiles(config.root, targets, SUPPORTED_GLOBS, excludes, scan, {
+          errorOnUnmatched: strict,
+        })
       : [];
+  const files = selected.filter(
+    (file) => !profile || profileIncludes(profile, file)
+  );
   const units: Unit[] = [];
   const sources = new Map<string, string[]>();
   const repository = new Repository(config.root);
+  const staged = options.staged ? stagedSources(config.root, files) : undefined;
   for (const file of files) {
-    const source = fs.readFileSync(path.join(config.root, file), "utf-8");
+    const source =
+      staged?.get(file) ??
+      fs.readFileSync(path.join(config.root, file), "utf-8");
     units.push(...extractSource(config, file, source, repository));
     sources.set(file, source.split("\n"));
   }
@@ -201,9 +231,12 @@ export const runLint = async (
   if (profile) {
     scope.diagnostics.push(`Profile ${profile.name}: ${profile.objective}.`);
   }
-  if (units.length === 0) {
+  const empty = units.length === 0;
+  if (empty) {
     scope.diagnostics.push(
-      "No supported units were selected. Check targets and exclusions; no clean-scan verdict is available."
+      strict
+        ? "No supported units were selected. Check targets and exclusions; no clean-scan verdict is available."
+        : "No supported files were selected; nothing to lint."
     );
   }
 
@@ -273,7 +306,7 @@ export const runLint = async (
   );
   const status: LintResult["status"] = options.dryRun
     ? "dry-run"
-    : judgement.usage.errors > 0 || parseFailures.size > 0 || units.length === 0
+    : judgement.usage.errors > 0 || parseFailures.size > 0 || (empty && strict)
       ? "incomplete"
       : "complete";
   const jf = jevFindings(judgement.jobs, judgement.answers);
@@ -284,7 +317,11 @@ export const runLint = async (
   let ruleFindings = dedupeExact(applySuppressions(findings, rules, sources));
   if (options.since) {
     // Analysis keeps whole files for context; only changed lines are reported.
-    const diff = changedLines(config.root, options.since);
+    const diff = changedLines(
+      config.root,
+      options.since,
+      Boolean(options.staged)
+    );
     ruleFindings = ruleFindings.filter((f) =>
       touchesChange(diff, f.file, f.line, f.endLine ?? f.line)
     );
@@ -305,7 +342,9 @@ export const runLint = async (
       SEVERITY_RANK[f.severity] <= SEVERITY_RANK[failOn]
   );
   let exitCode = 0;
-  if (status === "incomplete") {
+  // An empty selection is never a pass, dry run included, unless the caller
+  // said an empty set is expected (a hook with nothing relevant staged).
+  if (status === "incomplete" || (empty && strict)) {
     exitCode = 2;
   } else if (failing.length > 0) {
     exitCode = 1;
