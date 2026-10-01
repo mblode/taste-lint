@@ -1,5 +1,12 @@
 # taste-lint
 
+## 0.6.0
+
+### Minor Changes
+
+- 9c5ccb6: Add eval diagnostics: `eval consistency` (grader flip rate with the answer cache bypassed), a headroom warning when a rule's precision or recall lower bound already clears 95%, a mechanical guard in `tune ab` against rule text that quotes a corpus item, per-case JSONL, and `eval --html` for a static offline report.
+- 573dfee: Pre-commit support. `lint --staged` lints the files staged in Git, reading the staged content, so it works from husky, lefthook or a plain Git hook. `--no-error-on-unmatched-pattern` lets lint-staged and lefthook's `{staged_files}` pass every staged path: excluded, missing and unsupported files are skipped and an empty selection passes. `init --hook lefthook|husky|lint-staged` writes the hook, merging into existing configuration. A run that selects no files now exits 2 under `--dry-run` too, as it already did without it.
+
 ## 0.5.0
 
 ### Minor Changes
