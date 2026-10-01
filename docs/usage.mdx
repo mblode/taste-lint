@@ -146,6 +146,8 @@ console.log(result.summary, result.usage.costUsd);
 | `--profile <name>` |  | `product`, `writing`, `instructions`, `code` or `all`; paths default to `.` |
 | `--dry-run` |  | Plan and print units, requests and estimated cost without calling Jev |
 | `--since <ref>` |  | Report only findings on lines changed since a Git revision |
+| `--staged` |  | Lint the files staged in Git, as staged. Takes no paths |
+| `--no-error-on-unmatched-pattern` |  | Pass when no file is selected, and skip missing or unsupported paths |
 | `--only <ids>` |  | Comma-separated rule ids |
 | `--brief <file>` |  | What the product is and does. Copy that claims anything else is flagged by `copywriting-invented-capability` |
 | `--exclude <globs>` |  | Comma-separated globs to skip, added to `taste-lint.config.json` |
@@ -185,6 +187,36 @@ A voice pack is a `rules` directory that checks one person’s or company’s vo
 
 Rules scope themselves by glob, so a draft named `intro.email.md` gets the email checks and `blog/post.md` the blog ones. `--fix` rewrites US spelling and strips `?utm_source=chatgpt.com`. Pack rules are mechanical: no text is sent anywhere.
 
+## Pre-commit hooks
+
+A hook runs the mechanical checks on what is being committed and blocks the commit on an act finding. Add `--dry-run` so it never calls Jev: no key, no network, no bill. `init --hook` writes one of these for you.
+
+`--staged` reads Git’s index itself, so it works from any hook. It lints each file as staged: a file with only some hunks added is checked as it will be committed, not as it sits in the working tree.
+
+```yaml title="lefthook.yml"
+pre-commit:
+  jobs:
+    - name: taste-lint
+      glob: "*.{tsx,jsx,css,scss}"
+      run: npx taste-lint lint --staged --profile product --dry-run
+```
+
+```sh title=".husky/pre-commit"
+npx taste-lint lint --staged --profile product --dry-run
+```
+
+lint-staged passes the staged paths and hides unstaged hunks itself, so the command takes paths instead:
+
+```json title=".lintstagedrc.json"
+{
+  "*.{tsx,jsx,css,scss}": "taste-lint lint --profile product --dry-run --no-error-on-unmatched-pattern"
+}
+```
+
+The same goes for lefthook’s `{staged_files}`. `--no-error-on-unmatched-pattern` is the flag oxlint and oxfmt use for the same job. Without it, a run that selects no files fails with exit code 2, since a scan of nothing is not a pass. With it, files that `taste-lint.config.json`, `.gitignore` or the profile leave out are skipped, as are paths that no longer exist or that taste-lint does not read. Keep excludes in `taste-lint.config.json`; the hook does not need its own copy.
+
+To fix as well as check, run `--fix` with lefthook’s `{staged_files}` and `stage_fixed: true`, or from lint-staged, which stages the fixed files. `--fix` cannot be combined with `--staged`, because it writes the working tree. To adopt the hook on a codebase with old findings, add `--since HEAD`: it reports only lines this commit changes.
+
 ## Project setup
 
 Run `npx taste-lint@latest init` in a directory with a package.json. Setup detects the package manager, installs Taste Lint as a development dependency, and adds a `taste` script. React, Next.js, Vue, Svelte and Astro dependencies select the product profile. Other projects start with writing.
@@ -194,6 +226,7 @@ Run `npx taste-lint@latest init` in a directory with a package.json. Setup detec
 - `--dry-run` previews setup without writes or installation.
 - `--no-install` adds the script without running the package manager.
 - `--agent` appends a marked section to AGENTS.md once.
+- `--hook lefthook|husky|lint-staged` adds the [pre-commit hook](#pre-commit-hooks), installs the runner if it is missing and activates it. Existing configuration is merged, and a second run changes nothing. Without `--hook`, setup names the runner it finds.
 
 Setup never asks for or stores an API key.
 

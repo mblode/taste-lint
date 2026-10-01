@@ -1,6 +1,7 @@
 import { Option } from "commander";
 import type { Command } from "commander";
 
+import { hooks } from "../setup/hooks.js";
 import { initProject, managers } from "../setup/init.js";
 import type { InitOptions } from "../setup/init.js";
 
@@ -13,6 +14,12 @@ export function registerInitCommand(program: Command): void {
     .option("--dry-run", "Preview setup without installing or writing files")
     .option("--no-install", "Add scripts without installing the package")
     .option("--agent", "Append Taste Lint guidance to AGENTS.md")
+    .addOption(
+      new Option(
+        "--hook <runner>",
+        "Block commits on act findings with a pre-commit hook"
+      ).choices(hooks)
+    )
     .action((options: InitOptions) => {
       const result = initProject(options);
       process.stdout.write(
@@ -26,6 +33,20 @@ export function registerInitCommand(program: Command): void {
       }
       if (result.agentAdded) {
         process.stdout.write("Agent instructions: AGENTS.md\n");
+      }
+      if (result.hook) {
+        const files = [
+          ...result.hook.files,
+          ...(result.hook.packageJson ? ["package.json"] : []),
+        ];
+        process.stdout.write(
+          `Pre-commit hook (${result.hook.name}): ${files.join(", ") || "already set up"}\n`
+        );
+        for (const note of result.hook.notes) {
+          process.stdout.write(`  ${note}\n`);
+        }
+      } else if (result.hookSuggestion) {
+        process.stdout.write(`${result.hookSuggestion}\n`);
       }
       process.stdout.write(
         `\nSet AI_GATEWAY_API_KEY, then run ${result.packageManager} run taste.\n`

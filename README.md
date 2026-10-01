@@ -38,6 +38,12 @@ npm run taste
 
 Checks bill your key and cache between runs. `--dry-run` previews the cost first.
 
+To block commits on the mechanical checks, add a pre-commit hook with lefthook, husky or lint-staged:
+
+```bash
+npx taste-lint init --hook lefthook
+```
+
 ## What it checks
 
 - **Motion:** `transition-all` and `transition: all`, ease-in, linear easing, transitions over 300ms, entrances from scale zero, `framer-motion` imports.
