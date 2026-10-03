@@ -1,21 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Geist_Mono, Inter } from "next/font/google";
 
 import { siteConfig } from "../lib/config.js";
 
 import "./globals.css";
 
-const glide = localFont({
+const inter = Inter({
   display: "swap",
-  src: "../public/glide-variable.woff2",
-  variable: "--font-glide",
-  weight: "100 950",
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
-const mono = localFont({
+const geistMono = Geist_Mono({
   display: "swap",
-  src: "../public/glide-mono.woff2",
-  variable: "--font-glide-mono",
-  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 const title = siteConfig.title;
 
@@ -53,7 +51,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html className={`${glide.variable} ${mono.variable}`} lang="en">
+    <html className={`${inter.variable} ${geistMono.variable}`} lang="en">
       <body>
         <a
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-background focus:p-4"

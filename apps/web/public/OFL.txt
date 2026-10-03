@@ -1,4 +1,10 @@
-Copyright 2026 Matthew Blode (https://github.com/mblode/glide)
+This app bundles static cuts of two typefaces under `apps/web/lib/og-assets/`
+for server-side social card rendering. Both are licensed under the SIL Open
+Font License, Version 1.1, copied once below since the license text is
+identical for each.
+
+Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)
+Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -18,7 +24,7 @@ with others.
 
 The OFL allows the licensed fonts to be used, studied, modified and
 redistributed freely as long as they are not sold by themselves. The
-fonts, including any derivative works, can be bundled, embedded, 
+fonts, including any derivative works, can be bundled, embedded,
 redistributed and/or sold with any software provided that any reserved
 names are not used by derivative works. The fonts and derivatives,
 however, cannot be released under any other type of license. The
