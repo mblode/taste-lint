@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-glide), sans-serif;
-  --font-mono: var(--font-glide-mono), monospace;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted-foreground: var(--muted-foreground);
@@ -164,7 +164,7 @@
     margin: 0;
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-glide), sans-serif;
+    font-family: var(--font-inter), sans-serif;
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     @apply bg-background text-foreground;

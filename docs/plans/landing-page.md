@@ -4,7 +4,7 @@ hidden: true
 
 # Taste Lint landing page and docs launch
 
-Authoritative implementation plan. Prepared 2026-09-21 from the local taste-lint, glide, dnd-grid, and blode-co checkouts. Implemented and deployed 2026-09-21. User amendment: use Turborepo.
+Authoritative implementation plan. Prepared 2026-09-21 from the local taste-lint, dnd-grid, and blode-co checkouts, plus a sibling font-product app's web shell. Implemented and deployed 2026-09-21. User amendment: use Turborepo.
 
 ## Outcome
 
@@ -14,7 +14,7 @@ Done means the public landing page, install action, docs navigation, assets, sea
 
 ## Evidence and decisions
 
-- `../glide/apps/web` supplies the Next.js 16 shell, Tailwind styles, local Glide fonts, button, breadcrumb, footer pattern, and generated share card. Copy that app, then immediately prune the font product features. Do not copy build output, dependencies, environment files, or Vercel project identity.
+- The sibling font-product app's `apps/web` supplies the Next.js 16 shell, Tailwind styles, local fonts, button, breadcrumb, footer pattern, and generated share card. Copy that app, then immediately prune the font product features. Do not copy build output, dependencies, environment files, or Vercel project identity.
 - Use npm workspaces with a private root, `apps/web`, and the publishable `packages/cli` workspace. Changesets excludes repository-root packages in workspaces, so the CLI manifest and changelog belong in `packages/cli`. Keep existing `src/` and `data/` paths to avoid disrupting concurrent CLI work. The CLI build compiles at root and stages dist, data, README, and licence into its package. Turbo caches both build outputs. No shared UI package.
 - The root TypeScript configs already restrict compilation to CLI source and scripts. Give the web workspace its own Next configuration and typecheck. Preserve the repository's `.js` TypeScript import convention, including when adapting sibling helpers.
 - `../dnd-grid/apps/web/proxy.ts` and `lib/docs-proxy.ts` proxy HTML and RSC, rewrite navigation and asset paths, preserve redirects, and avoid forwarding the public host into tenant lookup. Adapt this existing implementation rather than creating a docs renderer.
@@ -35,9 +35,9 @@ Recommended copy:
 - Primary action: **Copy install command**, beside `npx taste-lint@latest init`.
 - Secondary navigation: **Read the docs**, to `/taste-lint/docs`.
 
-Visual thesis (corrected by the user): retain Glide's pink and dark red palette, use a text-only Taste Lint title, and show one real scan example.
+Visual thesis (corrected by the user): retain the source app's pink and dark red palette, use a text-only Taste Lint title, and show one real scan example.
 
-Use Glide colours: background `#FBB6CD`, foreground `#8B1A0A`, with the source app's supporting tokens. The docs favicon was not a Taste Lint product logo and must not appear beside the title. Use Blode UI controls and `blode-icons-react`. Keep Glide sans and mono, fixed root sizing, and responsive gutters.
+Use the source app's colours: background `#FBB6CD`, foreground `#8B1A0A`, with its supporting tokens. The docs favicon was not a Taste Lint product logo and must not appear beside the title. Use Blode UI controls and `blode-icons-react`. Keep the source app's sans and mono fonts, fixed root sizing, and responsive gutters.
 
 ```text
 Home / Projects / Taste Lint
@@ -67,9 +67,9 @@ Product decisions:
 
 ### 1. Prove the landing-to-docs boundary locally
 
-Copy `../glide/apps/web` to `apps/web` and rename the private package to `@taste-lint/web`. Keep its shell, fonts, required components, PostCSS setup, and OG helper. Remove specimen, glyph and weight controls, font releases/downloads, install-agent endpoints, font metadata, Glide markdown negotiation, unused dependencies, and stale branding. Retain only the font files needed to render the site and card.
+Copy the sibling font-product app's `apps/web` to `apps/web` and rename the private package to `@taste-lint/web`. Keep its shell, fonts, required components, PostCSS setup, and OG helper. Remove specimen, glyph and weight controls, font releases/downloads, install-agent endpoints, font metadata, the source app's markdown negotiation, unused dependencies, and stale branding. Retain only the font files needed to render the site and card.
 
-Set `lib/config.js` to one base path, `/taste-lint`, and public URL. Use it in `next.config.ts`, raw asset URLs, icons, and manifest. Replace the source app's preview-skipping `vercel.json` policy so preview verification can run. Do not inherit Glide redirects or discovery headers for removed endpoints.
+Set `lib/config.js` to one base path, `/taste-lint`, and public URL. Use it in `next.config.ts`, raw asset URLs, icons, and manifest. Replace the source app's preview-skipping `vercel.json` policy so preview verification can run. Do not inherit the source app's redirects or discovery headers for removed endpoints.
 
 Add the workspace and lockfile entries. Make `npm run build` build both through Turborepo; use `build:cli` or `build:web` for a single target. Add web typecheck/build to CI and narrowly configure linting for the new app if required. Add a patch changeset with the implementation, per repository policy.
 
@@ -94,7 +94,7 @@ Use the configured navigation as the page-list source where practical. Do not re
 
 ### 3. Deploy the child, then connect the public host
 
-Inspect current Vercel linkage and account access using the deployment skill. Create or reuse the Taste Lint web project, connect the repository, set root directory `apps/web`, Node 24, and verify workspace installation and the Next build command. Never reuse Glide's project identity or copy its secrets. This static page needs no AI Gateway credential.
+Inspect current Vercel linkage and account access using the deployment skill. Create or reuse the Taste Lint web project, connect the repository, set root directory `apps/web`, Node 24, and verify workspace installation and the Next build command. Never reuse the source app's project identity or copy its secrets. This static page needs no AI Gateway credential.
 
 Deploy a preview and run the checks below. Publish the docs config through the existing Blode.md workflow and confirm that the upstream has refreshed. Deploy the child production app and record its actual production alias.
 
@@ -144,7 +144,7 @@ Skills used for this plan: planning (create, plan-quality-rubric); ui-design (Di
 
 ## User correction, 2026-09-21
 
-The user rejected the reused docs logo, the green palette, and low-value explanatory copy. Removed the title mark and the Node/Gateway note, shortened the description, and cut the explanatory paragraphs around the actual lint result. Installed the Blode UI design system and button, using Blode Icons for copy feedback and navigation. The public favicon is a plain T; docs logos are text wordmarks. The share card now matches Glide colours and has no borrowed mark. The Ghostwriter rewrite uses the user's soul and README register.
+The user rejected the reused docs logo, the green palette, and low-value explanatory copy. Removed the title mark and the Node/Gateway note, shortened the description, and cut the explanatory paragraphs around the actual lint result. Installed the Blode UI design system and button, using Blode Icons for copy feedback and navigation. The public favicon is a plain T; docs logos are text wordmarks. The share card now matches the source app's colours and has no borrowed mark. The Ghostwriter rewrite uses the user's soul and README register.
 
 Revision verification: web types, seven proxy tests, production build, clipboard success/failure, and automated accessibility checks at 320, 375, and 1440 pixels pass. No overflow or browser errors were observed.
 

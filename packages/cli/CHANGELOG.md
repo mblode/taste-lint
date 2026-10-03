@@ -70,7 +70,7 @@
 - c4908dd: Add human and agent install tabs to the hero, with AGENTS.md setup in the agent command.
 - c4908dd: Place the install command copy button inside the snippet box.
 - c4908dd: Explain Jev by TypeSafe AI in the landing page pitch and search metadata, highlighting contextual checks and probabilities.
-- c4908dd: Use Glide colours and Blode UI on the landing page, remove the placeholder logo, and shorten the copy.
+- c4908dd: Use the brand colours and Blode UI on the landing page, remove the placeholder logo, and shorten the copy.
 - c4908dd: Add the Taste Lint landing page and canonical docs under blode.co/taste-lint, with Turborepo builds for the CLI and web app.
 - c4908dd: Clarify search metadata, add the canonical social URL and docs discovery headers, and correct the software schema.
 
