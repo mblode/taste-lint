@@ -1,15 +1,15 @@
-# Hand-ported from mblode/agent-skills skills/ui-design/rules/perf-lazy-load-offscreen.md. The detection there is a
-# shell loop or pipeline; regex plus absent is the same check over one file.
-# The source's `(?i:hero|banner|...)` inline modifier is written out as letter
-# classes so the regex compiles on Node 22 and 24 alike.
+# Hand-written from the lazy-hero sentence in mblode/agent-skills
+# skills/ui-design/rules/perf-image-dimensions-and-priority.md. The source finds
+# the first-viewport image by reading the page; the regex stands in with the
+# names a hero usually carries. The case-insensitive match is written out as
+# letter classes so the regex compiles on Node 22 and 24 alike.
 id: craft-lazy-load-offscreen
 title: Hero or above-the-fold image marked loading lazy
 categoryId: resilience
 source:
   repo: mblode/agent-skills
-  path: skills/ui-design/rules/perf-lazy-load-offscreen.md
-  line: 9
-  ruleId: perf-lazy-load-offscreen
+  path: skills/ui-design/rules/perf-image-dimensions-and-priority.md
+  line: 21
 scope:
   include:
     - "**/*.tsx"
@@ -31,4 +31,4 @@ review:
   exceptions: Below-the-fold covers or banners and images hidden until a later interaction.
   evidence: Actual viewport position, responsive visibility, loading priority, and page performance traces.
   verification: Load at supported viewport sizes under throttling and confirm the initial image loads promptly without eagerly loading offscreen content.
-  sourceHash: ee89307867a0159516cdcad42ff09ebb33e6512ff3b3e301aa0c6b99e243f5c6
+  sourceHash: e4b5361e710bdc0a2336756c43d9c418e399ac6b3ed893ebaa926c60426c0039

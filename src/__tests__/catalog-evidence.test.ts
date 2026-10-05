@@ -32,7 +32,7 @@ afterEach(() => {
 
 it("ships an evidence procedure for every raw-source candidate", () => {
   const candidates = rules.filter(isCandidateRule);
-  expect(candidates).toHaveLength(58);
+  expect(candidates).toHaveLength(57);
   for (const rule of candidates) {
     expect(rule.status).toBe("review-only");
     expect(reviewProcedure(rule.review, rule.file)).toEqual(rule.review);

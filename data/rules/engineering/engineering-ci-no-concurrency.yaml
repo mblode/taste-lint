@@ -26,7 +26,7 @@ review:
   exceptions: Workflows whose runs are cheap and fast enough that overlap costs nothing.
   evidence: How long the workflow runs and how often pushes supersede each other.
   verification: Push twice to a pull request and confirm the first run is cancelled.
-  sourceHash: e77e0720c06af3b77909c1bcc0b77e02a1254c2aa3465cebfd816e4ff8dee354
+  sourceHash: a2352ef98dc23b6ef110d7dd81b0657b2729328e288b379bfdef99e6c0cec519
 handWritten:
   - mechanical
   - fix

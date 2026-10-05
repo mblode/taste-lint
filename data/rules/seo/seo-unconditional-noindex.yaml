@@ -4,8 +4,8 @@ title: Page set to noindex in source
 categoryId: search-visibility
 source:
   repo: mblode/agent-skills
-  path: skills/seo/references/indexing-policy.md
-  line: 8
+  path: skills/seo/references/audit.md
+  line: 41
 scope:
   include:
     - "**/*.{tsx,jsx,ts,js}"
