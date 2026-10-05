@@ -6,7 +6,7 @@ categoryId: control-choice
 source:
   repo: mblode/agent-skills
   path: skills/product-design/references/rules.md
-  line: 86
+  line: 83
   ruleId: rule/no-nested-modals
 scope:
   include: ["**/*.tsx", "**/*.jsx"]
@@ -29,4 +29,4 @@ review:
   exceptions: JSX nesting alone does not prove simultaneous visibility; mutually exclusive steps and nonmodal surfaces are exceptions.
   evidence: Both open-state transitions, modal primitive implementations, and focus and Escape behavior.
   verification: Open the second step using the keyboard; confirm one modal owns focus and Escape closes the intended surface.
-  sourceHash: 9aab069ba1b93ab405a9741cd6d1e026eb08442ff881587b4f84a612653a2fbb
+  sourceHash: 27a538b79822010d59162d9b86f6810be2b92e4bbd3da5cd91ebbf1c0cf8869b

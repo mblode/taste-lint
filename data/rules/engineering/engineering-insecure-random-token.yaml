@@ -5,7 +5,7 @@ categoryId: sensitive-data
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/security-checklist.md
-  line: 67
+  line: 64
 scope:
   include:
     - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
@@ -36,7 +36,7 @@ review:
   exceptions: Non-secret ids such as React keys or animation seeds.
   evidence: What the value protects and who could guess it.
   verification: Switch to crypto.randomUUID or getRandomValues and run the tests.
-  sourceHash: 59bfe3831e3d608f088cb0792dbc2d26edc745edc51c4afaff12b7cd69bcf6ea
+  sourceHash: 14c29b587dd2c6e09ce78eed32aec35fa504404da48fb1d0fcb8c5653936384c
 handWritten:
   - mechanical
   - fix

@@ -5,7 +5,7 @@ categoryId: performance
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/performance-checklist.md
-  line: 33
+  line: 21
 scope:
   include:
     - "**/app/**/route.{ts,js,mts,mjs}"

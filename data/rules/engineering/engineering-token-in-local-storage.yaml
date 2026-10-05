@@ -5,7 +5,7 @@ categoryId: sensitive-data
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/security-checklist.md
-  line: 54
+  line: 51
 scope:
   include:
     - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
@@ -36,7 +36,7 @@ review:
   exceptions: Non-secret values whose key happens to contain token, such as a design token name.
   evidence: What the stored value is and who can read it.
   verification: Move it to an HttpOnly cookie and confirm the session still works.
-  sourceHash: 59bfe3831e3d608f088cb0792dbc2d26edc745edc51c4afaff12b7cd69bcf6ea
+  sourceHash: 14c29b587dd2c6e09ce78eed32aec35fa504404da48fb1d0fcb8c5653936384c
 handWritten:
   - mechanical
   - fix

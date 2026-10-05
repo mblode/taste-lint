@@ -6,7 +6,7 @@ categoryId: control-choice
 source:
   repo: mblode/agent-skills
   path: skills/product-design/references/rules.md
-  line: 72
+  line: 71
   ruleId: rule/control-matches-cardinality
 scope:
   include: ["**/*.tsx", "**/*.jsx"]
@@ -27,4 +27,4 @@ review:
   exceptions: Dynamically loaded options, dependent choices, or a documented platform constraint can require a select.
   evidence: The complete option source, dynamic branches, and the task requiring comparison.
   verification: Confirm all choices remain available and selection, keyboard input, and form submission work.
-  sourceHash: 9aab069ba1b93ab405a9741cd6d1e026eb08442ff881587b4f84a612653a2fbb
+  sourceHash: 27a538b79822010d59162d9b86f6810be2b92e4bbd3da5cd91ebbf1c0cf8869b

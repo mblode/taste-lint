@@ -5,7 +5,7 @@ categoryId: performance
 source:
   repo: mblode/agent-skills
   path: skills/tidy/references/performance-checklist.md
-  line: 58
+  line: 44
 scope:
   include:
     - "**/*.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
@@ -35,7 +35,7 @@ review:
   exceptions: Server-only scripts, a library already used across the codebase with no migration planned, or a subpath import.
   evidence: Where the import runs, the bundle or cold-start cost, and which functions are used.
   verification: Replace the calls, then compare bundle size and run the affected tests.
-  sourceHash: cd498eb7cc281571fbed2ad29d7730a2d583305e39a8b0fdbc9d3f60a41aa4b2
+  sourceHash: c57b1e4c512506ca3a7b62c5c415b4024c6d9b4cf7fef3e5e0b3d5557fdd7566
 handWritten:
   - mechanical
   - fix
