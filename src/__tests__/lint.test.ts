@@ -198,3 +198,37 @@ it("honours smartQuotesAtBuild and suppression comments", async () => {
   const note = result.findings.filter((f) => f.file === "note.tsx");
   expect(note.map((f) => f.suppressed)).toEqual([true, false]);
 });
+
+it("honours the upstream hero-image ignore without suppressing other files or identifiers", async () => {
+  const { root, resultsDir } = setup();
+  for (const [file, comment] of [
+    [
+      "ignored.tsx",
+      "{/* ui-audit-ignore:perf-image-dimensions-and-priority */}",
+    ],
+    ["live.tsx", "// No suppression"],
+    ["unrelated.tsx", "{/* ui-audit-ignore:interaction-focus-visible */}"],
+  ]) {
+    fs.writeFileSync(
+      path.join(root, file),
+      `${comment}\nexport const Hero = () => <img src="/hero.jpg" loading="lazy" />;\n`
+    );
+  }
+  const result = await runLint({
+    dryRun: true,
+    only: ["craft-lazy-load-offscreen"],
+    resultsDir,
+    root,
+    rulesDir: path.resolve("data/rules"),
+    targets: ["ignored.tsx", "live.tsx", "unrelated.tsx"],
+  });
+  expect(
+    result.findings
+      .map((finding) => [finding.file, finding.suppressed])
+      .toSorted((a, b) => String(a[0]).localeCompare(String(b[0])))
+  ).toEqual([
+    ["ignored.tsx", true],
+    ["live.tsx", false],
+    ["unrelated.tsx", false],
+  ]);
+});
