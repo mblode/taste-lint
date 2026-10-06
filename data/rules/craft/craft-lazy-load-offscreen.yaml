@@ -9,7 +9,8 @@ categoryId: resilience
 source:
   repo: mblode/agent-skills
   path: skills/ui-design/rules/perf-image-dimensions-and-priority.md
-  line: 21
+  line: 9
+  ruleId: perf-image-dimensions-and-priority
 scope:
   include:
     - "**/*.tsx"
