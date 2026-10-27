@@ -1,5 +1,13 @@
 # taste-lint
 
+## 0.6.1
+
+### Patch Changes
+
+- 468d422: Honor the current ui-design ignore identifier for lazy-loaded hero images while retaining the source catalogue drift checks.
+- 5167ec9: Re-point ported rules at their moved agent-skills sources. Retire `interaction-a11y-document-language`, because the source now leaves the `<html lang>` check to axe and jsx-a11y. Retire `engineering-per-render-allocation`, because no current source supports it.
+- 38cf3f9: Re-sync 11 ported rules with their agent-skills sources. `engineering-test-skipped` now says to unskip and run a skipped test before deciding, never to delete it on sight. `engineering-ci-no-concurrency` now cites the concurrency section of ci-speedup and suggests a group that keeps main runs from being cancelled.
+
 ## 0.6.0
 
 ### Minor Changes
