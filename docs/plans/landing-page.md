@@ -1,8 +1,7 @@
 ---
 hidden: true
+title: Taste Lint landing page and docs launch
 ---
-
-# Taste Lint landing page and docs launch
 
 Authoritative implementation plan. Prepared 2026-09-21 from the local taste-lint, dnd-grid, and blode-co checkouts, plus a sibling font-product app's web shell. Implemented and deployed 2026-09-21. User amendment: use Turborepo.
 

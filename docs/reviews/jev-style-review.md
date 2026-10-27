@@ -3,8 +3,6 @@ title: Jev style review
 hidden: true
 ---
 
-# Jev style review
-
 `craft-arbitrary-value-class` now requires a Jev judgment. Code still extracts literal candidates and excludes token references, CSS expressions and assets expressed as URLs. The semantic question asks whether a value serves reusable visual styling worth reviewing for a named token. It does not claim a defect, identify an existing replacement or ask Jev to calculate a scale difference. The earlier proposal to prove near-token substitution remains a different, unsupported claim.
 
 ## Implementation

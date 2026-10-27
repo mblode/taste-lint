@@ -3,8 +3,6 @@ title: Task-context verification
 hidden: true
 ---
 
-# Task-context verification
-
 ## User value
 
 The next bottleneck was evidence quality: the same six-rule default incorrectly flagged a nested Clear filters button, optional No project choices, search pickers, and a sign-in error with a nested recovery link. Smaller reports alone did not fix these errors.

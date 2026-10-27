@@ -3,8 +3,6 @@ title: Semantic verification plan
 hidden: true
 ---
 
-# Make the default scan worth acting on
-
 Authoritative plan: `docs/plans/semantic-verification.md`. Reviewed against `eff70b2`, taste-lint 0.0.6, on 2026-09-20. Replaces the imported-button-first plan.
 
 ## Outcome

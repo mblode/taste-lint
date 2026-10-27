@@ -1,8 +1,7 @@
 ---
 hidden: true
+title: Broader catalog evidence procedures
 ---
-
-# Broader catalog evidence procedures
 
 The catalog has 168 shipped rules: 113 YAML rules and 55 code rules. This pass addresses all 36 raw-source searches without a semantic or code verifier. Those searches previously inherited titles such as "Focus not restored" or "useFormStatus misuse" even when their regex only located a dialog or hook.
 

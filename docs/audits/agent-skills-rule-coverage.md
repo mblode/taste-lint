@@ -3,8 +3,6 @@ title: All-skills rule coverage audit
 hidden: true
 ---
 
-# All-skills rule coverage audit
-
 ## Scope and method
 
 Inventory: all 27 directories containing `SKILL.md` in sibling `../agent-skills`, including nested `rules`, `rules-arch`, `rules-ax`, references, guidelines, direction documents, probes, scripts, and evaluation assets. The companion [inventory](agent-skills-inventory.json) records all 538 files, their hashes, section headings for Markdown, and links to shipped rules by source path. It contains the source checkout revision and whether that checkout was dirty.

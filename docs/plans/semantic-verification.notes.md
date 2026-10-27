@@ -3,8 +3,6 @@ title: Semantic verification notes
 hidden: true
 ---
 
-# Semantic verification implementation notes
-
 ## Deviations
 
 - The existing resolver does not load project Tailwind themes. The implementation supports explicit pixel font tokens from `tailwind.theme`; other scale families and unresolved values abstain. It adds no filesystem reads, CSS interpreter, dependency, command, or onboarding step.

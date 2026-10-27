@@ -3,8 +3,6 @@ title: What five models get wrong in UI and copy
 hidden: true
 ---
 
-# What five models get wrong in UI and copy (2026-09-23)
-
 `scripts/generate-slop.mjs` asks GPT-6 Astra, GPT-6 Sol, Claude Opus 5.5, Claude Fable 5.1 and Grok 4.7 for the same six screens and six pieces of copy about Northwind, a made-up sync app. Each prompt carries five facts and nothing else, so any customer, stat, setting or comparison in the output is invented. Outputs go to `results/slop/` (ignored).
 
 Status: all 60 outputs, linted live with every rule. Generation cost is in `results/slop/usage.jsonl`; the live lint of all 60 cost under $0.10.

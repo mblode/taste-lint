@@ -3,8 +3,6 @@ title: Calibrate the judge against your own labels
 hidden: true
 ---
 
-# Calibrate taste-lint's judge against your own labels
-
 Authoritative plan: `docs/plans/calibrated-judge.md`. Source: Vlad Gavrilov, "Scale your taste: why you should calibrate your LLM judge", VCMC #4, 23/9.
 
 ## Outcome

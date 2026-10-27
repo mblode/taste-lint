@@ -3,8 +3,6 @@ title: Taste-lint review and tidy
 hidden: true
 ---
 
-# Taste-lint review and tidy
-
 Rating after this pass: **7/10**. This is an engineering judgment, not a measured accuracy score.
 
 The architecture has useful boundaries: extraction produces units, the shared judge owns evaluation, deterministic checks own measurement, and reporting preserves rule-level evidence. Provider responses are validated, errors are sanitized, cache entries are isolated by question/state/model, and semantic rules remain advisory until tuned. The CLI has useful machine-readable output and packaged-artifact checks.
