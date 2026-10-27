@@ -9,7 +9,7 @@ source:
   {
     repo: mblode/agent-skills,
     path: skills/ghostwriter/references/tells.md,
-    line: 12,
+    line: 15,
   }
 unit: [paragraph, heading, jsx-text]
 mechanical:

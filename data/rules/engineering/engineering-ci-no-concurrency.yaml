@@ -4,8 +4,8 @@ title: Pull request runs are never cancelled
 categoryId: ci-pipeline
 source:
   repo: mblode/agent-skills
-  path: skills/ci-speedup/references/levers.md
-  line: 27
+  path: skills/ci-speedup/references/lanes.md
+  line: 110
 scope:
   include:
     - "**/.github/workflows/*.{yml,yaml}"
@@ -19,14 +19,14 @@ preconditions:
   notGenerated: true
 severity: minor
 fix:
-  hint: "Add concurrency with group: ${{ github.workflow }}-${{ github.ref }} and cancel-in-progress: ${{ github.event_name == 'pull_request' }}, so a new push cancels the superseded run."
+  hint: "Add concurrency with group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }} and cancel-in-progress: ${{ github.event_name == 'pull_request' }}, so a new pull request push cancels the superseded run while main runs coalesce and are never cancelled."
 status: review-only
 review:
   applicability: A workflow runs on pull requests with no concurrency group.
   exceptions: Workflows whose runs are cheap and fast enough that overlap costs nothing.
   evidence: How long the workflow runs and how often pushes supersede each other.
-  verification: Push twice to a pull request and confirm the first run is cancelled.
-  sourceHash: a2352ef98dc23b6ef110d7dd81b0657b2729328e288b379bfdef99e6c0cec519
+  verification: Push twice to a pull request and confirm the first run is cancelled, and that a run on main is never cancelled.
+  sourceHash: 322c7297fc92adc995ecac4725fefff063f4f31b21f3929e2bc19f245f0b210d
 handWritten:
   - mechanical
   - fix

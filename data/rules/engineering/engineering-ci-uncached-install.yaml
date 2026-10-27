@@ -5,7 +5,7 @@ categoryId: ci-pipeline
 source:
   repo: mblode/agent-skills
   path: skills/ci-speedup/references/levers.md
-  line: 35
+  line: 31
 scope:
   include:
     - "**/.github/workflows/*.{yml,yaml}"
@@ -25,7 +25,7 @@ review:
   exceptions: Workflows that run rarely, or runners with a warm local cache.
   evidence: Install time in recent runs.
   verification: Add the cache and compare install time over two runs.
-  sourceHash: a2352ef98dc23b6ef110d7dd81b0657b2729328e288b379bfdef99e6c0cec519
+  sourceHash: 789455f9421f0f6a05c8d9c28a1f98d97c0390ffd71390156f3ebec059778f70
 handWritten:
   - mechanical
   - fix

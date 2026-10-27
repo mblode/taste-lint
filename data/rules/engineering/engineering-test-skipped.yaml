@@ -5,7 +5,7 @@ categoryId: test-value
 source:
   repo: mblode/agent-skills
   path: skills/test-audit/SKILL.md
-  line: 39
+  line: 51
 scope:
   include:
     - "**/*.{test,spec}.{ts,tsx,js,jsx,mts,mjs,cts,cjs}"
@@ -19,14 +19,14 @@ preconditions:
   notGenerated: true
 severity: minor
 fix:
-  hint: Fix and re-enable the test, or delete it. A skipped test reads as coverage and guards nothing.
+  hint: Unskip the test and run it before anything else; never delete it on sight. If it passes, keep it enabled. If it fails, treat it as a possible product bug and fix the code it covers.
 status: review-only
 review:
   applicability: A skipped or todo test sits in a committed test file.
   exceptions: A skip gated on platform or environment with a stated reason, and todo entries tracked in an issue.
-  evidence: Why it was skipped (history, a linked issue) and whether the behaviour is covered elsewhere.
-  verification: Re-enable and run it, or delete it and confirm another test covers the behaviour.
-  sourceHash: b86bfae2cd78dfb2c26a1ee7100f46af5d134fb48df2db2047f39221605a00ea
+  evidence: Why it was skipped (history, a linked issue) and whether it passes or fails once unskipped.
+  verification: Unskip and run it. A pass stays enabled; a failure is reproduced and fixed in the code it covers.
+  sourceHash: f3548ddd22bbe9de1f1f2dbba77c9c51bced396eea0c19afb538cfd5809041ab
 handWritten:
   - mechanical
   - fix

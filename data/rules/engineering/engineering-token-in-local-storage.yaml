@@ -36,7 +36,7 @@ review:
   exceptions: Non-secret values whose key happens to contain token, such as a design token name.
   evidence: What the stored value is and who can read it.
   verification: Move it to an HttpOnly cookie and confirm the session still works.
-  sourceHash: 14c29b587dd2c6e09ce78eed32aec35fa504404da48fb1d0fcb8c5653936384c
+  sourceHash: 2c258b2fba43ae087a966aa8101be6eb9fce50b9142cfde8fc16830c0b18e392
 handWritten:
   - mechanical
   - fix
