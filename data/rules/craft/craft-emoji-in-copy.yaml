@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern in JavaScript syntax.
+id: craft-emoji-in-copy
+title: Emoji in interface copy
+categoryId: generic-decoration
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-emoji-in-copy.md
+  line: 10
+  ruleId: slop-emoji-in-copy
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '(?<![=-])>[^<{]*?(?:[A-Za-z][^<{]*?[\u{1F300}-\u{1FAFF}✨⚡✅❌⭐❤]|[\u{1F300}-\u{1FAFF}✨⚡✅❌⭐❤]️?\s*[A-Za-z])|\b(?:title|label|heading|description|subtitle|cta|text)\s*[:=]\s*\{?\s*["''`](?:[^"''`\n]*?[A-Za-z][^"''`\n]*?[\u{1F300}-\u{1FAFF}✨⚡✅❌⭐❤]|[\u{1F300}-\u{1FAFF}✨⚡✅❌⭐❤]️?\s*[A-Za-z])'
+  flags: gu
+severity: minor
+fix:
+  hint: Say it in words, or use the project's icon component with a label. An emoji renders differently on every platform and is read aloud by name.
+status: review-only
+review:
+  applicability: "An emoji shares a text run with words in JSX text or a copy prop."
+  exceptions: "User content and its demos (chat, comments), reactions, emoji pickers and status presets, a brand whose mark is one emoji."
+  evidence: "Whether the product wrote the string or the user did."
+  verification: "Confirm the copy is the product's own, then replace the emoji with words or an icon."
+  sourceHash: 5fc44f9f0d3b83c80d4b519c443a122e2542f4d0fbd8290aab99ca50a9657be5
+handWritten: [mechanical]

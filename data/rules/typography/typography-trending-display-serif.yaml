@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern for loading the face.
+id: typography-trending-display-serif
+title: Instrument Serif as the default display face
+categoryId: type-voice
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-trending-display-serif.md
+  line: 10
+  ruleId: slop-trending-display-serif
+scope:
+  include: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.css"]
+unit: [source]
+mechanical:
+  regex: 'Instrument_Serif\s*\(|Instrument\+Serif|font-family:\s*["'']?Instrument Serif'
+  flags: gu
+severity: minor
+fix:
+  hint: Pick the display face for the product's tone. If Instrument Serif stays, leave its tracking at the font's default.
+status: review-only
+review:
+  applicability: "The project loads Instrument Serif."
+  exceptions: "A brand that already uses Instrument Serif in its logo, print, or design system; a single editorial accent."
+  evidence: "The brand kit or design-system.md, and whether headings set in the face carry negative tracking."
+  verification: "Confirm nothing in the brand chose the face, then replace it or reset its tracking."
+  sourceHash: 07e954a99210395752e866b5ed37dc434706d8f9fdf3219afb005bf927c31fe6
+handWritten: [mechanical]

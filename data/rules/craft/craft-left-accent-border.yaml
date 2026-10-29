@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern in JavaScript syntax.
+id: craft-left-accent-border
+title: A coloured left border on cards that are not callouts
+categoryId: elevation-and-edges
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-left-accent-border.md
+  line: 10
+  ruleId: slop-left-accent-border
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '<(?!blockquote\b)[A-Za-z][\w.]*\b(?=[^>]*?\bborder-l-(?:2|4|8|\[\d+px\])(?![\w-]))(?=[^>]*?\bborder-(?:l-)?(?!(?:gray|zinc|slate|neutral|stone|border|input|muted|transparent|white|black)\b)(?:[a-z]+-\d{2,3}|primary|accent|brand)\b)(?=[^>]*?\brounded(?:-[a-z0-9]+)?\b)[^>]*>'
+  flags: gu
+severity: minor
+fix:
+  hint: Separate cards with space or a quiet surface. Keep the left rule for the notice or quote that needs it.
+status: review-only
+review:
+  applicability: "A rounded element has a thick left border in a non-neutral colour."
+  exceptions: "Real callouts and notices, blockquotes, and the active item in a navigation list."
+  evidence: "Whether the element is a card or list item, or a notice with a severity."
+  verification: "Confirm the element is not a callout, then replace the rule with spacing or a surface."
+  sourceHash: 7c5217ab0d98bdeab035aea4beba29209865cf7e9923e30a1ddf3d11d0cc3a98
+handWritten: [mechanical]
