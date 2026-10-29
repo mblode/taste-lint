@@ -1,0 +1,26 @@
+# Hand-ported: the upstream rg pattern in JavaScript syntax.
+id: motion-pulse-dot
+title: A pulsing dot with nothing live behind it
+categoryId: motion-restraint
+source:
+  repo: mblode/agent-skills
+  path: skills/ui-design/rules/slop-pulse-dot.md
+  line: 10
+  ruleId: slop-pulse-dot
+scope:
+  include: ["**/*.tsx", "**/*.jsx"]
+unit: [source]
+mechanical:
+  regex: '<(?:span|div)\b(?=[^>]*?\banimate-(?:ping|pulse)\b)(?=[^>]*?\brounded-full\b)(?=[^>]*?\b(?:size-(?:1|1\.5|2|2\.5|3)|h-(?:1|1\.5|2|2\.5|3))(?![\w.-]))[^>]*>'
+  flags: gu
+severity: minor
+fix:
+  hint: Drop the dot, or render it only while the state it names is true. A pulse claims something is happening right now.
+status: review-only
+review:
+  applicability: "A dot 12px or smaller is rounded and carries animate-ping or animate-pulse."
+  exceptions: "A dot bound to real state (recording, connected, building), and product mocks showing behaviour the product has."
+  evidence: "What decides whether the dot renders, and whether its label is a literal string."
+  verification: "Confirm the dot always renders beside a literal label, then remove it or bind it to the state."
+  sourceHash: fc281f9687c66aa79abbeef40815305cad850cac9bf3bdf4dda1577dc6b72765
+handWritten: [mechanical]

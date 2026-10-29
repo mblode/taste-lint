@@ -141,6 +141,54 @@ describe.each([
     "<p>14-day trial</p><p>14 day trial</p><p>Start your 14-day trial</p><p>14-day free</p>",
     "<p>14-day trial, no card.</p><p>$8 per seat per month.</p>",
   ],
+  [
+    "craft-emoji-in-copy",
+    "a.tsx",
+    "<h1>Ship faster 🚀</h1>",
+    '<span>👍</span>\n<button onClick={() => toast("Done")}>\n  🎉\n</button>',
+  ],
+  [
+    "craft-emoji-in-copy",
+    "a.tsx",
+    '<Button label="✨ Generate summary" />',
+    'const statuses = [{ text: "On vacation", emoji: "🌴" }];',
+  ],
+  [
+    "motion-pulse-dot",
+    "a.tsx",
+    '<span className="size-2 animate-ping rounded-full bg-green-500" />',
+    '<div className="size-10 animate-pulse rounded-full bg-muted" />',
+  ],
+  [
+    "typography-trending-display-serif",
+    "a.tsx",
+    'const serif = Instrument_Serif({ weight: "400", subsets: ["latin"] });',
+    'const sans = Inter({ subsets: ["latin"] });',
+  ],
+  [
+    "craft-left-accent-border",
+    "a.tsx",
+    '<div className="rounded-lg border-l-4 border-violet-500 p-4">Sync</div>',
+    '<blockquote className="rounded-md border-l-4 border-violet-500 pl-4">Quote</blockquote>\n<div className="rounded-lg border-l-4 border-zinc-200 p-4">Row</div>',
+  ],
+  [
+    "typography-italic-accent-word",
+    "a.tsx",
+    '<h1>Ship <em>faster</em></h1>\n<h2>Built for <span className="font-serif italic">teams</span></h2>',
+    "<h1>Ship <em>faster</em></h1>\n<h2>Built for teams</h2>",
+  ],
+  [
+    "craft-opacity-ladder",
+    "a.tsx",
+    '<p className="text-white/80">a</p><p className="text-white/60">b</p><p className="text-white/55">c</p><p className="text-white/40">d</p>',
+    '<p className="text-white/80">a</p><p className="text-white/60">b</p><p className="text-white/60">c</p>',
+  ],
+  [
+    "typography-mono-overuse",
+    "a.tsx",
+    '<p className="font-mono">a</p><span className="font-mono">b</span><a className="font-mono">c</a><button className="font-mono">d</button><dt className="font-mono">e</dt>',
+    '<code className="font-mono">a</code><pre className="font-mono">b</pre><span className="font-mono">c</span><td className="font-mono">d</td>',
+  ],
 ])("%s", (id, file, bad, good) => {
   it("fires on the tell", () => {
     expect(fires(id, file, bad)).toBe(true);
