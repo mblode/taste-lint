@@ -56,7 +56,7 @@ export const homeMarkdown = (): string => {
     "",
     HOME_COPY.try.body,
     "",
-    `The playground runs in the browser at ${siteConfig.url}#try; this is the worked example below it.`,
+    `The playground runs in the browser at ${siteConfig.url}#try; here is one example.`,
     "",
     ...beforeAfter(),
     `## ${HOME_COPY.rules.heading}`,

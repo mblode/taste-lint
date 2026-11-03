@@ -16,16 +16,16 @@ export function CtaClose({
   return (
     <section
       aria-labelledby="cta-close-title"
-      className="border-t px-(--row-padding) py-16 sm:py-24"
+      className="px-(--row-padding) py-24 sm:py-32"
     >
       <h2
-        className="max-w-[20ch] text-4xl font-medium tracking-tight text-balance sm:text-6xl"
+        className="max-w-[20ch] text-4xl font-semibold tracking-tight text-balance sm:text-6xl"
         id="cta-close-title"
       >
         {title}
       </h2>
       {description && (
-        <p className="mt-5 max-w-[56ch] text-lg leading-7 text-pretty">
+        <p className="mt-6 max-w-[56ch] text-lg leading-7 text-pretty text-muted-foreground">
           {description}
         </p>
       )}

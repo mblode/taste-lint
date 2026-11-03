@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { CtaClose } from "../components/marketing/cta-close.js";
 import { MarketingHero } from "../components/marketing/marketing-hero.js";
 import { ProofStats } from "../components/marketing/proof-stats.js";
-import { BeforeAfter } from "../components/playground/before-after.js";
 import { CopyPlayground } from "../components/playground/copy-playground.js";
 import { RuleList } from "../components/rule-list.js";
 import { SectionViews } from "../components/section-views.js";
@@ -59,7 +58,7 @@ export default async function Home() {
   const hasProof = proof.some((stat) => stat.value !== null);
 
   return (
-    <>
+    <div className="mx-auto max-w-6xl">
       <script
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(siteGraph).replaceAll("<", "\\u003c"),
@@ -87,34 +86,33 @@ export default async function Home() {
 
         <section
           aria-labelledby="try-heading"
-          className="border-t px-(--row-padding) py-12 sm:py-20"
+          className="px-(--row-padding) py-16 sm:py-24"
           id="try"
         >
           <h2
-            className="text-3xl font-medium tracking-tight sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight sm:text-4xl"
             id="try-heading"
           >
             {HOME_COPY.try.heading}
           </h2>
-          <p className="mt-4 mb-8 max-w-[60ch] leading-7 text-pretty">
+          <p className="mt-4 mb-10 max-w-[60ch] text-lg leading-7 text-pretty text-muted-foreground">
             {HOME_COPY.try.body}
           </p>
           <CopyPlayground totalRules={RULES.total} />
-          <BeforeAfter />
         </section>
 
         <section
           aria-labelledby="rules-heading"
-          className="border-t px-(--row-padding) py-12 sm:py-20"
+          className="px-(--row-padding) py-16 sm:py-24"
           id="rules"
         >
           <h2
-            className="max-w-[24ch] text-3xl font-medium tracking-tight text-balance sm:text-4xl"
+            className="max-w-[24ch] text-3xl font-semibold tracking-tight text-balance sm:text-4xl"
             id="rules-heading"
           >
             {HOME_COPY.rules.heading}
           </h2>
-          <p className="mt-4 max-w-[60ch] leading-7 text-pretty">
+          <p className="mt-4 max-w-[60ch] text-lg leading-7 text-pretty text-muted-foreground">
             {HOME_COPY.rules.body}
           </p>
           <a
@@ -131,7 +129,7 @@ export default async function Home() {
         {hasProof && (
           <section
             aria-labelledby="proof-heading"
-            className="border-t px-(--row-padding) py-12 sm:py-16"
+            className="px-(--row-padding) py-16 sm:py-24"
           >
             <h2
               className="mb-6 text-sm text-muted-foreground"
@@ -145,11 +143,11 @@ export default async function Home() {
 
         <section
           aria-labelledby="faq-heading"
-          className="border-t px-(--row-padding) py-12 sm:py-20"
+          className="px-(--row-padding) py-16 sm:py-24"
           id="faq"
         >
           <h2
-            className="mb-8 text-3xl font-medium tracking-tight sm:text-4xl"
+            className="mb-8 text-3xl font-semibold tracking-tight sm:text-4xl"
             id="faq-heading"
           >
             {HOME_COPY.faq.heading}
@@ -193,7 +191,7 @@ export default async function Home() {
           </a>
         </div>
         <nav aria-label="Related projects">
-          <ul className="flex flex-wrap items-center justify-center gap-x-3 text-muted-foreground/30">
+          <ul className="flex flex-wrap items-center justify-center gap-x-6">
             {[
               {
                 href: "https://blode.co/taste-training",
@@ -205,9 +203,8 @@ export default async function Home() {
               },
               { href: siteConfig.links.github, label: "GitHub" },
               { href: siteConfig.links.npm, label: "npm" },
-            ].map((link, index) => (
-              <li className="flex items-center gap-3" key={link.label}>
-                {index > 0 && <span aria-hidden="true">·</span>}
+            ].map((link) => (
+              <li key={link.label}>
                 <a
                   className="inline-flex min-h-12 min-w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
                   href={link.href}
@@ -219,6 +216,6 @@ export default async function Home() {
           </ul>
         </nav>
       </footer>
-    </>
+    </div>
   );
 }

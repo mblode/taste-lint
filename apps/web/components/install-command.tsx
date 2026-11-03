@@ -78,7 +78,7 @@ function CommandPanel({
         </code>
         <button
           aria-label={`Copy install command ${label.toLowerCase()}`}
-          className="inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 font-medium text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 active:scale-[0.97] [&_svg]:size-4"
+          className="inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 font-medium text-primary-foreground transition-[background-color,transform] duration-150 ease-out hover:bg-primary/90 motion-safe:active:scale-[0.97] [&_svg]:size-4"
           onClick={copy}
           type="button"
         >

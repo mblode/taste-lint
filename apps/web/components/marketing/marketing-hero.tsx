@@ -21,23 +21,23 @@ export function MarketingHero({
   return (
     <section
       aria-labelledby="hero-title"
-      className="px-(--row-padding) pt-8 pb-12 sm:pt-16 sm:pb-20"
+      className="px-(--row-padding) pt-12 pb-16 sm:pt-24 sm:pb-24"
     >
       {eyebrow && (
-        <p className="mb-4 text-base font-medium sm:mb-6 sm:text-lg">
+        <p className="mb-4 text-base font-medium text-muted-foreground sm:mb-6 sm:text-lg">
           {eyebrow}
         </p>
       )}
       <h1
-        className="max-w-[14ch] text-[clamp(2.75rem,9vw,6.5rem)] leading-[0.95] font-medium tracking-tight text-balance"
+        className="max-w-[14ch] text-5xl leading-[0.95] font-semibold tracking-tight text-balance sm:text-7xl lg:text-8xl"
         id="hero-title"
       >
         {title}
       </h1>
-      <p className="mt-5 max-w-[48ch] text-xl leading-8 text-pretty sm:mt-6">
+      <p className="mt-6 max-w-[44ch] text-xl leading-8 text-pretty text-muted-foreground sm:mt-8">
         {description}
       </p>
-      <div className="mt-6 sm:mt-8">{action}</div>
+      <div className="mt-8 sm:mt-10">{action}</div>
       {secondary && <div className="mt-1">{secondary}</div>}
     </section>
   );

@@ -38,7 +38,7 @@ export const PLAYGROUND_SAMPLES: PlaygroundSample[] = [
   },
 ];
 
-/** The before/after pair below the playground. */
+/** The worked example in the Markdown mirror, for agents that cannot use the playground. */
 export const BEFORE_AFTER = {
   after: "Changes saved",
   before: "Successfully saved your changes! 🎉",

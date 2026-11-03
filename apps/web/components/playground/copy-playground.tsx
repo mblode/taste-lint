@@ -45,26 +45,26 @@ export function MarkedLine({
 export function FindingItem({ finding }: { finding: Finding }) {
   const { rule } = finding;
   return (
-    <li className="border-s-2 border-foreground py-1 ps-4">
-      <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+    <li className="py-5 first:pt-0">
+      <p className="font-medium">{rule.title}</p>
+      <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-muted-foreground">
         <a
           className="-my-3.5 py-3.5 font-mono underline underline-offset-4 hover:decoration-2"
           href={ruleSourceUrl(rule.id)}
         >
           {rule.id}
         </a>
-        <span className="text-muted-foreground">Line {finding.line}</span>
+        <span>Line {finding.line}</span>
         {rule.decidedBy === "jev" && (
-          <span className="text-muted-foreground">
-            Jev makes the final call in the CLI
-          </span>
+          <span>Jev makes the final call in the CLI</span>
         )}
       </p>
-      <p className="mt-1 font-medium">{rule.title}</p>
-      <p className="mt-2 font-mono text-sm leading-6 break-words">
+      <p className="mt-3 font-mono text-sm leading-6 break-words">
         <MarkedLine matches={finding.matches} text={finding.text} />
       </p>
-      <p className="mt-2 max-w-[56ch] text-sm leading-6">Fix: {rule.fix}</p>
+      <p className="mt-3 max-w-[56ch] text-sm leading-6 text-muted-foreground">
+        Fix: {rule.fix}
+      </p>
     </li>
   );
 }
@@ -100,8 +100,8 @@ export function CopyPlayground({ totalRules }: { totalRules: number }) {
       : `${findings.length} finding${findings.length === 1 ? "" : "s"} from ${ruleCount} rules.`;
 
   return (
-    <div className="grid min-w-0 items-start gap-8 lg:grid-cols-2 lg:gap-16">
-      <div className="min-w-0">
+    <div className="grid min-w-0 items-start gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="min-w-0 lg:sticky lg:top-8">
         <fieldset className="flex flex-wrap gap-x-5">
           <legend className="mb-1 text-sm text-muted-foreground">
             Start from a sample
@@ -141,8 +141,9 @@ export function CopyPlayground({ totalRules }: { totalRules: number }) {
           value={text}
         />
         <p className="mt-2 text-sm text-muted-foreground" id={`${ids}-hint`}>
-          One line is one string. It runs in your browser and nothing leaves the
-          page.
+          {text.length >= MAX_LENGTH
+            ? `Only the first ${MAX_LENGTH.toLocaleString("en-AU")} characters fit here. The CLI checks whole files.`
+            : "One line is one string. It runs in your browser and nothing leaves the page."}
         </p>
       </div>
       <div className="min-w-0">
@@ -150,7 +151,7 @@ export function CopyPlayground({ totalRules }: { totalRules: number }) {
           {summary}
         </p>
         {findings.length > 0 ? (
-          <ol aria-label="Findings" className="mt-4 flex flex-col gap-6">
+          <ol aria-label="Findings" className="mt-6 divide-y">
             {findings.map((finding) => (
               <FindingItem
                 finding={finding}
@@ -159,7 +160,7 @@ export function CopyPlayground({ totalRules }: { totalRules: number }) {
             ))}
           </ol>
         ) : (
-          <p className="mt-2 max-w-[56ch] leading-7">
+          <p className="mt-2 max-w-[56ch] leading-7 text-muted-foreground">
             {text.trim()
               ? `The CLI runs all ${totalRules} rules on your repo, including the ones that read class names and layout.`
               : "Paste a button label, a toast or a hero line to check it."}

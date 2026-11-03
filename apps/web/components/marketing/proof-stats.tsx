@@ -24,8 +24,6 @@ export function ProofStats({ stats }: { stats: ProofStat[] }) {
               <a
                 className="-my-3.5 inline-block py-3.5 underline underline-offset-4 hover:decoration-2"
                 href={stat.href}
-                rel="noopener noreferrer"
-                target="_blank"
               >
                 {stat.label}
               </a>
@@ -33,7 +31,7 @@ export function ProofStats({ stats }: { stats: ProofStat[] }) {
               stat.label
             )}
           </dt>
-          <dd className="tabular-figures text-4xl font-medium tracking-tight sm:text-5xl">
+          <dd className="text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
             {format.format(stat.value)}
           </dd>
         </div>
